@@ -42,14 +42,6 @@ class ScanForm extends Component
             'user_id' => auth()->id(),
         ]);
 
-        // Put the scan into an array
-        $scan = [
-            'barcode' => $this->barcode,
-            'quantity' => $this->quantity,
-            'submitted' => false,
-            'user_id' => auth()->id(),
-        ];
-
         Log::channel('barcode')->info("{$this->barcode} Scanned");
 
         // Flash success message
@@ -57,9 +49,6 @@ class ScanForm extends Component
 
         // Stop the scanner
         $this->dispatch('stopScan');
-
-        // Dispatch the sync job
-        SyncBarcode::dispatch($scan)->delay(now()->addMinutes(1));
 
         // Reset the form
         $this->reset(['barcode', 'quantity']);

@@ -1,17 +1,6 @@
 <div>
-    <!-- Video feed -->
-
-    <div wire:loading.class.delay="opacity-100" wire:target="loadingCamera" class="mb-4">
-        <video
-                id="video"
-                class="w-full h-full border rounded-xl"
-                playsinline
-                autoplay
-        ></video>
-    </div>
-
     <!-- Controls -->
-    <div class="flex space-y-4">
+    <div class="flex flex-col space-y-4">
         @if(!$isScanning)
             <button
                     wire:click="startScan"
@@ -20,6 +9,14 @@
                 Start Scanner
             </button>
         @else
+            <div class="mb-4">
+                <video
+                        id="video"
+                        class="w-full h-full border rounded-xl"
+                        playsinline
+                        autoplay
+                ></video>
+            </div>
             <button
                     wire:click="stopScan"
                     class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded w-full"

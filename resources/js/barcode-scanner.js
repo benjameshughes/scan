@@ -37,10 +37,11 @@ window.addEventListener('livewire:initialized', function () {
                     sourceSelectPanel.style.display = 'none'
                 }
 
-                codeReader.decodeOnceFromVideoDevice(selectedDeviceId, 'video', (result, err) => {
+                codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', (result, err) => {
                     if (result) {
                         console.log(result)
                         Livewire.dispatch('result', [result])
+                        cardReader.reset()
                     }
                     if (err && !(err instanceof NotFoundException)) {
                         console.error(err)
