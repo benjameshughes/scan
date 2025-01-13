@@ -37,7 +37,7 @@ window.addEventListener('livewire:initialized', function () {
                     sourceSelectPanel.style.display = 'none'
                 }
 
-                codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', (result, err) => {
+                codeReader.decodeOnceFromVideoDevice(selectedDeviceId, 'video', (result, err) => {
                     if (result) {
                         console.log(result)
                         Livewire.dispatch('result', [result])
