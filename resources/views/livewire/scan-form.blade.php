@@ -9,6 +9,7 @@
                 class="block w-full mt-1"
                 placeholder="Enter barcode"
                 aria-describedby="barcode-error"
+                type="number"
         />
         @error('barcode')
         <p class="mt-2 text-sm text-red-600 dark:text-red-400" id="barcode-error">{{ $message }}</p>

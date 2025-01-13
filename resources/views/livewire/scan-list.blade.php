@@ -21,10 +21,10 @@
             <td class="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
                 {{$scan->submitted_at ?? 'Not Submitted'}}
             </td>
-            <td class="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
+            <td class="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white cursor-pointer">
                 <x-dropdown>
                     <x-slot name="trigger">
-                        <x-sui-menu-vertical class="w-6 h-6 cursor-pointer"/>
+                        Actions
                     </x-slot>
                     <x-slot name="content">
                         <a href="{{route('scan.show', $scan)}}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">View</a>
