@@ -10,6 +10,8 @@
                 placeholder="Enter barcode"
                 aria-describedby="barcode-error"
                 type="number"
+                pattern="[0-9]*"
+                inputmode="numeric"
         />
         @error('barcode')
         <p class="mt-2 text-sm text-red-600 dark:text-red-400" id="barcode-error">{{ $message }}</p>
@@ -21,6 +23,9 @@
         <x-input-label for="quantity">Quantity</x-input-label>
         <x-text-input
                 type="number"
+                pattern="[0-9]*"
+                inputmode="numeric"
+                defaultValue="1"
                 wire:model="quantity"
                 id="quantity"
                 name="quantity"
