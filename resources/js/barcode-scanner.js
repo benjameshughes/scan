@@ -1,6 +1,6 @@
 import {BrowserMultiFormatReader, NotFoundException} from "@zxing/library";
 
-window.addEventListener('livewire:initialized', function () {
+document.addEventListener('livewire:loaded', function () {
     let selectedDeviceId;
     let scannedCode;
 
