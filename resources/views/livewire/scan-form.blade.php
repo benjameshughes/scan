@@ -10,7 +10,7 @@
                 placeholder="Enter barcode"
                 aria-describedby="barcode-error"
                 type="number"
-                pattern="[0-9]*"
+                pattern="\d*"
                 inputmode="numeric"
         />
         @error('barcode')
@@ -23,7 +23,7 @@
         <x-input-label for="quantity">Quantity</x-input-label>
         <x-text-input
                 type="number"
-                pattern="[0-9]*"
+                pattern="\d*"
                 inputmode="numeric"
                 defaultValue="1"
                 wire:model="quantity"

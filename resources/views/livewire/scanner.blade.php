@@ -1,4 +1,14 @@
 <div>
+    <!-- Video element -->
+    <div class="mb-4">
+        <video
+                id="video"
+                class="w-full h-full border rounded-xl @if(!$isScanning) hidden @endif"
+                playsinline
+                autoplay
+        ></video>
+    </div>
+
     <!-- Controls -->
     <div class="flex flex-col space-y-4">
         @if(!$isScanning)
@@ -9,14 +19,6 @@
                 Start Scanner
             </button>
         @else
-            <div class="mb-4">
-                <video
-                        id="video"
-                        class="w-full h-full border rounded-xl"
-                        playsinline
-                        autoplay
-                ></video>
-            </div>
             <button
                     wire:click="stopScan"
                     class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded w-full"
@@ -24,6 +26,14 @@
                 Stop Scanner
             </button>
         @endif
+
+        <!-- Flash button -->
+        <button
+                wire:click="flash"
+                class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded w-full"
+        >
+            Flash
+        </button>
     </div>
 
     <div class="flex space-x-4">

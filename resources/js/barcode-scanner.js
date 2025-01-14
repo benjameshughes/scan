@@ -3,6 +3,7 @@ import {BrowserMultiFormatReader, NotFoundException} from "@zxing/library";
 document.addEventListener('livewire:initialized', function () {
     let selectedDeviceId;
     let scannedCode;
+    let video = null;
 
     const codeReader = new BrowserMultiFormatReader()
     const exceptionHandler = new NotFoundException()
@@ -51,17 +52,11 @@ document.addEventListener('livewire:initialized', function () {
                                 if (err && !(err instanceof NotFoundException)) {
                                     console.error(err);
                                     document.getElementById('result').textContent = err;
+                                    cardReader.reset();
                                 }
                             });
 
                             console.log(`Started continuous decode from camera with id ${selectedDevice}`);
-
-                            Livewire.on('stopScan', () => {
-                                codeReader.reset();
-                                resultDisplay.textContent = '';
-                                Livewire.dispatch('loadingCamera', [false]);
-                                console.log('Camera reset.');
-                            });
 
                             stream.getTracks().forEach(track => track.stop()); // Stop the stream once we get the device ID
 
@@ -120,6 +115,30 @@ document.addEventListener('livewire:initialized', function () {
         } else {
             // If Permissions API is not supported, fall back to directly requesting the camera
             askForPermissionAndInitializeCamera();
+        }
+
+        // Flash the camera
+        Livewire.on('flashOn', () => {
+            const video = document.getElementById('video');
+            if (video.srcObject && video.srcObject.active) {
+                video.srcObject.getVideoTracks()[0].applyConstraints({
+                    advanced: [{ torch: true }]
+                });
+                Livewire.dispatch('flashOn');
+            }else{
+                Livewire.dispatch('flashOff');
+            }
+        });
+    });
+
+    Livewire.on('stopScan', () => {
+        const video = document.getElementById('video');
+
+        // Check if the video element exists
+        if (video.srcObject && video.srcObject.active) {
+            video.getTracks().forEach(track => track.stop());
+            video.srcObject = null;
+            console.log('Camera reset.');
         }
     });
 })
