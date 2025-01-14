@@ -13,7 +13,6 @@ window.addEventListener('livewire:initialized', function () {
 
     console.log('Boobies')
     Livewire.on('startScan', () => {
-        // Dispatch the loading event to indicate the camera is initializing
         Livewire.dispatch('loadingCamera', [true]);
 
         // Function to initialize the camera and start barcode scanning
@@ -27,8 +26,23 @@ window.addEventListener('livewire:initialized', function () {
                         return;
                     }
 
-                    // Select the first video input device
-                    selectedDeviceId = videoInputDevices[0].deviceId;
+                    // Find the back camera (rear-facing)
+                    let selectedDevice = null;
+                    for (let i = 0; i < videoInputDevices.length; i++) {
+                        const device = videoInputDevices[i];
+                        // Check if this device is a back camera (not front-facing)
+                        if (device.label.toLowerCase().includes('back') || device.kind === 'videoinput') {
+                            selectedDevice = device;
+                            break; // Found the back camera, no need to continue searching
+                        }
+                    }
+
+                    // If no back camera is found, default to the first available camera
+                    if (!selectedDevice) {
+                        selectedDevice = videoInputDevices[0]; // fallback to the first device
+                    }
+
+                    selectedDeviceId = selectedDevice.deviceId;
 
                     // If there are multiple devices, show a dropdown to let the user choose the camera
                     if (videoInputDevices.length > 1) {
@@ -123,6 +137,7 @@ window.addEventListener('livewire:initialized', function () {
             askForPermissionAndInitializeCamera();
         }
     });
+
 
 
 })

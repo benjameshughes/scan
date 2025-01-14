@@ -14,8 +14,7 @@
         "laravel/horizon": "^5.0",
         "laravel/tinker": "^2.9",
         "livewire/livewire": "^3.4",
-        "livewire/volt": "^1.0",
-        "sentry/sentry-laravel": "*"
+        "livewire/volt": "^1.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
