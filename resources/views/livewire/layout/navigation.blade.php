@@ -39,6 +39,9 @@ new class extends Component
                     <x-nav-link :href="route('scan.index')" :active="request()->routeIs('scan.index')" wire:navigate>
                         {{ __('Scans') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('scan.aggregated')" :active="request()->routeIs('scan.aggregated')" wire:navigate>
+                        {{ __('Aggregated') }}
+                    </x-nav-link>
                 </div>
             </div>
 
@@ -95,6 +98,9 @@ new class extends Component
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('scan.create')" :active="request()->routeIs('scan.create')" wire:navigate>
                 {{ __('Scan') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('scan.aggregated')" :active="request()->routeIs('scan.aggregated')" wire:navigate>
+                {{ __('Aggregated') }}
             </x-responsive-nav-link>
         </div>
 

@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateScanRequest;
 use App\Jobs\SyncBarcode;
 use App\Models\Scan;
 use Illuminate\Queue\Jobs\Job;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -71,7 +72,6 @@ class ScanController extends Controller
         //
     }
 
-
     /**
      * Sync the scan with the barcode
      */
@@ -86,5 +86,17 @@ class ScanController extends Controller
 
         // Redirect to the scan view
         return redirect()->route('scan.show', $scan);
+    }
+
+    /**
+     * Aggregate barcodes and sum quantities
+     */
+    public function aggregated(): View
+    {
+        $aggregatedScans = Scan::select('barcode', DB::raw('SUN(quantity as total_quantity'))
+            ->groupBy('barcode')
+            ->get();
+
+        return view('scan.aggregated', compact('aggregatedScans'));
     }
 }
