@@ -11,7 +11,6 @@ window.addEventListener('livewire:initialized', function () {
     const sourceSelectPanel = document.getElementById('sourceSelectPanel')
     const resultDisplay = document.getElementById('result')
 
-    console.log('Boobies')
     Livewire.on('startScan', () => {
         Livewire.dispatch('loadingCamera', [true]);
 
@@ -26,66 +25,52 @@ window.addEventListener('livewire:initialized', function () {
                         return;
                     }
 
-                    // Find the back camera (rear-facing)
+                    // Find the back camera (rear-facing) using facingMode constraint
                     let selectedDevice = null;
-                    for (let i = 0; i < videoInputDevices.length; i++) {
-                        const device = videoInputDevices[i];
-                        // Check if this device is a back camera (not front-facing)
-                        if (device.label.toLowerCase().includes('back') || device.kind === 'videoinput') {
-                            selectedDevice = device;
-                            break; // Found the back camera, no need to continue searching
+
+                    // Try to select the back camera explicitly using 'facingMode' constraint
+                    navigator.mediaDevices.getUserMedia({
+                        video: {
+                            facingMode: 'environment' // This selects the back camera
                         }
-                    }
+                    })
+                        .then(stream => {
+                            // Once the camera stream is obtained, we use the selected device
+                            const videoTracks = stream.getVideoTracks();
+                            if (videoTracks.length > 0) {
+                                selectedDevice = videoTracks[0].getSettings().deviceId;
+                            }
 
-                    // If no back camera is found, default to the first available camera
-                    if (!selectedDevice) {
-                        selectedDevice = videoInputDevices[0]; // fallback to the first device
-                    }
+                            // Start continuous barcode scanning from the selected video device
+                            codeReader.decodeFromVideoDevice(selectedDevice, 'video', (result, err) => {
+                                if (result) {
+                                    console.log(result);
+                                    Livewire.dispatch('result', [result]);
+                                    cardReader.reset();
+                                }
+                                if (err && !(err instanceof NotFoundException)) {
+                                    console.error(err);
+                                    document.getElementById('result').textContent = err;
+                                }
+                            });
 
-                    selectedDeviceId = selectedDevice.deviceId;
+                            console.log(`Started continuous decode from camera with id ${selectedDevice}`);
 
-                    // If there are multiple devices, show a dropdown to let the user choose the camera
-                    if (videoInputDevices.length > 1) {
-                        videoInputDevices.forEach((element) => {
-                            const sourceOption = document.createElement('option');
-                            sourceOption.text = element.label;
-                            sourceOption.value = element.deviceId;
-                            sourceSelect.appendChild(sourceOption);
+                            Livewire.on('stopScan', () => {
+                                codeReader.reset();
+                                resultDisplay.textContent = '';
+                                Livewire.dispatch('loadingCamera', [false]);
+                                console.log('Camera reset.');
+                            });
+
+                            stream.getTracks().forEach(track => track.stop()); // Stop the stream once we get the device ID
+
+                        })
+                        .catch((err) => {
+                            console.error('Error accessing back camera:', err);
+                            alert('Unable to access the back camera.');
+                            Livewire.dispatch('loadingCamera', [false]);
                         });
-
-                        // Change the selected device when the user picks another camera
-                        sourceSelect.onchange = () => {
-                            selectedDeviceId = sourceSelect.value;
-                        };
-
-                        // Optionally show the source select panel (you can modify this part based on your needs)
-                        // sourceSelectPanel.style.display = 'block';
-                    } else {
-                        sourceSelectPanel.style.display = 'none';
-                    }
-
-                    // Start continuous barcode scanning from the selected video device
-                    codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', (result, err) => {
-                        if (result) {
-                            console.log(result);
-                            Livewire.dispatch('result', [result]);
-                            cardReader.reset();
-                        }
-                        if (err && !(err instanceof NotFoundException)) {
-                            console.error(err);
-                            document.getElementById('result').textContent = err;
-                        }
-                    });
-
-                    console.log(`Started continuous decode from camera with id ${selectedDeviceId}`);
-
-                    Livewire.on('stopScan', () => {
-                        codeReader.reset();
-                        resultDisplay.textContent = '';
-                        Livewire.dispatch('loadingCamera', [false]);
-                        console.log('Camera reset.');
-                    });
-
                 })
                 .catch((err) => {
                     console.error('Error initializing camera:', err);
@@ -137,7 +122,5 @@ window.addEventListener('livewire:initialized', function () {
             askForPermissionAndInitializeCamera();
         }
     });
-
-
 
 })
