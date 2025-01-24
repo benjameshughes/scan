@@ -19,4 +19,20 @@ class Scan extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class, 'barcode', 'barcode');
+    }
+
+    /**
+     * Get the formatted date for humans.
+     * If the year is not this year, return the date in the format of "MMM d, YYYY".
+     */
+    public function dateForHumans()
+    {
+        return $this->created_at->format(
+            $this->created_at->year === now()->year ? 'MMM d, h:mm a' : 'MMM d, YYYY'
+        );
+    }
 }

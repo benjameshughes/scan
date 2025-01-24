@@ -37,10 +37,10 @@ new class extends Component
                         {{ __('Scan') }}
                     </x-nav-link>
                     <x-nav-link :href="route('scan.index')" :active="request()->routeIs('scan.index')" wire:navigate>
-                        {{ __('Scans') }}
+                        {{ __('Syncs') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('scan.aggregated')" :active="request()->routeIs('scan.aggregated')" wire:navigate>
-                        {{ __('Aggregated') }}
+                    <x-nav-link :href="route('products.index')" :active="request()->routeIs('products.index')" wire:navigate>
+                        {{ __('Products') }}
                     </x-nav-link>
                 </div>
             </div>
@@ -63,6 +63,9 @@ new class extends Component
                     <x-slot name="content">
                         <x-dropdown-link :href="route('profile')" wire:navigate>
                             {{ __('Profile') }}
+                        </x-dropdown-link>
+                        <x-dropdown-link :href="route('products.import')" wire:navigate>
+                            {{ __('Import Products') }}
                         </x-dropdown-link>
 
                         <!-- Authentication -->
@@ -93,7 +96,7 @@ new class extends Component
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" wire:navigate>
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('scan.index')" :active="request()->routeIs('scan.index')" wire:navigate>
+            <x-responsive-nav-link :href="route('scan.create')" :active="request()->routeIs('scan.create')" wire:navigate>
                 {{ __('Scans') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('scan.create')" :active="request()->routeIs('scan.create')" wire:navigate>

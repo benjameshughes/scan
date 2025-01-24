@@ -20,6 +20,9 @@
                 <dd class="mt-1 text-sm text-gray-900 dark:text-white">
                     {{$scan->barcode}}
                 </dd>
+                <dd class="mt-1 text-sm text-gray-900 dark:text-white">
+                    {{$scan->product->sku}}
+                </dd>
             </div>
             <div class="sm:col-span-1 pb-5 border-b border-gray-200 dark:border-gray-700">
                 <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -50,7 +53,7 @@
                     {{__('Actions')}}
                 </dt>
                 <dd class="mt-1 text-sm text-gray-900 dark:text-white">
-                    <a href="{{route('scan.sync', $scan)}}" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-500">
+                    <a href="{{route('scan.sync', $scan->id)}}" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-500">
                         {{__('Sync')}}
                     </a>
                     <span class="ml-2 text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-500">

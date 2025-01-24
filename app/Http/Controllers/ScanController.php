@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreScanRequest;
 use App\Http\Requests\UpdateScanRequest;
 use App\Jobs\SyncBarcode;
+use App\Models\Product;
 use App\Models\Scan;
+use App\Services\LinnworksApiService;
 use Illuminate\Queue\Jobs\Job;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -45,7 +47,7 @@ class ScanController extends Controller
     public function show(Scan $scan)
     {
         // Render the view
-        return view('scan.view', ['scan' => $scan]);
+        return view('scan.view', compact('scan'));
     }
 
     /**
@@ -73,16 +75,28 @@ class ScanController extends Controller
     }
 
     /**
+     * Show the scan form publicly
+     */
+
+    public function scan()
+    {
+        $layout = auth()->check() ? 'app' : 'guest';
+        return view('scan.index')->layout('layouts.' . $layout);
+    }
+
+    /**
      * Sync the scan with the barcode
      */
-    public function sync(Scan $scan)
+    public function sync(int $scanId)
     {
-        $jobId = Str::uuid();
+        $scan = Scan::findOrFail($scanId);
+
         // Dispatch a syncBarcode job
-        SyncBarcode::dispatch($scan)->delay(now()->addMinutes(1));
+//        SyncBarcode::dispatch($scanId)->delay(now()->addMinutes(1));
+        SyncBarcode::dispatch($scanId);
 
         // Ternery operator to set the status
-        session()->flash('status', $jobId === $scan->job_id ? 'Syncing' : 'Synced');
+        session()->flash('status', 'Syncing...');
 
         // Redirect to the scan view
         return redirect()->route('scan.show', $scan);
@@ -91,7 +105,7 @@ class ScanController extends Controller
     /**
      * Aggregate barcodes and sum quantities
      */
-    public function aggregated(): View
+    public function aggregated()
     {
         $aggregatedScans = Scan::select('barcode', DB::raw('SUN(quantity as total_quantity'))
             ->groupBy('barcode')

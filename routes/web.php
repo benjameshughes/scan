@@ -1,30 +1,73 @@
 <?php
 
+use App\Http\Controllers\LinnworksController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ScanController;
-use App\Livewire\ScanView;
-use App\Models\Scan;
+use App\Services\LinnworksApiService;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'welcome');
+/*
+|--------------------------------------------------------------------------
+| Public Routes
+|--------------------------------------------------------------------------
+*/
+//Route::redirect('/', 'dashboard')->name('home');
+Route::redirect('/', 'scanner')->name('home');
+Route::get('scanner', [ScanController::class, 'scan'])->name('scan.scan');
 
-Route::view('dashboard', 'dashboard')
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
+/*
+|--------------------------------------------------------------------------
+| Authentication Required Routes
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'verified'])->group(function () {
+    // Dashboard & Profile
 
-// Breeze profile
-Route::view('profile', 'profile')
-    ->middleware(['auth', 'verified'])
-    ->name('profile');
+    Route::view('dashboard', 'dashboard')->name('dashboard');
+    Route::view('profile', 'profile')->name('profile');
 
-Route::resource('scan', ScanController::class)
-    ->middleware(['auth', 'verified']);
+    /*
+    |--------------------------------------------------------------------------
+    | Scanning Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::resource('scan', ScanController::class);
+    Route::prefix('scan')->name('scan.')->group(function () {
+        Route::get('aggregated', [ScanController::class, 'aggregated'])->name('aggregated');
+        Route::get('{scanId}/sync', [ScanController::class, 'sync'])->name('sync');
+    });
 
-// Sync route
-Route::get('scan/{scan}/sync', [ScanController::class, 'sync'])->name('scan.sync')
-    ->middleware(['auth', 'verified']);
+    /*
+    |--------------------------------------------------------------------------
+    | Linnworks Integration Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('linnworks')->name('linnworks.')->group(function () {
+        // API Routes
+        Route::controller(LinnworksApiService::class)->group(function () {
+            Route::get('auth', 'authorizeByApplication')->name('auth');
+            Route::get('stock/{sku}', 'getStockLevel')->name('stock');
+        });
 
-// Aggregated Scans
-Route::get('scan/aggregated', [ScanController::class, 'aggregated'])->name('scan.aggregated')
-    ->middleware(['auth', 'verified']);
+        // Profile & Resource Routes
+        Route::view('profile', 'linnworks.profile')->name('profile');
+        Route::resource('/', LinnworksController::class);
+    });
 
-require __DIR__.'/auth.php';
+    /*
+    |--------------------------------------------------------------------------
+    | Product Management Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('products')->name('products.')->group(function () {
+        Route::resource('/', ProductController::class);
+        Route::view('import', 'imports.product')->name('import');
+    });
+});
+
+/*
+|--------------------------------------------------------------------------
+| Authentication Routes
+|--------------------------------------------------------------------------
+*/
+require __DIR__ . '/auth.php';

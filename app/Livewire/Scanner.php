@@ -33,7 +33,7 @@ class Scanner extends Component
     public function stopScan()
     {
         $this->isScanning = false;
-//        $this->dispatch('stopScan');
+        $this->dispatch('stopScan');
     }
 
     #[On('flashOn')]

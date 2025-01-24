@@ -3,47 +3,60 @@
 namespace App\Livewire;
 
 use App\Models\Scan;
-use Livewire\Attributes\Computed;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class ScanList extends Component
 {
-    public object $scans;
-
-    #[Computed()]
-    public function aggregated()
+    use WithPagination;
+    public int $perPage = 10;
+    public $search = '';
+    public $sortField = 'barcode';
+    public $sortDirection = 'asc';
+    protected $queryString = ['search', 'sortField', 'sortDirection'];
+    public array $perPageOptions = [10, 25, 50, 100];
+    public function sortBy($field)
     {
-        $aggregatedScans = Scan::query()
-            ->select('barcode')
-            ->groupBy('barcode')
-            ->get()
-            ->map(function($scan) {
-                // Manually sum the quantities for each barcode
-                $scan->total_quantity = Scan::where('barcode', $scan->barcode)->sum('quantity');
-                return $scan;
-            });
+        if ($this->sortField = $field)
+        {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
 
-        return $this->scans = $aggregatedScans;
+        } else {
+            $this->sortDirection = 'asc;';
+        }
     }
 
-    #[Computed()]
-    public function all()
-    {
-        return $this->scans = Scan::all();
-    }
-
-    // Selector between aggregated and all scans
-    public function getSelected()
-    {
-        return $this->selected ?? 'aggregated';
-    }
-
-    public function mount()
-    {
-        $this->scans = Scan::all();
-    }
     public function render()
     {
-        return view('livewire.scan-list');
+
+        $scans = Scan::search(['barcode', 'submitted'], $this->search)
+            ->orderBy($this->sortField, $this->sortDirection)
+            ->paginate($this->perPage);
+
+        return view('livewire.scan-list',[
+            'scans' => $scans,
+            'actions' => $this->getActions(),
+            'columns' => $this->getColumns(),
+            'perPageOptions' => $this->perPageOptions,
+            'sortDirection' => $this->sortDirection,
+        ]);
+    }
+
+    private function getActions()
+    {
+        return [
+            ['url' => route('scan.show', ''), 'label' => 'View', 'button-colour' => 'blue'],
+            ['url' => route('scan.edit', '' ), 'label' => 'Edit', 'button-colour' => 'orange'],
+        ];
+    }
+
+    private function getColumns()
+    {
+        return [
+            ['key' => 'barcode', 'label' => 'Barcode'],
+            ['key' => 'submitted', 'label' => 'Submitted'],
+            ['key' => 'submitted_at', 'label' => 'Submit Date'],
+            ['key' => 'quantity', 'label' => 'Quantity'],
+        ];
     }
 }

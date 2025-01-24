@@ -153,6 +153,17 @@ return [
             'days' => 14,
         ],
 
+        'lw_auth' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/lw_auth.log'),
+            'level' => 'debug',
+        ],
+
+        'sku_lookup' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/sku_lookup.log'),
+            'level' => 'debug',
+        ],
     ],
 
 ];

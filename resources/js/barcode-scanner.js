@@ -5,6 +5,8 @@ document.addEventListener('livewire:initialized', function () {
     let scannedCode;
     let video = null;
 
+    let cameraIsActive = false;
+
     const codeReader = new BrowserMultiFormatReader()
     const exceptionHandler = new NotFoundException()
 
@@ -14,6 +16,7 @@ document.addEventListener('livewire:initialized', function () {
 
     Livewire.on('startScan', () => {
         Livewire.dispatch('loadingCamera', [true]);
+        let cameraIsActive = true;
 
         // Function to initialize the camera and start barcode scanning
         const initializeCamera = () => {
@@ -116,29 +119,31 @@ document.addEventListener('livewire:initialized', function () {
             // If Permissions API is not supported, fall back to directly requesting the camera
             askForPermissionAndInitializeCamera();
         }
+    });
 
-        // Flash the camera
-        Livewire.on('flashOn', () => {
-            const video = document.getElementById('video');
-            if (video.srcObject && video.srcObject.active) {
-                video.srcObject.getVideoTracks()[0].applyConstraints({
-                    advanced: [{ torch: true }]
-                });
-                Livewire.dispatch('flashOn');
-            }else{
-                Livewire.dispatch('flashOff');
-            }
-        });
+    // Flash the camera
+    Livewire.on('flashOn', () => {
+        const video = document.getElementById('video');
+        if (video.srcObject && video.srcObject.active) {
+            video.srcObject.getVideoTracks()[0].applyConstraints({
+                advanced: [{ torch: true }]
+            });
+            Livewire.dispatch('flashOn');
+        }else{
+            Livewire.dispatch('flashOff');
+        }
     });
 
     Livewire.on('stopScan', () => {
+        let cameraIsActive = false;
         const video = document.getElementById('video');
 
-        // Check if the video element exists
-        if (video.srcObject && video.srcObject.active) {
-            video.getTracks().forEach(track => track.stop());
+        if (video.srcObject) {
+            const tracks = video.srcObject.getTracks();
+            tracks.forEach(track => track.stop());
             video.srcObject = null;
-            console.log('Camera reset.');
         }
     });
+
+
 })

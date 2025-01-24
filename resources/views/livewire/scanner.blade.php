@@ -1,16 +1,18 @@
 <div>
     <!-- Video element -->
-    <div class="mb-4">
+    <div class="mb-4 relative">
         <video
                 id="video"
-                class="w-full h-full border rounded-xl @if(!$isScanning) hidden @endif"
+                class="w-full h-full border rounded-xl"
                 playsinline
                 autoplay
         ></video>
+        <div id="overlay" class="absolute top-0 left-0 w-full h-full bg-black opacity-30 pointer-events-none border inset-3"></div>
+
     </div>
 
     <!-- Controls -->
-    <div class="flex flex-col space-y-4">
+    <div class="flex flex-col px-4">
         @if(!$isScanning)
             <button
                     wire:click="startScan"
@@ -26,20 +28,6 @@
                 Stop Scanner
             </button>
         @endif
-
-        <!-- Flash button -->
-        <button
-                wire:click="flash"
-                class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded w-full"
-        >
-            Flash
-        </button>
-    </div>
-
-    <div class="flex space-x-4">
-        <p class="text-sm text-gray-500 dark:text-gray-400">
-            {{$loadingCamera ? 'On' : 'Off'}}
-        </p>
     </div>
 
     <!-- Video source select -->
@@ -48,14 +36,4 @@
         <select id="sourceSelect" style="max-width:400px">
         </select>
     </div>
-
-    <!-- Results -->
-
-{{--        <div id="result" class="mt-4 p-4 bg-green-100 border border-green-400 rounded">--}}
-{{--            <p class="font-bold">Scanned Code:</p>--}}
-{{--            <p>{{ $barcode }}</p>--}}
-{{--        </div>--}}
-
-{{--    <label>Result:</label>--}}
-{{--    <pre><code id="result"></code></pre>--}}
 </div>

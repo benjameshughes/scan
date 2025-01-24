@@ -24,7 +24,7 @@ new #[Layout('layouts.guest')] class extends Component
     }
 }; ?>
 
-<div>
+<div class="p-6">
     <!-- Session Status -->
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
