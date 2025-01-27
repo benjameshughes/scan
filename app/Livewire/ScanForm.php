@@ -26,11 +26,14 @@ class ScanForm extends Component
 
     public bool $showSuccessMessage = false;
 
+    public bool $barcodeScanned = false;
+
     #[On('barcode')]
     public function updateBarcode($barcode)
     {
         $this->barcode = $barcode;
         $this->dispatch('stop-scan');
+        $this->barcodeScanned = true;
     }
 
     public function checkBarcodeExists(): bool
