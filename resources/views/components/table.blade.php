@@ -2,6 +2,7 @@
     <div class="py-4 flex items-center justify-between">
         <!-- Search Input -->
         <x-table-search />
+        <x-table-filter :filters="$filters" />
     </div>
 
     <div class="shadow bg-white border-b border-gray-200 rounded-xl dark:bg-gray-800">

@@ -21,6 +21,8 @@ class Index extends Component
 
     public array $perPageOptions = [10, 25, 50, 100];
 
+    public $filters = '';
+
     public function sortBy($field)
     {
         if ($this->sortField = $field)
@@ -44,7 +46,15 @@ class Index extends Component
             'columns' => $this->getColumns(),
             'perPageOptions' => $this->perPageOptions,
             'sortDirection' => $this->sortDirection,
+            'filters' => $this->getFilters(),
         ]);
+    }
+
+    public function getFilters()
+    {
+        return [
+            //
+        ];
     }
 
 

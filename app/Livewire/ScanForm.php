@@ -86,10 +86,8 @@ class ScanForm extends Component
         // Reset the form
         $this->reset(['barcode', 'quantity']);
 
-
-
-        // Optionally redirect (with flash message)
-        return redirect()->route('scan.create');
+        // Page refresh because I can't figure out how to start and stop the scanner view without refreshing in the js file
+        return redirect()->route('scan.scan');
     }
 
     public function render()

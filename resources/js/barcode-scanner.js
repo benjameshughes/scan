@@ -1,18 +1,6 @@
 import {BrowserMultiFormatReader, NotFoundException} from "@zxing/library";
 
 document.addEventListener('livewire:initialized', function () {
-    let selectedDeviceId;
-    let scannedCode;
-    let video = null;
-
-    let cameraIsActive = false;
-
-    const codeReader = new BrowserMultiFormatReader()
-    const exceptionHandler = new NotFoundException()
-
-    const sourceSelect = document.getElementById('sourceSelect')
-    const sourceSelectPanel = document.getElementById('sourceSelectPanel')
-    const resultDisplay = document.getElementById('result')
 
     Livewire.on('startScan', () => {
         Livewire.dispatch('loadingCamera', [true]);
@@ -20,6 +8,9 @@ document.addEventListener('livewire:initialized', function () {
 
         // Function to initialize the camera and start barcode scanning
         const initializeCamera = () => {
+
+            const codeReader = new BrowserMultiFormatReader()
+
             // Request the list of available video input devices
             codeReader.listVideoInputDevices()
                 .then((videoInputDevices) => {
@@ -128,9 +119,9 @@ document.addEventListener('livewire:initialized', function () {
             video.srcObject.getVideoTracks()[0].applyConstraints({
                 advanced: [{ torch: true }]
             });
-            Livewire.dispatch('flashOn');
+            $wire.dispatch('flashOn');
         }else{
-            Livewire.dispatch('flashOff');
+            $wire.dispatch('flashOff');
         }
     });
 
