@@ -59,7 +59,17 @@ class NoSkuFound extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            //
+            'message' => $this->message,
         ];
+    }
+
+    /**
+     * Get the notification type.
+     *
+     * @return string
+     */
+    public function databaseType(): string
+    {
+        return 'no-sku-found';
     }
 }

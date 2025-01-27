@@ -2,11 +2,14 @@
 
 namespace App\Livewire;
 
+use App\Models\Scan;
 use Livewire\Component;
 
 class Dashboard extends Component
 {
     public $notifications;
+
+    public $scans;
 
     public function markAsRead($notificationId)
     {
@@ -18,6 +21,7 @@ class Dashboard extends Component
     public function mount()
     {
         $this->notifications = auth()->user()->unreadNotifications;
+        $this->scans = Scan::all()  ->where('submitted', false);
     }
     public function render()
     {

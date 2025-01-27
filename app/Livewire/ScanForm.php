@@ -2,12 +2,12 @@
 
 namespace App\Livewire;
 
+use App\DataTransferObjects\ScanDTO;
 use App\Jobs\SyncBarcode;
 use App\Models\Product;
 use App\Models\Scan;
 use App\Notifications\NoSkuFound;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Validator;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
@@ -33,7 +33,7 @@ class ScanForm extends Component
         $this->dispatch('stop-scan');
     }
 
-    public function checkBarcodeExists()
+    public function checkBarcodeExists(): bool
     {
         // Find the sku for the barcode
         $product = Product::where('barcode', $this->barcode)->first();
@@ -53,6 +53,15 @@ class ScanForm extends Component
         $this->showSuccessMessage = true;
 
         $this->validate();
+
+        // New Scan DTO
+        $scanDTO = new ScanDTO(
+            $this->barcode,
+            $this->quantity,
+            'false',
+            now()->toDateTimeString(),
+            now()->toDateTimeString()
+        );
 
         // Save the data to the database
         $scan = Scan::create([

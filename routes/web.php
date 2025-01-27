@@ -5,6 +5,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ScanController;
 use App\Services\LinnworksApiService;
 use Illuminate\Support\Facades\Route;
+use App\Http\Middleware\hasNotifications;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,7 +21,7 @@ Route::get('scanner', [ScanController::class, 'scan'])->name('scan.scan');
 | Authentication Required Routes
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified', hasNotifications::class])->group(function () {
     // Dashboard & Profile
 
     Route::view('dashboard', 'dashboard')->name('dashboard');
