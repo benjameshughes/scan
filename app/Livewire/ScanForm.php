@@ -6,6 +6,7 @@ use App\DataTransferObjects\ScanDTO;
 use App\Jobs\SyncBarcode;
 use App\Models\Product;
 use App\Models\Scan;
+use App\Models\User;
 use App\Notifications\NoSkuFound;
 use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\On;
@@ -39,7 +40,10 @@ class ScanForm extends Component
         $product = Product::where('barcode', $this->barcode)->first();
 
         if (!$product) {
-            auth()->user()->notify(new NoSkuFound($this->barcode));
+            $users = User::all();
+            foreach ($users as $user) {
+                $user->notify(new NoSkuFound($this->barcode));
+            }
         }
 
         return true;
