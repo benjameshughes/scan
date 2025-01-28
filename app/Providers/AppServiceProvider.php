@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
+use App\Tables\TableComponent;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -29,6 +31,9 @@ class AppServiceProvider extends ServiceProvider
             }
             return $this;
         });
+
+        // Table Component
+        Livewire::component('table', TableComponent::class);
 
     }
 }

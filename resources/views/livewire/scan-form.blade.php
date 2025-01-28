@@ -1,13 +1,13 @@
-<form class="space-y-6 p-4" wire:submit="save">
+<form class="space-y-6 p-4 dark:bg-gray-800 dark:border-gray-700" wire:submit="save">
 
     <!-- Success Message -->
     <div
-            x-show="$wire.showSuccessMessage"
+            x-show="$wire.barcodeScanned"
             x-transition.out.opacity.duration.1000ms
-            x-effect="if($wire.showSuccessMessage) setTimeout(() => $wire.showSuccessMessage = false, 3000)"
+            x-effect="if($wire.barcodeScanned) setTimeout(() => $wire.barcodeScanned = false, 3000)"
             class="w-full mx-auto">
         <div class="flex gap-2 items-center justify-end mx-4 my-2 text-green-500 text-sm font-medium">
-            <span>Scan Saved Successfully</span>
+            <span>Barcode Scanned Successfully</span>
             <x-icons.check-circle class="size-6"/>
         </div>
     </div>
@@ -53,7 +53,7 @@
 
     <!-- Submit Button -->
     <div class="flex">
-        <x-primary-button class="w-fulls py-3 disabled:opacity-40">
+        <x-primary-button class="w-full py-3 disabled:opacity-40">
             Save
         <div wire:loading.flex wire:target="save">
             <x-icons.spinner class="w-5 h-5 text-white animate-spin"/>

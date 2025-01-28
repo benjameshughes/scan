@@ -6,6 +6,7 @@
     </x-slot>
 
 
-    <livewire:scan-list/>
+{{--    <livewire:scan-list/>--}}
+    <livewire:table table-class="App\Tables\SyncsTable"/>
 
 </x-app-layout>

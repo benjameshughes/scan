@@ -13,6 +13,7 @@ class ScanList extends Component
     public $search = '';
     public $sortField = 'barcode';
     public $sortDirection = 'asc';
+    public $filter = '0';
     protected $queryString = ['search', 'sortField', 'sortDirection'];
     public array $perPageOptions = [10, 25, 50, 100];
     public function sortBy($field)
@@ -30,6 +31,7 @@ class ScanList extends Component
     {
 
         $scans = Scan::search(['barcode', 'submitted'], $this->search)
+            ->where('submitted', $this->filter)
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate($this->perPage);
 
@@ -39,7 +41,16 @@ class ScanList extends Component
             'columns' => $this->getColumns(),
             'perPageOptions' => $this->perPageOptions,
             'sortDirection' => $this->sortDirection,
+            'filters' => $this->getFilters(),
         ]);
+    }
+
+    private function getFilters()
+    {
+        return [
+            ['key' => '1', 'label' => 'Submitted',],
+            ['key' => '0', 'label' => 'Not Submitted',],
+        ];
     }
 
     private function getActions()
