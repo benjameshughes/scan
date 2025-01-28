@@ -1,4 +1,4 @@
-<form class="space-y-6 p-4" wire:submit="save">
+<form class="space-y-6 p-4 dark:bg-gray-800 dark:border-gray-700" wire:submit="save">
 
     <!-- Success Message -->
     <div
@@ -53,7 +53,7 @@
 
     <!-- Submit Button -->
     <div class="flex">
-        <x-primary-button class="w-fulls py-3 disabled:opacity-40">
+        <x-primary-button class="w-full py-3 disabled:opacity-40">
             Save
         <div wire:loading.flex wire:target="save">
             <x-icons.spinner class="w-5 h-5 text-white animate-spin"/>

@@ -1,13 +1,13 @@
-<div>
+<div class="dark:bg-gray-800">
     <!-- Video element -->
     <div class="mb-4 relative">
         <video
                 id="video"
-                class="w-full h-full border rounded-xl"
+                class="w-full h-full object-cover"
                 playsinline
                 autoplay
         ></video>
-        <div id="overlay" class="absolute top-0 left-0 w-full h-full bg-black opacity-30 pointer-events-none border inset-3"></div>
+{{--        <div id="overlay" class="absolute top-0 left-0 w-full h-full bg-black opacity-30 pointer-events-none border inset-3"></div>--}}
 
     </div>
 

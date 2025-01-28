@@ -64,4 +64,12 @@ class SyncBarcode implements ShouldQueue
         $scan->submitted_at = now();
         $scan->save();
     }
+
+    /**
+     * Retry the job three times before removing it from the queue.
+     */
+    public function tries(): int
+    {
+        return 3;
+    }
 }
