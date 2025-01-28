@@ -4,7 +4,7 @@ namespace App\Tables\Concerns;
 
 use App\Tables\Columns\Column;
 
-trait hasColumns {
+trait HasColumns {
 
     protected function getColumns(): array
     {

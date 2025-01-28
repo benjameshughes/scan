@@ -22,7 +22,7 @@ class Scanner extends Component
         $this->loadingCamera = $loadingCamera;
     }
 
-    #[On('newScan')]
+    #[On('startScan')]
     public function startScan()
     {
         $this->isScanning = true;
