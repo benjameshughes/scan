@@ -40,7 +40,6 @@ class ScanForm extends Component
 
         if (!$product) {
             auth()->user()->notify(new NoSkuFound($this->barcode));
-            return false;
         }
 
         return true;
