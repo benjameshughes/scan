@@ -35,6 +35,14 @@ class ScanForm extends Component
         $this->barcode = $barcode;
         $this->dispatch('stop-scan');
         $this->barcodeScanned = true;
+        $this->inputSameBarcode($barcode);
+    }
+
+    public function inputSameBarcode(string $barcode)
+    {
+        if(!empty($this->barcode) && $barcode == $this->barcode) {
+            $this->quantity = $this->quantity ++;
+        }
     }
 
     public function checkBarcodeExists(): bool

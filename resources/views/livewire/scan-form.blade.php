@@ -23,6 +23,7 @@
         <x-text-input
                 wire:model.live.delay="barcode"
 {{--                wire:change="checkBarcodeExists"--}}
+                wire:change="inputSameBarcode({{ $barcode }})"
                 id="barcode"
                 name="barcode"
                 class="block w-full mt-1"
@@ -31,6 +32,8 @@
                 type="number"
                 pattern="[0-9]*"
                 inputmode="numeric"
+                autofocus
+                autocomplete="off"
         />
     </div>
 
@@ -45,6 +48,7 @@
                 id="quantity"
                 name="quantity"
                 class="block w-full mt-1"
+                autocomplete="off"
         />
         @error('quantity')
         <p class="mt-2 text-sm text-red-600 dark:text-red-400" id="quantity-error">{{ $message }}</p>
