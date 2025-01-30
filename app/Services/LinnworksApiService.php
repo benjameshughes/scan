@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Product;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
@@ -131,6 +132,55 @@ class LinnworksApiService
         $data = json_decode($response->getBody());
 
         return $data[0]->StockLevels[0]->StockLevel;
+    }
+
+    // Get all stock items
+    public function getStockItems()
+    {
+        $response = Http::withToken(Cache::get('linnworks.session_token'))->get('https://api.linnworks.com/api/v1/stock-items', [
+            'headers' => [
+                'Authorization' => Cache::get('linnworks.session_token'),
+                'accept' => 'application/json',
+                'content-type' => 'application/json',
+            ],
+        ]);
+
+        return json_decode($response->getBody());
+    }
+
+    // Update barcodes from Linnworks. Loop over each SKU in the database
+    public function updateBarcode($sku)
+    {
+        // Send API request to Linnworks for the SKU
+        $body = json_encode([
+            'keyword' => trim($sku),
+            'loadCompositeParents' => false,
+            'loadVariationParents' => false,
+            'entriesPerPage' => 1,
+            'pageNumber' => 1,
+            "searchTypes" => ["SKU","Title","Barcode"],
+        ]);
+
+        $response = $this->client->request('POST', $this->base_url . 'Stock/GetStockItemsFull', [
+            'body' => $body,
+            'headers' => [
+                'Authorization' => Cache::get('linnworks.session_token'),
+                'accept' => 'application/json',
+                'content-type' => 'application/json',
+            ],
+        ]);
+
+        // Decode the response
+        $response = json_decode($response->getBody());
+
+        // Update the barcode in the database
+        $product = Product::where('sku', $sku)->first();
+        if($product) {
+            $product->barcode = $response['barcode'];
+            $product->save();
+        }
+
+        return $response;
     }
 
 }

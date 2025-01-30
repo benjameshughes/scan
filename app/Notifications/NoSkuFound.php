@@ -46,8 +46,9 @@ class NoSkuFound extends Notification
      */
     public function toDatabase($notifiable): array
     {
-        return [
-            'message' => 'No Sku found for barcode: ' . $this->barcode,
+        return $notifiableData = [
+            'message' => 'No Sku found for barcode',
+            'barcode' => $this->barcode,
         ];
     }
 

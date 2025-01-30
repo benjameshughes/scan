@@ -1,3 +1,4 @@
+@vite(['resources/js/barcode-scanner.js'])
 <x-guest-layout>
     <div class="">
         <div class="w-full mx-auto">

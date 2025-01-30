@@ -1,163 +1,79 @@
-import { BrowserMultiFormatReader } from '@zxing/library';
+/**
+ * Firstly, show the back camera in the video element
+ */
+import {BrowserMultiFormatReader} from "@zxing/library";
+document.addEventListener('livewire:init', function () {
 
-class BarcodeScanner {
-    constructor() {
-        // Create instance of BrowserMultiFormatReader
-        this.reader = new BrowserMultiFormatReader();
-        // Set up constraints to specifically request the environment-facing camera
-        this.constraints = {
-            video: {
-                facingMode: 'environment' // This specifically requests the back camera
-            }
-        };
-    }
+    // Initialize the ZXing Barcode Reader
+    const codeReader = new BrowserMultiFormatReader();
 
-    /**
-     * Initialize the scanner with environment-facing camera
-     */
-    async init() {
-        try {
-            // First check if we have permission to access the camera
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                throw new Error('Browser API navigator.mediaDevices.getUserMedia not available');
+// Get a custom video stream (e.g., from a camera)
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: 1920, height: 1080 } })
+        .then(function (stream) {
+            const video = document.getElementById('video'); // Assume you have a <video> element with id 'video'
+
+            if (!video) {
+                console.error("Video element not found.");
+                return; // Exit if video element doesn't exist
             }
 
-            // Get video stream using our environment-facing constraints
-            const stream = await navigator.mediaDevices.getUserMedia(this.constraints);
-            console.log('Camera access granted');
+            // Attach the custom media stream to the video element
+            video.srcObject = stream;
 
-            return stream;
-        } catch (err) {
-            console.error('Failed to initialize scanner:', err);
-            throw err;
-        }
-    }
-
-    /**
-     * Start continuous scanning
-     * @param {string} videoElementId - ID of the video element to display the feed
-     * @param {Function} onResult - Callback function for successful scans
-     * @param {Function} onError - Callback function for errors
-     */
-    startScanning(videoElementId, onResult, onError) {
-        let lastLoggedFormat = null; // To avoid logging same barcode format repeatedly
-
-        try {
-            this.reader.decodeFromConstraints(
-                this.constraints,
-                videoElementId,
-                (result, error) => {
-                    if (result) {
-                        const currentFormat = result.getBarcodeFormat();
-                        if (currentFormat !== lastLoggedFormat) {
-                            // Only log if the format has changed
-                            console.log('Scanned barcode:', result.getText());
-                            console.log('Barcode format:', currentFormat);
-                            lastLoggedFormat = currentFormat;
-                        }
-
-                        onResult({
-                            text: result.getText(),
-                            format: currentFormat,
-                            timestamp: new Date().getTime()
-                        });
-                    }
-                    if (error && onError) {
-                        onError(error);
-                    }
+            // Wait for the video to be ready before starting playback
+            video.onloadedmetadata = function () {
+                if (video.paused && video.readyState >= 3) { // Play only if it's not already playing
+                    video.play();
                 }
-            );
-        } catch (err) {
-            console.error('Failed to start scanning:', err);
-            if (onError) onError(err);
-        }
-    }
-
-    /**
-     * Scan a single barcode
-     * @param {string} videoElementId - ID of the video element to display the feed
-     * @returns {Promise} Resolution contains the scan result
-     */
-    async scanOnce(videoElementId) {
-        try {
-            const result = await this.reader.decodeOnceFromConstraints(
-                this.constraints,
-                videoElementId
-            );
-
-            return {
-                text: result.getText(),
-                format: result.getBarcodeFormat(),
-                timestamp: new Date().getTime()
             };
-        } catch (err) {
-            console.error('Failed to scan:', err);
-            throw err;
-        }
+
+            // Start decoding once the video is playing
+            video.onplaying = function () {
+                // This will continuously decode frames from the stream
+                startContinuousDecoding(stream, video);
+            };
+
+            console.log("Video stream is ready. Starting continuous decoding...");
+
+        })
+        .catch(function (err) {
+            console.error("Error accessing camera:", err);
+        });
+
+// Function to start continuous decoding from the custom stream
+    function startContinuousDecoding(stream, video) {
+        // Use decodeFromStream to continuously decode frames from the custom video stream
+        const intervalId = setInterval(() => {
+            codeReader.decodeOnceFromStream(stream, video)
+                .then(result => {
+                    if (result) {
+                        console.log("Decoded barcode:", result.text);
+                        document.getElementById('result').textContent = result.text;
+
+                        // Optionally, you can dispatch the barcode result to Livewire or any other backend
+                        Livewire.dispatch('barcode', result.text);
+
+                        // If you want to stop decoding after a successful scan, you can clear the interval
+                        // clearInterval(intervalId);
+                    }
+                })
+                .catch(err => {
+                    if (!(err instanceof ZXing.NotFoundException)) {
+                        console.error("Error during decoding:", err);
+                        document.getElementById('result').textContent = 'Error: ' + err;
+                    }
+                });
+        }, 100); // Adjust the interval (in ms) based on how frequently you want to scan
+
+        // If you want to stop decoding after a set time or event
+        // setTimeout(() => clearInterval(intervalId), 10000);  // Stop after 10 seconds (example)
     }
 
-    /**
-     * Stop scanning and stop the camera stream
-     */
-    stopScanning() {
-        this.reader.reset();
-
-        // Stop the video stream (if any)
-        const videoElement = document.querySelector('video');
-        if (videoElement && videoElement.srcObject) {
-            const stream = videoElement.srcObject;
-            const tracks = stream.getTracks();
-            tracks.forEach(track => track.stop());
-        }
+// Function to stop the stream manually if needed
+    function stopStream(stream) {
+        stream.getTracks().forEach(track => track.stop());
+        console.log("Stream stopped");
     }
-}
 
-const scanner = new BarcodeScanner();
 
-/**
- * Scan once and log the result
- */
-async function scanOnce() {
-    try {
-        const result = await scanner.scanOnce('video');
-        console.log('Scanned barcode:', result.text);
-        scanner.stopScanning()
-    } catch (error) {
-        console.error('Scanning error:', error);
-    }
-}
-
-/**
- * Start continuous barcode scanning
- */
-async function startBarcodeScanning() {
-    try {
-        await scanner.init();
-        scanner.startScanning(
-            'video',
-            (result) => {
-                // You can handle the result here, for example:
-                console.log('Scanned barcode:', result.text);
-                console.log('Barcode format:', result.format);
-            },
-            (error) => {
-                console.error('Scanning error:', error);
-            }
-        )
-
-        await scanner.stopScanning()
-    } catch (error) {
-        console.error('Failed to initialize scanner:', error);
-    }
-}
-
-/**
- * Stop continuous barcode scanning
- */
-function stopScanning() {
-    scanner.stopScanning();
-}
-
-// Trigger scanning actions from Livewire events
-Livewire.on('startScan', () => scanOnce());
-Livewire.on('stopScan', () => stopScanning());
+});

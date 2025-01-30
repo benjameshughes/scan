@@ -22,8 +22,7 @@
         <x-input-label for="barcode">Barcode</x-input-label>
         <x-text-input
                 wire:model.live.delay="barcode"
-{{--                wire:change="checkBarcodeExists"--}}
-                wire:change="inputSameBarcode({{ $barcode }})"
+                {{--                wire:change="checkBarcodeExists"--}}
                 id="barcode"
                 name="barcode"
                 class="block w-full mt-1"
@@ -40,16 +39,25 @@
     <!-- Quantity Input -->
     <div>
         <x-input-label for="quantity">Quantity</x-input-label>
-        <x-text-input
-                type="number"
-                inputmode="numeric"
-                pattern="[0-9]*"
-                wire:model="quantity"
-                id="quantity"
-                name="quantity"
-                class="block w-full mt-1"
-                autocomplete="off"
-        />
+
+        <div class="flex gap-2 items-center justify-end">
+            <x-text-input
+                    type="number"
+                    inputmode="numeric"
+                    pattern="[0-9]*"
+                    wire:model.live="quantity"
+                    id="quantity"
+                    name="quantity"
+                    class="block w-full mt-1"
+                    autocomplete="off"
+            />
+            <div>
+                <button @click="$wire.set('quantity', $wire.quantity + 1)" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                    +
+                </button>
+            </div>
+        </div>
+
         @error('quantity')
         <p class="mt-2 text-sm text-red-600 dark:text-red-400" id="quantity-error">{{ $message }}</p>
         @enderror
@@ -59,9 +67,9 @@
     <div class="flex">
         <x-primary-button class="w-full py-3 disabled:opacity-40">
             Save
-        <div wire:loading.flex wire:target="save">
-            <x-icons.spinner class="w-5 h-5 text-white animate-spin"/>
-        </div>
+            <div wire:loading.flex wire:target="save">
+                <x-icons.spinner class="w-5 h-5 text-white animate-spin"/>
+            </div>
         </x-primary-button>
     </div>
 </form>

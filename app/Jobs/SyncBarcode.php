@@ -26,7 +26,7 @@ class SyncBarcode implements ShouldQueue
      */
     public function __construct(int $scanId)
     {
-        $this->scanId = $scanId;;
+        $this->scanId = $scanId;
     }
 
     /**
@@ -60,8 +60,7 @@ class SyncBarcode implements ShouldQueue
         $linnworks->updateStockLevel($sku, $quantity);
 
         // Mark the scan as submitted
-        $scan->submitted = true;
-        $scan->submitted_at = now();
+        $scan->update(['submitted' => true, 'submitted_at' => now()]);
         $scan->save();
     }
 

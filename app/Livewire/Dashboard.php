@@ -11,17 +11,17 @@ class Dashboard extends Component
 
     public $scans;
 
-    public function markAsRead($notificationId)
+    public function markAsRead($id)
     {
-        $notification = auth()->user()->notifications->find($notificationId);
-        $notification->markAsRead();
+        $notification = auth()->user()->notifications->find($id);
+        $notification->update(['read_at' => now()]);
         $this->dispatch('markedAsRead');
     }
 
     public function mount()
     {
         $this->notifications = auth()->user()->unreadNotifications;
-        $this->scans = Scan::all()  ->where('submitted', false);
+        $this->scans = Scan::all()->where('submitted', false);
     }
     public function render()
     {

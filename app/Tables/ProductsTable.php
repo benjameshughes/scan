@@ -38,6 +38,8 @@ class ProductsTable extends Table
                 ->label('Name'),
             TextColumn::make('barcode')
                 ->label('Barcode'),
+            TextColumn::make('updated_at')
+                ->label('Edited'),
         ];
     }
 

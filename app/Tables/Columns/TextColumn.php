@@ -11,4 +11,16 @@ class TextColumn extends Column {
         $this->renderCallback = fn($row) => Carbon::parse($row->{$this->name})->diffForHumans();
         return $this;
     }
+
+    /**
+     * Display the value using the given callback.
+     *
+     * @param  callable  $callback
+     * @return $this
+     */
+    public function value(callable $callback)
+    {
+        $this->renderCallback = $callback;
+        return $this;
+    }
 }

@@ -17,6 +17,8 @@ class ScanForm extends Component
 {
     public Scan $scan;
 
+    public int $scannedBarcoded;
+
     #[Validate('required')]
     public string $barcode;
 
@@ -34,15 +36,6 @@ class ScanForm extends Component
     {
         $this->barcode = $barcode;
         $this->dispatch('stop-scan');
-        $this->barcodeScanned = true;
-        $this->inputSameBarcode($barcode);
-    }
-
-    public function inputSameBarcode(string $barcode)
-    {
-        if(!empty($this->barcode) && $barcode == $this->barcode) {
-            $this->quantity = $this->quantity ++;
-        }
     }
 
     public function checkBarcodeExists(): bool
@@ -63,19 +56,9 @@ class ScanForm extends Component
     // Save function
     public function save()
     {
-
         $this->showSuccessMessage = true;
 
         $this->validate();
-
-        // New Scan DTO
-        $scanDTO = new ScanDTO(
-            $this->barcode,
-            $this->quantity,
-            'false',
-            now()->toDateTimeString(),
-            now()->toDateTimeString()
-        );
 
         // Save the data to the database
         $scan = Scan::create([
@@ -89,19 +72,15 @@ class ScanForm extends Component
         if ($this->checkBarcodeExists()) {
             SyncBarcode::dispatch($scan->id, $this->productId)->delay(now()->addMinute());
         } else {
-            $this->addError('barcode', 'Barcode not recognised');
+            $users = User::all();
+            foreach($users as $user) {
+                $user->notify(new NoSkuFound($scan->id));
+            }
         }
 
         Log::channel('barcode')->info("{$this->barcode} Scanned");
 
-        // Stop the scanner
-        $this->dispatch('stopScan');
-
-        // Reset the form
-        $this->reset(['barcode', 'quantity']);
-
-        // Page refresh because I can't figure out how to start and stop the scanner view without refreshing in the js file
-        return redirect()->route('scan.scan');
+        redirect()->route('home');
     }
 
     public function render()

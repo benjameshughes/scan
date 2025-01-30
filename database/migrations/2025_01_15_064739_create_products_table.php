@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('products', function (Blueprint $table) {
             $table->id();
             $table->string('sku');
-            $table->string('name');
-            $table->integer('barcode');
-            $table->integer('quantity');
+            $table->string('name')->nullable();
+            $table->integer('barcode')->nullable();
+            $table->integer('quantity')->nullable();
             $table->timestamps();
         });
     }

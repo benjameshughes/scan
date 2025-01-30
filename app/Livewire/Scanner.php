@@ -14,6 +14,8 @@ class Scanner extends Component
 
     public bool $loadingCamera = false;
 
+    public bool $showVideo = false;
+
     public string $barcode;
 
     #[On('loadingCamera')]
@@ -27,6 +29,8 @@ class Scanner extends Component
     {
         $this->isScanning = true;
         $this->dispatch('startScan');
+        // Remove hidden class from video element
+        $this->showVideo = true;
     }
 
     #[On('stopScan')]

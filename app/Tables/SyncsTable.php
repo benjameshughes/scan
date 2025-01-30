@@ -34,6 +34,15 @@ class SyncsTable extends Table
             TextColumn::make('created_at')
                 ->label('Scanned')
             ->dateForHumans(),
+            TextColumn::make('submitted')
+                ->label('Status')
+            ->value(function ($scan) {
+                if ($scan->submitted) {
+                    return 'Submitted';
+                } else {
+                    return 'Pending';
+                }
+            }),
         ];
     }
 }
