@@ -5,5 +5,5 @@
         </h2>
     </x-slot>
 
-    <livewire:productimport/>
+    <livewire:product-import/>
 </x-app-layout>
