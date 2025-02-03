@@ -46,7 +46,6 @@ Route::middleware(['auth', 'verified', hasNotifications::class])->group(function
     Route::prefix('linnworks')->name('linnworks.')->group(function () {
         // API Routes
         Route::controller(LinnworksApiService::class)->group(function () {
-            Route::get('auth', 'authorizeByApplication')->name('auth');
             Route::get('stock/{sku}', 'getStockLevel')->name('stock');
         });
 
