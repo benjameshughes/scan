@@ -36,7 +36,7 @@ new #[Layout('layouts.guest')] class extends Component
     }
 }; ?>
 
-<div>
+<div class="p-6">
     <form wire:submit="register">
         <!-- Name -->
         <div>

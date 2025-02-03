@@ -50,8 +50,8 @@
             <table class="table-auto w-full">
                 <thead>
                 <tr>
-                    <th>Spreadsheet Column</th>
                     <th>Database Column</th>
+                    <th>Spreadsheet Column</th>
                 </tr>
                 </thead>
                 <tbody>
