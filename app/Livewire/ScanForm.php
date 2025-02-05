@@ -2,7 +2,7 @@
 
 namespace App\Livewire;
 
-use App\DataTransferObjects\ScanDTO;
+use App\DTOs\ScanDTO;
 use App\Jobs\SyncBarcode;
 use App\Models\Product;
 use App\Models\Scan;
@@ -17,24 +17,28 @@ class ScanForm extends Component
 {
     public Scan $scan;
 
-    public int $scannedBarcoded;
-
     #[Validate('required')]
     public string $barcode;
 
     #[Validate('required|min:1')]
     public int $quantity = 1;
 
-    public int $productId = 0;
-
-    public bool $showSuccessMessage = false;
+    public int $productId;
 
     public bool $barcodeScanned = false;
 
+    public bool $showSuccessMessage = false;
+
+    public function incrementQuantity()
+    {
+        $this->quantity++;
+    }
+
     #[On('barcode')]
-    public function updateBarcode($barcode)
+    public function updatedBarcode($barcode)
     {
         $this->barcode = $barcode;
+        $this->barcodeScanned = true;
         $this->dispatch('stop-scan');
     }
 
@@ -44,10 +48,7 @@ class ScanForm extends Component
         $product = Product::where('barcode', $this->barcode)->first();
 
         if (!$product) {
-            $users = User::all();
-            foreach ($users as $user) {
-                $user->notify(new NoSkuFound($this->barcode));
-            }
+            return false;
         }
 
         return true;
@@ -60,22 +61,24 @@ class ScanForm extends Component
 
         $this->validate();
 
-        // Save the data to the database
+        // Create a new ScanDTO
         $scan = Scan::create([
             'barcode' => $this->barcode,
             'quantity' => $this->quantity,
             'submitted' => false,
-            'user_id' => auth()->check() ? auth()->id() : '1',
+            'user_id' => auth()->check() ? auth()->user()->id : '0',
         ]);
 
         // Dispatch the sync job
         if ($this->checkBarcodeExists()) {
-            SyncBarcode::dispatch($scan->id, $this->productId)->delay(now()->addMinute());
+            SyncBarcode::dispatch($scan, $this->productId)->delay(now()->addMinute());
         } else {
             $users = User::all();
             foreach($users as $user) {
                 $user->notify(new NoSkuFound($scan->id));
             }
+            // Update scan status to failed
+            $scan->update(['status' => 'failed']);
         }
 
         Log::channel('barcode')->info("{$this->barcode} Scanned");

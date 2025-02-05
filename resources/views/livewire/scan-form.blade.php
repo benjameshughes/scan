@@ -1,17 +1,4 @@
 <form class="space-y-6 p-4 dark:bg-gray-800 dark:border-gray-700" wire:submit="save">
-
-    <!-- Success Message -->
-    <div
-            x-show="$wire.barcodeScanned"
-            x-transition.out.opacity.duration.1000ms
-            x-effect="if($wire.barcodeScanned) setTimeout(() => $wire.barcodeScanned = false, 3000)"
-            class="w-full mx-auto">
-        <div class="flex gap-2 items-center justify-end mx-4 my-2 text-green-500 text-sm font-medium">
-            <span>Barcode Scanned Successfully</span>
-            <x-icons.check-circle class="size-6"/>
-        </div>
-    </div>
-
     <!-- Barcode Input -->
     <div>
         @error('barcode')
@@ -52,7 +39,7 @@
                     autocomplete="off"
             />
             <div>
-                <button @click="$wire.set('quantity', $wire.quantity + 1)" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                <button type="button" wire:click.debounce.100="incrementQuantity" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                     +
                 </button>
             </div>
@@ -71,5 +58,17 @@
                 <x-icons.spinner class="w-5 h-5 text-white animate-spin"/>
             </div>
         </x-primary-button>
+    </div>
+
+    <!-- Success Message -->
+    <div
+            x-show="$wire.barcodeScanned"
+            x-transition.out.opacity.duration.1000ms
+            x-effect="if($wire.barcodeScanned) setTimeout(() => $wire.barcodeScanned = false, 3000)"
+            class="w-full mx-auto">
+        <div class="flex gap-2 items-center justify-end mx-4 my-2 text-green-500 text-sm font-medium">
+            <span>Barcode Scanned Successfully</span>
+            <x-icons.check-circle class="size-6"/>
+        </div>
     </div>
 </form>

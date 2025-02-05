@@ -3,7 +3,7 @@
     ;if (\Carbon\Carbon::parse($scan->created_at)->diffInDays(now()) < 3) {
         $scanDate = \Carbon\Carbon::parse($scan->created_at)->diffForHumans(Carbon::now());
     } else {
-        $scanDate = \Carbon\Carbon::parse($scan->created_at)->format('D F jS, Y');
+        $scanDate = \Carbon\Carbon::parse($scan->created_at)->format('D F jS, Y, H:i:s');
     }
 @endphp
 <div>
@@ -21,7 +21,7 @@
                     {{$scan->barcode}}
                 </dd>
                 <dd class="mt-1 text-sm text-gray-900 dark:text-white">
-                    {{$scan->product->sku}}
+                    <span class="text-sm text-gray-500">{{$scan->product->sku ?? 'No SKU Found'}}</span>
                 </dd>
             </div>
             <div class="sm:col-span-1 pb-5 border-b border-gray-200 dark:border-gray-700">
@@ -29,7 +29,7 @@
                     {{__('Quantity')}}
                 </dt>
                 <dd class="mt-1 text-sm text-gray-900 dark:text-white">
-                    {{$scan->quantity}}
+                    {{$scan->quantity ?? '0'}}
                 </dd>
             </div>
             <div class="sm:col-span-1 pb-5 border-b border-gray-200 dark:border-gray-700">

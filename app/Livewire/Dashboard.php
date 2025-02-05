@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Scan;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 class Dashboard extends Component
@@ -13,9 +14,14 @@ class Dashboard extends Component
 
     public function markAsRead($id)
     {
-        $notification = auth()->user()->notifications->find($id);
-        $notification->update(['read_at' => now()]);
-        $this->dispatch('markedAsRead');
+        $notification = Auth::user()->notifications()->find($id);
+
+        if($notification)
+        {
+            $notification->markAsRead();
+            $this->notifications = Auth::user()->unreadNotifications();
+        }
+
     }
 
     public function mount()

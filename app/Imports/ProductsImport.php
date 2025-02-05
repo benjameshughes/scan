@@ -2,68 +2,111 @@
 
 namespace App\Imports;
 
+use App\DTOs\ProductDTO;
 use App\Models\Product;
+use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\SkipsErrors;
 use Maatwebsite\Excel\Concerns\SkipsOnError;
-use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Maatwebsite\Excel\Concerns\WithUpsertColumns;
-use Maatwebsite\Excel\Concerns\WithUpserts;
 use Maatwebsite\Excel\Concerns\WithValidation;
+use Illuminate\Support\Facades\Log;
 
-class ProductsImport implements ToModel, WithHeadingRow, WithBatchInserts, WithValidation, SkipsOnError, WithUpserts, WithUpsertColumns
+class ProductsImport implements ToCollection, WithHeadingRow, WithBatchInserts, WithValidation, SkipsOnError
 {
     use Importable, SkipsErrors;
 
-    protected $mappings;
+    private array $mappings;
+    private array $results = [
+        'created' => 0,
+        'updated' => 0,
+        'failed' => 0,
+    ];
 
     public function __construct(array $mappings)
     {
         $this->mappings = $mappings;
     }
 
-    /**
-     * Pass the mappings array from the Livewire component to the model to import the data
-     * @param array $row
-     *
-     * @return \Illuminate\Database\Eloquent\Model|null
-     */
-    public function model(array $row): ?Product
+    public function collection(Collection $rows): void
     {
-        // Initialize the data array with only the mapped columns
+        $rows->each(function ($row) {
+            try {
+                $this->processRow($row);
+            } catch (\Exception $e) {
+                $this->results['failed']++;
+                Log::error("Import failed for row", [
+                    'row' => $row,
+                    'error' => $e->getMessage()
+                ]);
+            }
+        });
+    }
+
+    private function processRow($row): void
+    {
+        $productData = $this->mapRowToData($row);
+
+        if (empty($productData)) {
+            $this->results['failed']++;
+            return;
+        }
+
+        $dto = ProductDTO::fromArray($productData);
+
+        $product = Product::where('sku', $dto->sku)->first();
+
+        if ($product) {
+            $this->updateProduct($product, $dto);
+            $this->results['updated']++;
+        } else {
+            $this->createProduct($dto);
+            $this->results['created']++;
+        }
+    }
+
+    private function mapRowToData($row): array
+    {
         $productData = [];
 
-        // Iterate over the mappings and map the file columns to the model columns
         foreach ($this->mappings as $modelColumn => $fileColumn) {
-            // Check if the file column exists in the current row
             if (isset($row[$fileColumn])) {
-                // If it exists, add the mapped model column to the productData array
-                $productData[$modelColumn] = $row[$fileColumn];
+                $productData[$modelColumn] = $this->formatValue($row[$fileColumn], $modelColumn);
             }
         }
 
-        // If there's no data to update (empty row or no valid mappings), skip the operation
-        if (empty($productData)) {
-            return null;
-        }
-
-        // Add or update the product by SKU, and only update the mapped fields
-        return Product::updateOrCreate(
-            ['sku' => $row['sku']], // Assume SKU is the unique identifier
-            $productData // Only update the columns that are mapped
-        );
+        return $productData;
     }
 
+    private function formatValue($value, string $column)
+    {
+        return match ($column) {
+            'quantity' => (int) $value,
+            'price' => (float) $value,
+            default => $value,
+        };
+    }
+
+    private function updateProduct(Product $product, ProductDTO $dto): void
+    {
+        $product->fill($dto->toArray());
+        $product->save();
+    }
+
+    private function createProduct(ProductDTO $dto): void
+    {
+        Product::updateOrCreate($dto->toArray());
+    }
 
     public function rules(): array
     {
         return [
-            'sku' => 'required',
-            'name' => 'nullable',
-            'barcode' => 'nullable',
-            'quantity' => 'nullable',
+            '*.sku' => 'required|string',
+            '*.name' => 'nullable|string',
+            '*.barcode' => 'nullable|string',
+            '*.quantity' => 'nullable|integer',
         ];
     }
 
@@ -72,13 +115,8 @@ class ProductsImport implements ToModel, WithHeadingRow, WithBatchInserts, WithV
         return 100;
     }
 
-    public function uniqueBy(): array
+    public function getResults(): array
     {
-        return ['sku'];
-    }
-
-    public function upsertColumns(): array
-    {
-        return ['name', 'barcode', 'quantity'];
+        return $this->results;
     }
 }

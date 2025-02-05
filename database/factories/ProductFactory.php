@@ -17,7 +17,10 @@ class ProductFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'name' => $this->faker->word(),
+            'sku' => $this->faker->numberBetween(001,999) . '-' . $this->faker->numberBetween(001,999),
+            'barcode' => $this->faker->ean13(),
+            'quantity' => $this->faker->numberBetween(1, 100),
         ];
     }
 }

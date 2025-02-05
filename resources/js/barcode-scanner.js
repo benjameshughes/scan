@@ -44,6 +44,7 @@ window.addEventListener('load', function () {
                             if (result) {
                                 console.log(result);
                                 Livewire.dispatch('result', [result]);
+                                Livewire.dispatchTo('scan-form', 'barcodeScanned');
                                 cardReader.reset();
                             }
                             if (err && !(err instanceof NotFoundException)) {
