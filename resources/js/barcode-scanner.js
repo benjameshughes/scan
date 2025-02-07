@@ -30,7 +30,7 @@ window.addEventListener('load', function () {
                 navigator.mediaDevices.getUserMedia({
                     video: {
                         facingMode: 'environment', // This selects the back camera
-                        aspectRatio: 1,
+                        aspectRatio: {ideal: 16/9},
                         width: {ideal: 1920},
                         height: {ideal: 1080},
                     }
