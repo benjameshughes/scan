@@ -95,10 +95,8 @@ window.addEventListener("load", function () {
             (result, err) => {
                 if (result && cameraIsActive) {
                     console.log(result);
-                    Livewire.dispatch("result", [result]);
-                    Livewire.dispatch("barcodeScanned");
+                    barcodeUpdated(result);
                     codeReader.reset();
-                    navigator.vibrate(2000);
                 }
                 if (err && !(err instanceof NotFoundException)) {
                     console.error(err);
@@ -110,6 +108,13 @@ window.addEventListener("load", function () {
 
         console.log(`Started continuous decode from camera with id ${deviceId}`);
     };
+
+    const barcodeUpdated = (result) => {
+        Livewire.dispatch("result", [result]);
+        Livewire.dispatch("barcodeScanned");
+        navigator.vibrate(300);
+        cameraIsActive = false;
+    }
 
     // Function to ask for camera permissions and initialize the camera
     const askForPermissionAndInitializeCamera = () => {
