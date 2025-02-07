@@ -28,6 +28,10 @@
                 Stop Scanner
             </button>
         @endif
+
+        <button x-data="{ torch: false }" @click="torch = ! torch" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full">
+            Torch {{$torch ? 'On' : 'Off'}}
+        </button>
     </div>
 
     <!-- Video source select -->

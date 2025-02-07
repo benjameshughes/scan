@@ -40,19 +40,21 @@ window.addEventListener('load', function () {
                         const videoTracks = stream.getVideoTracks();
                         if (videoTracks.length > 0) {
                             selectedDevice = videoTracks[0].getSettings().deviceId;
+
+                            // Allow the user to turn the torch on or off
+                            Livewire.on('torchOn', () => {
+                                selectedDevice.applyConstraints({
+                                    advanced: [{ torch: true }]
+                                });
+                            });
+
+                            Livewire.on('torchOff', () => {
+                                selectedDevice.applyConstraints({
+                                    advanced: [{ torch: false }]
+                                });
+                            });
                         }
 
-                        // Allow the user to turn the torch on and off
-                        const torchButton = document.getElementById('torch-button');
-                        torchButton.addEventListener('click', () => {
-                            if (torchButton.innerText === 'Turn On Torch') {
-                                torchButton.innerText = 'Turn Off Torch';
-                                codeReader.setTorch(true);
-                            } else {
-                                torchButton.innerText = 'Turn On Torch';
-                                codeReader.setTorch(false);
-                            }
-                        });
 
                         // Start continuous barcode scanning from the selected video device
                         codeReader.decodeFromVideoDevice(selectedDevice, 'video', (result, err) => {

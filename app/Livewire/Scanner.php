@@ -10,7 +10,7 @@ class Scanner extends Component
     public array $result = [];
     public bool $isScanning = false;
 
-    public bool $flash = false;
+    public bool $torch = false;
 
     public bool $loadingCamera = false;
 
@@ -40,17 +40,17 @@ class Scanner extends Component
         $this->dispatch('stopScan');
     }
 
-    #[On('flashOn')]
+    #[On('torchOn')]
     public function flash()
     {
-        $this->flash = true;
+        $this->torch = true;
         $this->dispatch('flashOn');
     }
 
-    #[On('flashOff')]
+    #[On('torchOff')]
     public function flashOff()
     {
-        $this->flash = false;
+        $this->torch = false;
         $this->dispatch('flashOff');
     }
 
