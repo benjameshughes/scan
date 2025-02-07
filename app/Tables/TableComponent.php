@@ -3,6 +3,7 @@
 namespace App\Tables;
 
 use AllowDynamicProperties;
+use App\Tables\Concerns\HasActions;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Database\Eloquent\Builder;
@@ -16,6 +17,7 @@ use App\Tables\Concerns\HasFilters;
     use HasColumns;
     use HasSearch;
     use HasFilters;
+    use HasActions;
 
     public string $tableClass;
     public string $search = '';
@@ -24,6 +26,8 @@ use App\Tables\Concerns\HasFilters;
     public string $sortDirection = 'asc';
 
     public ?array $filters = [];
+
+    public ?array $actions = [];
 
     protected $queryString = [
         'search' => ['except' => ''],
@@ -73,6 +77,11 @@ use App\Tables\Concerns\HasFilters;
         return $this->filters;
     }
 
+    public function getActions()
+    {
+        return $this->actions;
+    }
+
     public function render()
     {
         $data = $this->getQuery()->paginate($this->perPage);
@@ -80,6 +89,8 @@ use App\Tables\Concerns\HasFilters;
         return view('components.tables.table', [
             'data' => $data,
             'columns' => $this->getTable()->columns(),
+            'actions' => $this->getTable()->getActions(),
+            'filters' => $this->getTable()->getFilters(),
         ]);
     }
 
@@ -118,6 +129,12 @@ use App\Tables\Concerns\HasFilters;
     {
         return method_exists($this->getTable(), 'getFilterableColumns') &&
             !empty($this->getTable()->getFilters());
+    }
+
+    public function hasActions(): bool
+    {
+        return method_exists($this->getTable(), 'getActions') &&
+            !empty($this->getTable()->getActions());
     }
 
     public function getPerPageOptions(): array

@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\FetchLinnworksInvetory;
+use App\Models\Product;
 use App\Services\LinnworksApiService;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
 class LinnworksController extends Controller
@@ -16,7 +17,8 @@ class LinnworksController extends Controller
         // Get token from cache
         $token = Cache::get('linnworks.session_token');
         // Get profile view
-        return view('linnworks.profile', compact('token'));
+        $products = Product::all();
+        return view('linnworks.inventory', compact('products'));
     }
 
     /**
@@ -68,5 +70,23 @@ class LinnworksController extends Controller
     public function destroy()
     {
         //
+    }
+
+    /**
+     * Get the inventory from Linnworks
+     */
+    public function fetchInventory(LinnworksApiService $linnworks)
+    {
+        (int)$entriesPerPage = 200;
+        (int)$totalItems = $linnworks->getInventoryCount();
+        $totalPages = ceil($totalItems / $entriesPerPage);
+
+        // Dispatch a job for each page to fetch the inventory
+        for ($pageNumber = 1; $pageNumber <= $totalPages; $pageNumber++) {
+            sleep(1);
+            FetchLinnworksInvetory::dispatch($pageNumber, $entriesPerPage)->delay(now()->addMinute());
+        }
+
+        return redirect()->route('linnworks.inventory')->with('success', 'Inventory refreshed');
     }
 }

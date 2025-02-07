@@ -29,7 +29,10 @@ window.addEventListener('load', function () {
                 // Try to select the back camera explicitly using 'facingMode' constraint
                 navigator.mediaDevices.getUserMedia({
                     video: {
-                        facingMode: 'environment' // This selects the back camera
+                        facingMode: 'environment', // This selects the back camera
+                        aspectRatio: 1.7777777778,
+                        width: {ideal: 1920},
+                        height: {ideal: 1080},
                     }
                 })
                     .then(stream => {
@@ -39,6 +42,18 @@ window.addEventListener('load', function () {
                             selectedDevice = videoTracks[0].getSettings().deviceId;
                         }
 
+                        // Allow the user to turn the torch on and off
+                        const torchButton = document.getElementById('torch-button');
+                        torchButton.addEventListener('click', () => {
+                            if (torchButton.innerText === 'Turn On Torch') {
+                                torchButton.innerText = 'Turn Off Torch';
+                                codeReader.setTorch(true);
+                            } else {
+                                torchButton.innerText = 'Turn On Torch';
+                                codeReader.setTorch(false);
+                            }
+                        });
+
                         // Start continuous barcode scanning from the selected video device
                         codeReader.decodeFromVideoDevice(selectedDevice, 'video', (result, err) => {
                             if (result) {
@@ -46,6 +61,7 @@ window.addEventListener('load', function () {
                                 Livewire.dispatch('result', [result]);
                                 Livewire.dispatchTo('scan-form', 'barcodeScanned');
                                 cardReader.reset();
+                                navigator.vibrate(300);
                             }
                             if (err && !(err instanceof NotFoundException)) {
                                 console.error(err);

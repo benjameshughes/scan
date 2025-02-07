@@ -4,11 +4,12 @@ namespace App\Tables;
 
 use App\Models\Product;
 use App\Tables\Columns\TextColumn;
+use App\Tables\Concerns\HasActions;
 use App\Tables\Table;
+use Filament\Actions\Action;
 
 class ProductsTable extends Table
 {
-
     protected string $model = Product::class;
 
     public function getSearchableColumns(): array
@@ -21,6 +22,15 @@ class ProductsTable extends Table
         return [
             ['key' => 'submitted', 'label' => 'Submitted',],
             ['key' => 'not_submitted', 'label' => 'Not Submitted',],
+        ];
+    }
+
+    public function getActions(): array
+    {
+        return [
+            Action::make()
+                ->name('view')
+                ->label('View'),
         ];
     }
 

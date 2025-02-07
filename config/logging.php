@@ -164,6 +164,12 @@ return [
             'path' => storage_path('logs/sku_lookup.log'),
             'level' => 'debug',
         ],
+
+        'inventory' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/inventory.log'),
+            'level' => 'debug',
+        ],
     ],
 
 ];

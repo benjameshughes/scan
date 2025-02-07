@@ -47,10 +47,14 @@ Route::middleware(['auth', 'verified', hasNotifications::class])->group(function
         // API Routes
         Route::controller(LinnworksApiService::class)->group(function () {
             Route::get('stock/{sku}', 'getStockLevel')->name('stock');
+            Route::get('stock-items', 'getStockItems')->name('stock-items');
+            Route::get('count', 'getInventoryCount')->name('count');
         });
 
         // Profile & Resource Routes
         Route::view('profile', 'linnworks.profile')->name('profile');
+        Route::get('inventory', LinnworksController::class . '@index')->name('inventory');
+        Route::get('inventory/sync', LinnworksController::class . '@fetchInventory')->name('fetchInventory');
         Route::resource('/', LinnworksController::class);
     });
 

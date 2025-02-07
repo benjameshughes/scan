@@ -20,9 +20,5 @@ class DatabaseSeeder extends Seeder
             'email' => 'ben@app.com',
             'password' => bcrypt('password'),
         ]);
-
-        $this->call([
-            ProductSeeder::class,
-        ]);
     }
 }

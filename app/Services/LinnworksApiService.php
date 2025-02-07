@@ -2,21 +2,21 @@
 
 namespace App\Services;
 
-use App\Models\Product;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 use Exception;
 
 class LinnworksApiService
 {
-    protected $app_id;
-    protected $app_secret;
-    protected $app_token;
+    protected string $app_id;
+    protected string $app_secret;
+    protected string $app_token;
     protected string $base_url;
     protected string $auth_url;
-    protected $session_token;
-    private $client;
+    protected string $session_token;
+    private Client $client;
     public function __construct()
     {
         $this->client = new Client();
@@ -26,24 +26,22 @@ class LinnworksApiService
         $this->base_url = config('linnworks.base_url');
         $this->auth_url = config('linnworks.auth_url');
 
-        if (!Cache::has('linnworks.session_token')) {
-            $this->checkAndAuthorize();
-        }
+        $this->checkAndAuthorize();
     }
 
     // Helper function to check the session token and refresh it if necessary
     private function checkAndAuthorize()
     {
         // Check if the session token is expired or missing
-        if (!Cache::has('linnworks.session_token')) {
+        if (Cache::has('linnworks.session_token')) {
             // Refresh the session token by calling the authorization function
-            $this->authorizeByApplication();
+            $this->session_token = Cache::get('linnworks.session_token');
         }
 
-        return $this->session_token = Cache::get('linnworks.session_token');
+        return $this->authorizeByApplication();
     }
 
-    public function authorizeByApplication()
+    private function authorizeByApplication()
     {
         // Let's check to see if we have a session token or not so we don't have to re-authenticate
         if (Cache::has('linnworks.session_token')) {
@@ -71,7 +69,7 @@ class LinnworksApiService
             $session_token = $responseBody['Token'];
 
             // Store the session token in the cache for later use (expires in 60 minutes)
-            Cache::put('linnworks.session_token', $session_token, now()->addMinutes(60));
+            Cache::add('linnworks.session_token', $session_token, now()->addMinutes(60));
             Log::channel('lw_auth')->info('Authorized by application');
 
             // Return the session token
@@ -135,34 +133,22 @@ class LinnworksApiService
     }
 
     // Get all stock items
-    public function getStockItems()
-    {
-        $response = Http::withToken(Cache::get('linnworks.session_token'))->get('https://api.linnworks.com/api/v1/stock-items', [
-            'headers' => [
-                'Authorization' => Cache::get('linnworks.session_token'),
-                'accept' => 'application/json',
-                'content-type' => 'application/json',
-            ],
-        ]);
 
-        return json_decode($response->getBody());
-    }
-
-    // Update barcodes from Linnworks. Loop over each SKU in the database
-    public function updateBarcode($sku)
+    /**
+     * @throws GuzzleException
+     */
+    public function getInventory(int $pageNumber, int $entriesPerPage = 200)
     {
-        // Send API request to Linnworks for the SKU
-        $body = json_encode([
-            'keyword' => trim($sku),
-            'loadCompositeParents' => false,
-            'loadVariationParents' => false,
-            'entriesPerPage' => 1,
-            'pageNumber' => 1,
-            "searchTypes" => ["SKU","Title","Barcode"],
-        ]);
+        $data = [
+            "loadCompositeParents" => false,
+            "loadVariationParents" => false,
+            "entriesPerPage" => $pageNumber,
+            "pageNumber" => $entriesPerPage,
+            "dataRequirements" => ["StockLevels"],
+        ];
 
         $response = $this->client->request('POST', $this->base_url . 'Stock/GetStockItemsFull', [
-            'body' => $body,
+            'body' => json_encode($data),
             'headers' => [
                 'Authorization' => Cache::get('linnworks.session_token'),
                 'accept' => 'application/json',
@@ -170,17 +156,24 @@ class LinnworksApiService
             ],
         ]);
 
-        // Decode the response
-        $response = json_decode($response->getBody());
+        return json_decode($response->getBody(), true);
+    }
 
-        // Update the barcode in the database
-        $product = Product::where('sku', $sku)->first();
-        if($product) {
-            $product->barcode = $response['barcode'];
-            $product->save();
-        }
+    /**
+     * Get inventory count
+     */
+    public function getInventoryCount()
+    {
+        $response = $this->client->request('GET', $this->base_url . 'Inventory/GetInventoryItemsCount', [
+                'headers' => [
+                    'Authorization' => Cache::get('linnworks.session_token'),
+                    'accept' => 'application/json',
+                ],
+            ]);
+        // Make sure the response is an integer
+        $response = json_decode($response->getBody(), true);
 
-        return $response;
+        return (int)$response;
     }
 
 }
