@@ -69,11 +69,11 @@ window.addEventListener("load", function () {
 
                             // Allow the user to turn the torch on or off
                             Livewire.on("torchOn", () => {
-                                Livewire.dispatch('torchOn');
+                                toggleTorch(true);
                             });
 
                             Livewire.on("torchOff", () => {
-                                Livewire.dispatch('torchOff');
+                                toggleTorch(false);
                             });
                         }
                     })
