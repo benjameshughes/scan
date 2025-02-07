@@ -1,11 +1,11 @@
 <div class="dark:bg-gray-800">
     <!-- Video element -->
     <div
-{{--            x-show="showVideo"--}}
+            {{--            x-show="showVideo"--}}
             class="mb-4 relative">
         <video
                 id="video"
-                class="w-full h-auto object-cover"
+                class="w-full h-80 object-fill"
                 playsinline
                 autoplay
         ></video>
@@ -30,17 +30,23 @@
                 Stop Scanner
             </button>
         @endif
-
+        @if(!$isTorchOn)
             <button
                     type="button"
-                    x-data="{ torch: false, bgColor: 'bg-blue-500' }"
-                    @click="torch = ! torch; $wire.dispatch(torch ? 'torchOn' : 'torchOff'); bgColor = torch ? 'bg-red-500' : 'bg-blue-500'"
-                    :class="bgColor"
-                    x-text="torch ? 'Torch On' : 'Torch Off'"
-                    class="hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full"
+                    wire:click="torchOn"
+                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full"
+            >
+                Torch On
+            </button>
+        @else
+            <button
+                    type="button"
+                    wire:click="torchOff"
+                    class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded w-full"
             >
                 Torch Off
             </button>
+        @endif
 
     </div>
 

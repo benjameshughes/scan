@@ -10,7 +10,7 @@ class Scanner extends Component
     public array $result = [];
     public bool $isScanning = false;
 
-    public bool $torch = false;
+    public bool $isTorchOn = false;
 
     public bool $loadingCamera = false;
 
@@ -39,13 +39,13 @@ class Scanner extends Component
     #[On('torchOn')]
     public function torchOn()
     {
-        $this->torch = true;
+        $this->isTorchOn = true;
     }
 
     #[On('torchOff')]
     public function torchOff()
     {
-        $this->torch = false;
+        $this->isTorchOn = false;
     }
 
     #[On('result')]
