@@ -15,6 +15,7 @@
     <div class="flex flex-col px-4">
         @if(!$isScanning)
             <button
+                    type="button"
                     wire:click="startScan"
                     class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mb-4 rounded w-full"
             >
@@ -22,6 +23,7 @@
             </button>
         @else
             <button
+                    type="button"
                     wire:click="stopScan"
                     class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded w-full"
             >
@@ -29,9 +31,15 @@
             </button>
         @endif
 
-        <button x-data="{ torch: false }" @click="torch = ! torch" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full">
-            Torch {{$torch ? 'On' : 'Off'}}
-        </button>
+            <button
+                    type="button"
+                    x-data="{ torch: false }"
+                    @click="torch = ! torch; $wire.dispatch(torch ? 'torchOn' : 'torchOff')"
+                    x-text="torch ? 'Torch On' : 'Torch Off'"
+                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full"
+            >
+                Torch Off
+            </button>
     </div>
 
     <!-- Video source select -->

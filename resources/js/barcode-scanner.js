@@ -39,22 +39,31 @@ window.addEventListener('load', function () {
                         // Once the camera stream is obtained, we use the selected device
                         const videoTracks = stream.getVideoTracks();
                         if (videoTracks.length > 0) {
-                            selectedDevice = videoTracks[0].getSettings().deviceId;
+                            const videoTrack = videoTracks[0];
 
                             // Allow the user to turn the torch on or off
-                            Livewire.on('torchOn', () => {
-                                selectedDevice.applyConstraints({
-                                    advanced: [{torch: true}]
-                                }).then(r => Livewire.dispatch('torchOn'));
+                            Livewire.on("torchOn", () => {
+                                videoTrack
+                                    .applyConstraints({
+                                        advanced: [{ torch: true }],
+                                    })
+                                    .then((r) => Livewire.dispatch("torchOn"))
+                                    .catch((error) => {
+                                        console.error("Error turning torch on:", error);
+                                    });
                             });
 
-                            Livewire.on('torchOff', () => {
-                                selectedDevice.applyConstraints({
-                                    advanced: [{torch: false}]
-                                }).then(r => {
-                                        Livewire.dispatch('torchOff')
-                                    }
-                                );
+                            Livewire.on("torchOff", () => {
+                                videoTrack
+                                    .applyConstraints({
+                                        advanced: [{ torch: false }],
+                                    })
+                                    .then((r) => {
+                                        Livewire.dispatch("torchOff");
+                                    })
+                                    .catch((error) => {
+                                        console.error("Error turning torch off:", error);
+                                    });
                             });
                         }
 
