@@ -28,7 +28,6 @@ class Scanner extends Component
     public function startScan()
     {
         $this->isScanning = true;
-        $this->dispatch('startScan');
         // Remove hidden class from video element
         $this->showVideo = true;
     }
@@ -37,7 +36,6 @@ class Scanner extends Component
     public function stopScan()
     {
         $this->isScanning = false;
-        $this->dispatch('stopScan');
     }
 
     #[On('torchOn')]

@@ -5,19 +5,19 @@
             class="mb-4 relative">
         <video
                 id="video"
-                class="w-full h-full object-cover"
+                class="w-full h-auto object-cover"
                 playsinline
                 autoplay
         ></video>
     </div>
 
     <!-- Controls -->
-    <div class="flex flex-col px-4">
+    <div class="flex gap-4 px-4">
         @if(!$isScanning)
             <button
                     type="button"
                     wire:click="startScan"
-                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mb-4 rounded w-full"
+                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full"
             >
                 Start Scanner
             </button>
@@ -33,13 +33,15 @@
 
             <button
                     type="button"
-                    x-data="{ torch: false }"
-                    @click="torch = ! torch; $wire.dispatch(torch ? 'torchOn' : 'torchOff')"
+                    x-data="{ torch: false, bgColor: 'bg-blue-500' }"
+                    @click="torch = ! torch; $wire.dispatch(torch ? 'torchOn' : 'torchOff'); bgColor = torch ? 'bg-red-500' : 'bg-blue-500'"
+                    :class="bgColor"
                     x-text="torch ? 'Torch On' : 'Torch Off'"
-                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full"
+                    class="hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full"
             >
                 Torch Off
             </button>
+
     </div>
 
     <!-- Video source select -->
