@@ -25,15 +25,6 @@ class ProductsTable extends Table
         ];
     }
 
-    public function getActions(): array
-    {
-        return [
-            Action::make()
-                ->name('view')
-                ->label('View'),
-        ];
-    }
-
     public function getPerPageOptions(): array
     {
         return [10, 25, 50, 100];

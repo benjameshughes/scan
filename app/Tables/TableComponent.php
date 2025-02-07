@@ -3,21 +3,17 @@
 namespace App\Tables;
 
 use AllowDynamicProperties;
-use App\Tables\Concerns\HasActions;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Database\Eloquent\Builder;
 use App\Tables\Concerns\HasColumns;
 use App\Tables\Concerns\HasSearch;
-use App\Tables\Concerns\HasFilters;
 
 #[AllowDynamicProperties] class TableComponent extends Component
 {
     use WithPagination;
     use HasColumns;
     use HasSearch;
-    use HasFilters;
-    use HasActions;
 
     public string $tableClass;
     public string $search = '';
@@ -25,24 +21,22 @@ use App\Tables\Concerns\HasFilters;
     public string $sortField = 'id';
     public string $sortDirection = 'asc';
 
-    public ?array $filters = [];
+    public array $perPageOptions = [10, 25, 50, 100, 250];
 
-    public ?array $actions = [];
-
-    protected $queryString = [
+    protected array $queryString = [
         'search' => ['except' => ''],
         'sortField' => ['except' => 'id'],
         'sortDirection' => ['except' => 'asc'],
         'perPage' => ['except' => 10],
     ];
 
-    public function boot()
+    public function boot(): void
     {
         // This ensures the table is initialized before any other lifecycle methods
         $this->table = new ($this->tableClass)();
     }
 
-    public function mount(string $tableClass)
+    public function mount(string $tableClass): void
     {
         $this->tableClass = $tableClass;
         $this->table = new $tableClass();
@@ -72,16 +66,6 @@ use App\Tables\Concerns\HasFilters;
         return $query;
     }
 
-    public function getFilters()
-    {
-        return $this->filters;
-    }
-
-    public function getActions()
-    {
-        return $this->actions;
-    }
-
     public function render()
     {
         $data = $this->getQuery()->paginate($this->perPage);
@@ -89,8 +73,6 @@ use App\Tables\Concerns\HasFilters;
         return view('components.tables.table', [
             'data' => $data,
             'columns' => $this->getTable()->columns(),
-            'actions' => $this->getTable()->getActions(),
-            'filters' => $this->getTable()->getFilters(),
         ]);
     }
 
@@ -108,12 +90,6 @@ use App\Tables\Concerns\HasFilters;
     {
         $this->resetPage();
     }
-
-    public function updatingFilters()
-    {
-        $this->resetPage();
-    }
-
     public function updatingPerPage()
     {
         $this->resetPage();
@@ -125,20 +101,8 @@ use App\Tables\Concerns\HasFilters;
             !empty($this->getTable()->getSearchableColumns());
     }
 
-    public function hasFilters(): bool
-    {
-        return method_exists($this->getTable(), 'getFilterableColumns') &&
-            !empty($this->getTable()->getFilters());
-    }
-
-    public function hasActions(): bool
-    {
-        return method_exists($this->getTable(), 'getActions') &&
-            !empty($this->getTable()->getActions());
-    }
-
     public function getPerPageOptions(): array
     {
-        $this->perPageOptions = $perPageOptions;
+        return $this->perPageOptions;
     }
 }

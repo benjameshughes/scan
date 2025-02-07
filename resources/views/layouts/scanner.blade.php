@@ -18,7 +18,7 @@
 @auth
     <livewire:welcome.navigation />
 @endauth
-<div class="min-h-screen flex flex-col items-center bg-gray-100 dark:bg-gray-900">
+<div class="min-h-screen flex flex-col md:justify-center items-center bg-gray-100 dark:bg-gray-900">
     <div class="w-full max-h-screen sm:max-w-md bg-white dark:bg-gray-800 shadow-md overflow-hidden sm:rounded-lg">
         {{ $slot }}
     </div>
