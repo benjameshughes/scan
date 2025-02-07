@@ -35,6 +35,7 @@ window.addEventListener("load", function () {
 
                 // Start continuous barcode scanning from the selected video device
                 startScanning(selectedDeviceId);
+                Livewire.dispatch('startScan');
 
                 // Try to select the back camera explicitly using 'facingMode' constraint
                 navigator.mediaDevices
@@ -114,6 +115,7 @@ window.addEventListener("load", function () {
         Livewire.dispatch("barcodeScanned");
         navigator.vibrate(300);
         cameraIsActive = false;
+        Livewire.dispatch('stopScan');
     }
 
     // Function to ask for camera permissions and initialize the camera

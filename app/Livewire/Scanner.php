@@ -28,8 +28,6 @@ class Scanner extends Component
     public function startScan()
     {
         $this->isScanning = true;
-        // Remove hidden class from video element
-        $this->showVideo = true;
     }
 
     #[On('stopScan')]
