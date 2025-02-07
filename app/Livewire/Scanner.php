@@ -41,17 +41,15 @@ class Scanner extends Component
     }
 
     #[On('torchOn')]
-    public function flash()
+    public function torchOn()
     {
         $this->torch = true;
-        $this->dispatch('flashOn');
     }
 
     #[On('torchOff')]
-    public function flashOff()
+    public function torchOff()
     {
         $this->torch = false;
-        $this->dispatch('flashOff');
     }
 
     #[On('result')]

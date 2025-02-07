@@ -30,7 +30,7 @@ window.addEventListener('load', function () {
                 navigator.mediaDevices.getUserMedia({
                     video: {
                         facingMode: 'environment', // This selects the back camera
-                        aspectRatio: 1.7777777778,
+                        aspectRatio: 1,
                         width: {ideal: 1920},
                         height: {ideal: 1080},
                     }
@@ -44,14 +44,17 @@ window.addEventListener('load', function () {
                             // Allow the user to turn the torch on or off
                             Livewire.on('torchOn', () => {
                                 selectedDevice.applyConstraints({
-                                    advanced: [{ torch: true }]
-                                });
+                                    advanced: [{torch: true}]
+                                }).then(r => Livewire.dispatch('torchOn'));
                             });
 
                             Livewire.on('torchOff', () => {
                                 selectedDevice.applyConstraints({
-                                    advanced: [{ torch: false }]
-                                });
+                                    advanced: [{torch: false}]
+                                }).then(r => {
+                                        Livewire.dispatch('torchOff')
+                                    }
+                                );
                             });
                         }
 
@@ -61,9 +64,9 @@ window.addEventListener('load', function () {
                             if (result) {
                                 console.log(result);
                                 Livewire.dispatch('result', [result]);
-                                Livewire.dispatchTo('scan-form', 'barcodeScanned');
+                                Livewire.dispatch('barcodeScanned');
                                 cardReader.reset();
-                                navigator.vibrate(300);
+                                navigator.vibrate(500);
                             }
                             if (err && !(err instanceof NotFoundException)) {
                                 console.error(err);
@@ -91,7 +94,7 @@ window.addEventListener('load', function () {
 
     // Function to ask for camera permissions and initialize the camera
     const askForPermissionAndInitializeCamera = () => {
-        navigator.mediaDevices.getUserMedia({ video: true })
+        navigator.mediaDevices.getUserMedia({video: true})
             .then(() => {
                 // Once permission is granted, initialize the camera
                 initializeCamera();
@@ -105,7 +108,7 @@ window.addEventListener('load', function () {
 
     // Check if the Permissions API is available and if camera permission has already been granted
     if (navigator.permissions) {
-        navigator.permissions.query({ name: 'camera' }).then(permissionStatus => {
+        navigator.permissions.query({name: 'camera'}).then(permissionStatus => {
             if (permissionStatus.state === 'granted') {
                 // Permission already granted, initialize camera
                 initializeCamera();
@@ -138,10 +141,10 @@ window.addEventListener('load', function () {
         const video = document.getElementById('video');
         if (video.srcObject && video.srcObject.active) {
             video.srcObject.getVideoTracks()[0].applyConstraints({
-                advanced: [{ torch: true }]
+                advanced: [{torch: true}]
             });
             $wire.dispatch('flashOn');
-        }else{
+        } else {
             $wire.dispatch('flashOff');
         }
     });
