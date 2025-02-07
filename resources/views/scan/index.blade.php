@@ -1,4 +1,4 @@
-<x-guest-layout>
+<x-scan-layout>
     <div class="">
         <div class="w-full mx-auto">
             <div class="bg-white overflow-hidden">
@@ -12,4 +12,4 @@
         </div>
     </div>
     @vite('resources/js/barcode-scanner.js')
-</x-guest-layout>
+</x-scan-layout>
