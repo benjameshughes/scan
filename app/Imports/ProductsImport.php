@@ -2,121 +2,43 @@
 
 namespace App\Imports;
 
-use App\DTOs\ProductDTO;
 use App\Models\Product;
-use Illuminate\Support\Collection;
-use Maatwebsite\Excel\Concerns\Importable;
-use Maatwebsite\Excel\Concerns\SkipsErrors;
-use Maatwebsite\Excel\Concerns\SkipsOnError;
-use Maatwebsite\Excel\Concerns\ToCollection;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Maatwebsite\Excel\Concerns\RemembersRowNumber;
+use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Maatwebsite\Excel\Concerns\WithValidation;
-use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Concerns\WithUpserts;
 
-class ProductsImport implements ToCollection, WithHeadingRow, WithBatchInserts, WithValidation, SkipsOnError
+class ProductsImport implements ToModel, WithHeadingRow, ShouldQueue, WithBatchInserts, WithUpserts, WithChunkReading
 {
-    use Importable, SkipsErrors;
+    use RemembersRowNumber;
 
-    private array $mappings;
-    private array $results = [
-        'created' => 0,
-        'updated' => 0,
-        'failed' => 0,
-    ];
-
-    public function __construct(array $mappings)
+    public function model(array $row)
     {
-        $this->mappings = $mappings;
+
+        $currentRowNumber = $this->getRowNumber();
+        return new Product([
+            'sku' => $row['sku'],
+            'name' => $row['name'],
+            'barcode' => $row['barcode'],
+            'quantity' => $row['quantity'],
+        ]);
     }
 
-    public function collection(Collection $rows): void
+    public function uniqueBy(): array
     {
-        $rows->each(function ($row) {
-            try {
-                $this->processRow($row);
-            } catch (\Exception $e) {
-                $this->results['failed']++;
-                Log::error("Import failed for row", [
-                    'row' => $row,
-                    'error' => $e->getMessage()
-                ]);
-            }
-        });
+        return ['sku'];
     }
 
-    private function processRow($row): void
+    public function chunkSize(): int
     {
-        $productData = $this->mapRowToData($row);
-
-        if (empty($productData)) {
-            $this->results['failed']++;
-            return;
-        }
-
-        $dto = ProductDTO::fromArray($productData);
-
-        $product = Product::where('sku', $dto->sku)->first();
-
-        if ($product) {
-            $this->updateProduct($product, $dto);
-            $this->results['updated']++;
-        } else {
-            $this->createProduct($dto);
-            $this->results['created']++;
-        }
-    }
-
-    private function mapRowToData($row): array
-    {
-        $productData = [];
-
-        foreach ($this->mappings as $modelColumn => $fileColumn) {
-            if (isset($row[$fileColumn])) {
-                $productData[$modelColumn] = $this->formatValue($row[$fileColumn], $modelColumn);
-            }
-        }
-
-        return $productData;
-    }
-
-    private function formatValue($value, string $column)
-    {
-        return match ($column) {
-            'quantity' => (int) $value,
-            'price' => (float) $value,
-            default => $value,
-        };
-    }
-
-    private function updateProduct(Product $product, ProductDTO $dto): void
-    {
-        $product->fill($dto->toArray());
-        $product->save();
-    }
-
-    private function createProduct(ProductDTO $dto): void
-    {
-        Product::updateOrCreate($dto->toArray());
-    }
-
-    public function rules(): array
-    {
-        return [
-            '*.sku' => 'required|string',
-            '*.name' => 'nullable|string',
-            '*.barcode' => 'nullable|string',
-            '*.quantity' => 'nullable|integer',
-        ];
+        return 100;
     }
 
     public function batchSize(): int
     {
         return 100;
-    }
-
-    public function getResults(): array
-    {
-        return $this->results;
     }
 }

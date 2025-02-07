@@ -3,66 +3,68 @@
 namespace App\Livewire;
 
 use App\Imports\ProductsImport;
-use App\Models\Product;
+use App\Jobs\ImportFile;
+use Illuminate\Http\UploadedFile;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Maatwebsite\Excel\Facades\Excel;
-use Maatwebsite\Excel\HeadingRowImport;
 
 class ProductImport extends Component
 {
     use WithFileUploads;
 
     public $file;
-    public $mappings = [];
-    public $availableColumns = [];
+    public $progress = 0;
+    public $totalRows = 0;
+    public $isImporting = false;
 
-    public $fileColumns = [];
-    public $results = [];
-
-    public function updatedFile()
-    {
-        $this->validate([
-            'file' => 'required|file|mimes:xlsx,xls,csv'
-        ]);
-
-        // Read file contents using php to get the columns name
-        $headers = (new HeadingRowImport)->toArray($this->file)[0][0] ?? [];
-
-        // Set headers to the file columns
-        $this->fileColumns = $headers;
-    }
+    protected $listeners = ['importComplete','updateProgress'];
 
     public function import()
     {
         $this->validate([
-            'file' => 'required',
-            'mappings' => 'required|array',
-            'mappings.sku' => 'required|string', // SKU mapping is required
+            'file' => 'required|mimes:xlsx,xls,csv',
         ]);
 
-        try {
-            $import = new ProductsImport($this->mappings);
-            $import->import($this->file);
+        $this->isImporting = true;
 
-            $this->results = $import->getResults();
+        // Store the file
+        $path = $this->file->store('imports');
 
-            $this->dispatch('import-complete', [
-                'message' => "Import completed: {$this->results['created']} created, {$this->results['updated']} updated, {$this->results['failed']} failed"
-            ]);
-        } catch (\Exception $e) {
-            $this->addError('import', 'Import failed: ' . $e->getMessage());
-        }
+        $import = new ProductsImport();
+
+//        // Get total rows
+//        $results = Excel::toArray(new ProductsImport(), $this->file->getRealPath());
+//        $this->totalRows = count($results[0]);
+//        $import->setTotalRows($this->totalRows);
+
+        // Dispatch the import job
+        Excel::queue(new ProductsImport, $path);
     }
 
-    public function mount()
+    public function getProgress()
     {
-        // Get the fillables from the model
-        $this->availableColumns = (new Product())->getFillable();
+        $import = new ProductsImport();
+
+        $this->progress = ($import->importedRows / $this->totalRows) * 100;
+    }
+
+    #[On('importComplete')]
+    public function importComplete()
+    {
+        $this->isImporting = false;
+        $this->progress = 0;
+        $this->totalRows = 0;
+        $this->importFinished = true;
     }
 
     public function render()
     {
-        return view('livewire.product-import');
+        return view('livewire.product-import', [
+            'progress' => $this->progress,
+            'totalRows' => $this->totalRows,
+            'isImporting' => $this->isImporting,
+        ]);
     }
 }

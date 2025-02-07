@@ -1,43 +1,35 @@
 <div>
-    <form wire:submit="import">
-        <div class="bg-white border border-r border-gray-200 p-8 rounded-lg">
-            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="file"></label>
-            <input id="file" type="file" class="block text-sm text-gray-900 border rounded" wire:model="file">
-            @error('file') <span class="error">{{ $message }}</span> @enderror
-            @if($file)
-                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                    Uploaded file: {{ $file->getClientOriginalName() }}
-                </p>
-            @endif
-        </div>
+    <form wire:submit.prevent="import">
+        <input type="file" wire:model="file">
 
-        @if($file)
-            <div>
-                @foreach ($availableColumns as $column)
-                    <div class="form-group">
-                        <label for="{{ $column }}">{{ ucfirst($column) }}</label>
-                        <select wire:model="mappings.{{ $column }}" id="{{ $column }}" class="form-control">
-                            <option value="">Select a column</option>
-                            @foreach($fileColumns as $fileColumn)
-                                <option value="{{ $fileColumn }}">{{ $fileColumn }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                @endforeach
-            </div>
+        @error('file') <span class="text-danger">{{ $message }}</span> @enderror
 
-            <button type="submit" class="bg-green-700 px-4 py-2 rounded-md text-white">Import</button>
-            <div wire:loading wire:target="import" class="bg-gray-200 px-4 py-2 rounded-md text-white">
-                <x-icons.spinner class="w-5 h-5 text-white animate-spin"/>
-            </div>
-        @endif
+        <button type="submit" class="bg-green-500 hover:bg-green-700 px-4 py-2 rounded-md text-white">Import</button>
     </form>
 
-    @if(!empty($results))
-        <div>
-            <p>Created: {{ $results['created'] }}</p>
-            <p>Updated: {{ $results['updated'] }}</p>
-            <p>Failed: {{ $results['failed'] }}</p>
+    @if (session()->has('message'))
+        <div class="alert alert-success">
+            {{ session('message') }}
         </div>
     @endif
+
+    @if ($progress > 0 && ! $importFinished)
+        <div class="progress">
+            <div class="progress-bar" role="progressbar" style="width: {{ $progress }}%;" aria-valuenow="{{ $progress }}" aria-valuemin="0" aria-valuemax="100">{{ $progress }}%</div>
+        </div>
+    @endif
+
+    @if ($isImporting)
+        <div>
+            Import queued. This may take a few minutes.
+        </div>
+
+        <div wire:poll.500ms="progress" wire:target="import">
+            <div class="progress">
+                <div class="progress-bar" role="progressbar" style="width: {{ $progress }}%;" aria-valuenow="{{ $progress }}" aria-valuemin="0" aria-valuemax="100">{{ $progress }}%</div>
+            </div>
+        </div>
+    @endif
+
+
 </div>
