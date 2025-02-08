@@ -30,6 +30,15 @@
             </div>
         </div>
     @endif
+    @if ($progress > 0 && $isImporting)
+        <div class="progress">
+            <div class="progress-bar" role="progressbar" style="width: {{ $progress }}%;" aria-valuenow="{{ $progress }}" aria-valuemin="0" aria-valuemax="100">{{ $progress }}%</div>
+        </div>
+    @endif
 
-
+    @if (!$isImporting && $progress == 100)
+        <div class="alert alert-success">
+            Import finished!
+        </div>
+    @endif
 </div>

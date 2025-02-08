@@ -8,6 +8,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 use Ramsey\Uuid\Fields\SerializableFieldsTrait;
@@ -30,9 +31,16 @@ class ImportFile implements ShouldQueue
 
     /**
      * Execute the job.
+     * @throws \Exception
      */
     public function handle(): void
     {
-        Excel::import($this->import, Storage::path($this->file));
+        try{
+            $import = new ProductsImport();
+            $import->queue(Storage::path($this->file));
+        } catch (\Exception $e) {
+            Log::channel('import')->error($e->getMessage());
+            throw $e;
+        }
     }
 }

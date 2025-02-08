@@ -3,8 +3,6 @@
 namespace App\Livewire;
 
 use App\Imports\ProductsImport;
-use App\Jobs\ImportFile;
-use Illuminate\Http\UploadedFile;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -16,10 +14,10 @@ class ProductImport extends Component
 
     public $file;
     public $progress = 0;
-    public $totalRows = 0;
+    public $totalRows = 4187;
     public $isImporting = false;
 
-    protected $listeners = ['importComplete','updateProgress'];
+    protected $listeners = ['echo:import-progress, ImportProgress' => 'updateProgress'];
 
     public function import()
     {
@@ -34,29 +32,29 @@ class ProductImport extends Component
 
         $import = new ProductsImport();
 
-//        // Get total rows
-//        $results = Excel::toArray(new ProductsImport(), $this->file->getRealPath());
-//        $this->totalRows = count($results[0]);
-//        $import->setTotalRows($this->totalRows);
+        // Get total rows
+        $results = Excel::toArray(new ProductsImport(), $this->file->getRealPath());
+        $this->totalRows = count($results[0]);
+        $import->setTotalRows($this->totalRows);
 
         // Dispatch the import job
-        Excel::queue(new ProductsImport, $path);
+        $import->queue($path);
     }
 
-    public function getProgress()
+    public function updateProgress($event)
     {
-        $import = new ProductsImport();
-
-        $this->progress = ($import->importedRows / $this->totalRows) * 100;
+        $this->progress = $event->progress;
+        if($this->progress == 100) {
+            $this->isImporting = false;
+        }
     }
 
     #[On('importComplete')]
     public function importComplete()
     {
-        $this->isImporting = false;
         $this->progress = 0;
         $this->totalRows = 0;
-        $this->importFinished = true;
+        $this->isImporting = false;
     }
 
     public function render()
