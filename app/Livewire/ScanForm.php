@@ -18,7 +18,7 @@ class ScanForm extends Component
     public Scan $scan;
 
     #[Validate('required')]
-    public string $barcode;
+    public int $barcode;
 
     #[Validate('required|min:1')]
     public int $quantity = 1;
