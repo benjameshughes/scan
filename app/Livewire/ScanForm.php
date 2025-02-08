@@ -71,7 +71,7 @@ class ScanForm extends Component
 
         // Dispatch the sync job
         if ($this->checkBarcodeExists()) {
-            SyncBarcode::dispatch($scan)->delay(now()->addMinute());
+            SyncBarcode::dispatch($scan->id)->delay(now()->addMinute());
         } else {
             $users = User::all();
             foreach($users as $user) {
