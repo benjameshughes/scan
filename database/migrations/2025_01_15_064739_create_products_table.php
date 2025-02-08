@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('sku')->unique();
             $table->string('name')->nullable();
-            $table->integer('barcode')->nullable();
-            $table->unsignedBigInteger('quantity')->nullable();
+            $table->unsignedBigInteger('barcode')->nullable();
+            $table->integer('quantity')->nullable();
             $table->timestamps();
         });
     }
