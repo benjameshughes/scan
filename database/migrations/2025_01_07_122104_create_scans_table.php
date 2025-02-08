@@ -14,7 +14,7 @@ return new class extends Migration
     {
         Schema::create('scans', function (Blueprint $table) {
             $table->id();
-            $table->integer('barcode');
+            $table->unsignedBigInteger('barcode');
             $table->integer('quantity');
             $table->boolean('submitted')->default(false);
             $table->timestamp('submitted_at')->nullable();
