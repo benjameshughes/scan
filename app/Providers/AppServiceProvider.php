@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Tables\TableComponent;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
@@ -46,6 +47,11 @@ class AppServiceProvider extends ServiceProvider
             ])->post(config('linnworks.base_url') . $url);
 
             return $response->body();
+        });
+
+        // Allow certain emails to view laravel pulse from an env array
+        Gate::define('viewPulse', function ($user) {
+            return $user->email == config('pulse.users');
         });
 
     }
