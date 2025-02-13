@@ -22,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('scans', function (Blueprint $table) {
-            //
+            $table->dropColumn('sync_status');
         });
     }
 };
