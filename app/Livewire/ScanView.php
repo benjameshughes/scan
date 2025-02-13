@@ -28,6 +28,14 @@ class ScanView extends Component
         $this->scan = $scan;
     }
 
+    // Sync the job by dispatching the sync job
+    public function sync()
+    {
+        $this->jobStatus = 'Syncing';
+        $this->scan->update(['sync_status' => 'Syncing']);
+        SyncBarcode::dispatch($this->scan->id)->delay(now()->addMinute());
+    }
+
     public function mount(Scan $scan): void
     {
         $this->updateData();

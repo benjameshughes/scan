@@ -5,7 +5,7 @@
                 <div class="text-gray-500 dark:text-gray-400">{{ $notification->data['message'] }}</div>
                 <div class="text-gray-500 dark:text-gray-400">{{ $notification->read_at ? $notification->read_at->format('d/m/Y H:i:s') : 'Not Read' }}</div>
                 <div class="text-gray-500 dark:text-gray-400">{{ $notification->created_at->format('d/m/Y H:i:s') }}</div>
-                <x-primary-button wire:click="markAsRead({{$notification->id}})">
+                <x-primary-button type="button" wire:click="markAsRead('{{$notification->id}}')">
                     Mark as Read
                 </x-primary-button>
             </div>

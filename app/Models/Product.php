@@ -19,6 +19,7 @@ class Product extends Model
         'sku',
         'name',
         'barcode',
+        'barcode_2',
         'quantity',
     ];
 

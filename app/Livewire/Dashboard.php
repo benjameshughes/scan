@@ -4,24 +4,25 @@ namespace App\Livewire;
 
 use App\Models\Scan;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
 use Livewire\Component;
 
 class Dashboard extends Component
 {
-    public $notifications;
+    public $notifications = [];
 
     public $scans;
 
+    // Mark notification as read
     public function markAsRead($id)
     {
-        $notification = Auth::user()->notifications()->find($id);
+        $user = auth()->user();
+        $notification = $user->unreadNotifications->find($id);
 
-        if($notification)
-        {
-            $notification->markAsRead();
-            $this->notifications = Auth::user()->unreadNotifications();
-        }
+        $notification->markAsRead($id);
 
+        // refresh notifications
+        $this->notifications = auth()->user()->unreadNotifications;
     }
 
     public function mount()
@@ -29,6 +30,7 @@ class Dashboard extends Component
         $this->notifications = auth()->user()->unreadNotifications;
         $this->scans = Scan::all()->where('submitted', false);
     }
+
     public function render()
     {
         return view('livewire.dashboard');
