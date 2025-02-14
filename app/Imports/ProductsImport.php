@@ -5,6 +5,7 @@ namespace App\Imports;
 use App\Events\ImportedFile;
 use App\Models\Product;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\RemembersRowNumber;
 use Maatwebsite\Excel\Concerns\ToModel;
@@ -17,22 +18,32 @@ class ProductsImport implements ToModel, WithHeadingRow, ShouldQueue, WithBatchI
 {
     use Importable, RemembersRowNumber;
 
+    private int $size = 50;
     public int $totalRows = 0;
     public int $importedRows = 0;
 
     public function model(array $row)
     {
         $this->importedRows = $this->getRowNumber();
-
         $progress = ($this->importedRows / $this->totalRows) * 100;
         event(new ImportedFile($progress));
 
-        return new Product([
-            'sku' => $row['sku'],
-            'name' => $row['name'],
-            'barcode' => $row['barcode'],
-            'quantity' => $row['quantity'],
-        ]);
+        $attributes = [];
+
+        $columns = ['sku', 'name', 'barcode', 'barcode_2', 'quantity'];
+
+        foreach ($columns as $column)
+        {
+            if (array_key_exists($column, $row)) {
+                $attributes[$column] = $row[$column];
+            }
+        }
+        foreach ($row as $key => $value) {
+            Log::info($key . ': ' . $value);
+        }
+
+        // Pass array of attributes to the model
+        return new Product($attributes);
     }
 
     public function setTotalRows($totalRows)
@@ -47,11 +58,11 @@ class ProductsImport implements ToModel, WithHeadingRow, ShouldQueue, WithBatchI
 
     public function chunkSize(): int
     {
-        return 100;
+        return $this->size;
     }
 
     public function batchSize(): int
     {
-        return 100;
+        return $this->size;
     }
 }

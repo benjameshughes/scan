@@ -32,6 +32,14 @@
                     {{$scan->quantity ?? '0'}}
                 </dd>
             </div>
+            <div wire:poll.500 class="sm:col-span-1 pb-5 border-b border-gray-200 dark:border-gray-700">
+                <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    {{__('Status')}}
+                </dt>
+                <dd class="mt-1 text-sm text-gray-900 dark:text-white">
+                    {{$scan->sync_status}}
+                </dd>
+            </div>
             <div class="sm:col-span-1 pb-5 border-b border-gray-200 dark:border-gray-700">
                 <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
                     {{__('Submitted At')}}
@@ -53,12 +61,11 @@
                     {{__('Actions')}}
                 </dt>
                 <dd class="mt-1 text-sm text-gray-900 dark:text-white">
-                    <a href="{{route('scan.sync', $scan->id)}}" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-500">
+                    <a wire:click="sync">
+                        <button type="button" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-500">
                         {{__('Sync')}}
+                        </button>
                     </a>
-                    <span class="ml-2 text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-500">
-                            {{$scan->jobStatus ?? 'Not Submitted'}}
-                        </span>
                     <a href="{{route('scan.edit', $scan)}}" class="ml-2 text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-500">
                         {{__('Logs')}}
                     </a>

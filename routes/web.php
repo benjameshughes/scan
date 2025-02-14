@@ -21,7 +21,7 @@ Route::get('scanner', [ScanController::class, 'scan'])->name('scan.scan');
 | Authentication Required Routes
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'verified', hasNotifications::class])->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard & Profile
 
     Route::view('dashboard', 'dashboard')->name('dashboard');

@@ -28,6 +28,25 @@ class ScanView extends Component
         $this->scan = $scan;
     }
 
+    // Sync the job by dispatching the sync job
+    /**
+     * Initiates barcode synchronization with a 1-minute delay to allow for potential batching
+     * @throws \Exception If status update fails
+     */
+    public function sync()
+    {
+        $this->jobStatus = 'Syncing';
+        try {
+            if (!$this->scan->update(['sync_status' => 'Syncing'])) {
+                throw new \Exception('Failed to update sync status');
+            }
+            SyncBarcode::dispatch($this->scan->id)->delay(now()->addMinute());
+        } catch (\Exception $e) {
+            $this->jobStatus = 'Error';
+            throw $e;
+        }
+    }
+
     public function mount(Scan $scan): void
     {
         $this->updateData();

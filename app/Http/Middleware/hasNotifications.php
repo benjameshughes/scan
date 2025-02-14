@@ -16,10 +16,7 @@ class hasNotifications
     public function handle(Request $request, Closure $next): Response
     {
         if (auth()->user()) {
-            $notifications = auth()->user()->notifications;
-            $unreadNotifications = $notifications->filter->unreadNotifications;
-            $readNotifications = $notifications->filter->readNotifications;
-            view()->share('notifications', $notifications);
+            $unreadNotifications = auth()->user()->unreadNotifications;
             view()->share('unreadNotifications', $unreadNotifications);
         }
 
