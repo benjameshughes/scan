@@ -35,18 +35,22 @@ class SyncBarcode implements ShouldQueue
      */
     public function handle(): void
     {
-        // Initialise Linny
-        $linnworks = new LinnworksApiService();
-
         // Load the scan and product data
         $scan = Scan::findOrFail($this->scanId);
         $sku = $scan->product->sku;
         Log::channel('sku_lookup')->info('Found SKU ' . $sku . 'for scan id ' . $scan->id);
 
+        // Update the scan status
+        $scan->update(['sync_status' => 'Syncing']);
+
         // Check to see if they are in the database
         if (!$scan || !$sku) {
+            $scan->update(['sync_status' => 'Failed']);
             throw new \Exception('Product not found for barcode' . $scan->barcode);
         }
+
+        // Initialise Linny
+        $linnworks = new LinnworksApiService();
 
         // Get Linnworks Stock Level from SKU
         $lwStockLevel = $linnworks->getStockLevel($sku);
@@ -60,7 +64,7 @@ class SyncBarcode implements ShouldQueue
         $linnworks->updateStockLevel($sku, $quantity);
 
         // Mark the scan as submitted
-        $scan->update(['submitted' => true, 'submitted_at' => now()]);
+        $scan->update(['submitted' => true, 'submitted_at' => now(),'sync_status' => 'synced']);
         $scan->save();
     }
 

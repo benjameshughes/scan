@@ -66,6 +66,11 @@ use App\Tables\Concerns\HasSearch;
         return $query;
     }
 
+    public function getUrl()
+    {
+        return $this->getTable()->getUrl();
+    }
+
     public function render()
     {
         $data = $this->getQuery()->paginate($this->perPage);

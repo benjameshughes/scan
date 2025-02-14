@@ -16,6 +16,8 @@ class Column {
 
     protected string $sortDirection = 'asc';
 
+    protected string $url;
+
     public static function make(string $name)
     {
         return new static($name);
@@ -25,6 +27,12 @@ class Column {
     {
         $this->name = $name;
         $this->label = ucwords(str_replace('_', ' ', $name));
+    }
+
+    public function url(string $url): static
+    {
+        $this->url = $url;
+        return $this;
     }
 
     public function label(string $label): static

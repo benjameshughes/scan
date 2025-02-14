@@ -19,14 +19,17 @@ class SyncsTable extends Table
         return [
             TextColumn::make('barcode')
             ->label('Barcode'),
+            TextColumn::make('sync_status')
+                ->label('Sync Status'),
             TextColumn::make('submitted_at')
-                ->label('Submitted At'),
+                ->label('Submitted At')
+            ->dateForHumans(),
             TextColumn::make('created_at')
                 ->label('Scanned')
             ->dateForHumans(),
             TextColumn::make('submitted')
                 ->label('Status')
-            ->value(function ($scan) {
+            ->value(function (Scan $scan) {
                 if ($scan->submitted) {
                     return 'Submitted';
                 } else {

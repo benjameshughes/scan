@@ -97,7 +97,8 @@ window.addEventListener("load", function () {
             "video",
             (result, err) => {
                 if (result && cameraIsActive) {
-                    console.log(result);
+                    // Vibrate on success, it needs to be done here, not in the barcodeUpdated function due to strict user activation... Silly API's
+                    navigator.vibrate(300);
                     barcodeUpdated(result);
                     codeReader.reset();
                 }
@@ -115,7 +116,6 @@ window.addEventListener("load", function () {
     const barcodeUpdated = (result) => {
         Livewire.dispatch("result", [result]);
         Livewire.dispatch("barcodeScanned");
-        navigator.vibrate(300);
         cameraIsActive = false;
         Livewire.dispatch('stopScan');
     }
