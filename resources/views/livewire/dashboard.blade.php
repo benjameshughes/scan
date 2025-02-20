@@ -1,4 +1,11 @@
 <div class="flex flex-col gap-4">
+    <div class="flex">
+        <div class="flex-none">
+            <x-primary-button wire:target="redispatch" wire:click="redispatch">
+                Redispatch
+            </x-primary-button>
+        </div>
+    </div>
     <div>
         @forelse($notifications as $notification)
             <div class="flex p-4 space-x-4 text-center">

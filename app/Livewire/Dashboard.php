@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Actions\SyncAllPendingScans;
 use App\Models\Scan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Notification;
@@ -23,6 +24,16 @@ class Dashboard extends Component
 
         // refresh notifications
         $this->notifications = auth()->user()->unreadNotifications;
+    }
+
+    // Redispatch all jobs that have not been submitted
+    public function redispatch()
+    {
+        // Collect all scans that have not been submitted
+        $scans = Scan::where('submitted', false)->get();
+
+        // Dispatch all jobs
+        (new SyncAllPendingScans($scans))->handle();
     }
 
     public function mount()
