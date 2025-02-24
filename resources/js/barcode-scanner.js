@@ -42,6 +42,7 @@ window.addEventListener("load", function () {
                     .getUserMedia({
                         video: {
                             deviceId: { exact: selectedDeviceId }, // Use the selected device ID
+                            facingMode: { exact: "environment" },
                             aspectRatio: { ideal: 16 / 9 },
                             width: { ideal: 1920 },
                             height: { ideal: 1080 },
@@ -57,7 +58,7 @@ window.addEventListener("load", function () {
                             Livewire.on("torchOn", () => {
                                 videoTrack
                                     .applyConstraints({
-                                        advanced: [{ torch: true }],
+                                        advanced: [{ torch: true  }],
                                     })
                                     .then((r) => Livewire.dispatch("torchOn"))
                                     .catch((error) => {
@@ -66,10 +67,8 @@ window.addEventListener("load", function () {
                             });
 
                             Livewire.on("torchOff", () => {
-                                videoTrack
-                                    .applyConstraints({
-                                        advanced: [{ torch: false }],
-                                    })
+                                videoTracks
+                                    .applyConstraints({ advanced: [{ torch: false }] })
                                     .then((r) => {
                                         Livewire.dispatch("torchOff");
                                     })
