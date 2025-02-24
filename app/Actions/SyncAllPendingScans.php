@@ -5,7 +5,6 @@ namespace App\Actions;
 
 use App\Actions\Contracts\Action;
 use App\Jobs\SyncBarcode;
-use App\Models\Scan;
 use Illuminate\Support\Collection;
 
 final class SyncAllPendingScans implements Action
