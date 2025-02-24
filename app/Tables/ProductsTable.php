@@ -14,7 +14,7 @@ class ProductsTable extends Table
 
     public function getSearchableColumns(): array
     {
-        return ['sku', 'name', 'barcode', 'barcode_2'];
+        return ['sku', 'name', 'barcode', 'barcode_2'. 'barcode_3'];
     }
 
     public function getFilters(): array
@@ -40,6 +40,8 @@ class ProductsTable extends Table
             TextColumn::make('barcode')
                 ->label('Barcode'),
             TextColumn::make('barcode_2')
+                ->label('Old Barcode'),
+            TextColumn::make('barcode_3')
                 ->label('Old Barcode'),
             TextColumn::make('updated_at')
                 ->label('Edited'),

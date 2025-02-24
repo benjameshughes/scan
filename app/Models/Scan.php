@@ -25,7 +25,7 @@ class Scan extends Model
         $scanTable = $this->getTable();
         return $this->belongsTo(Product::class, 'barcode', 'barcode')
             ->orWhere(function ($query) use ($scanTable){
-                $query->where('barcode_2', $this->barcode);
+                $query->where('barcode_2', $this->barcode)->whereOr('barcode_3', $this->barcode);
             });
     }
 

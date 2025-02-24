@@ -20,7 +20,7 @@ class ProductImport extends Component
     public $step = 1; // step 1: upload, step 2: mapping, step 3: import
 
     // The fillable columns of the Product (except SKU is our key)
-    public $modelColumns = ['sku', 'name', 'barcode', 'barcode_2', 'quantity'];
+    public $modelColumns = ['sku', 'name', 'barcode', 'barcode_2', 'barcode_3', 'quantity'];
 
     public function render()
     {

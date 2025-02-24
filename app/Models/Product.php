@@ -20,6 +20,7 @@ class Product extends Model
         'name',
         'barcode',
         'barcode_2',
+        'barcode_3',
         'quantity',
     ];
 
