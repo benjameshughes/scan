@@ -4,13 +4,20 @@ namespace App\Livewire;
 
 use App\Actions\SyncAllPendingScans;
 use App\Models\Scan;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Notification;
+use Carbon\Carbon;
+use Illuminate\Support\Collection;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class Dashboard extends Component
 {
+    use WithPagination;
+
     public $notifications = [];
+
+    public Collection $scansByDate;
+
+    public int $scanDate = 8;
 
     public $scans;
 
@@ -30,16 +37,36 @@ class Dashboard extends Component
     public function redispatch()
     {
         // Collect all scans that have not been submitted
-        $scans = Scan::where('submitted', false)->get();
+//        $scans = Scan::where('submitted', false)->get();
+//
+//        // Dispatch all jobs
+//        SyncAllPendingScans::handle($scans);
 
-        // Dispatch all jobs
-        (new SyncAllPendingScans($scans))->handle();
+        // Sleep for 5 seconds to test the spin animation
+        sleep (5);
+    }
+
+    public function scansByDate(): Collection
+    {
+        // Get unsubmitted scans
+        $scans = $this->scans;
+
+        // Define the date range
+        $startDate = Carbon::now()->subDays($this->scanDate);
+        $endDate = Carbon::now();
+
+        // Filter the scans by date
+        $scans = $scans->filter(function ($scan) use ($startDate, $endDate) {
+            return $scan->submitted_at->between($startDate, $endDate);
+        });
+
+        return $this->scansByDate = $scans;
     }
 
     public function mount()
     {
         $this->notifications = auth()->user()->unreadNotifications;
-        $this->scans = Scan::all()->where('submitted', false);
+        $this->scans = Scan::all();
     }
 
     public function render()
