@@ -30,7 +30,7 @@ class ProductsImport implements ToModel, WithHeadingRow, ShouldQueue, WithBatchI
 
         $attributes = [];
 
-        $columns = ['sku', 'name', 'barcode', 'barcode_2', 'quantity'];
+        $columns = ['sku', 'name', 'barcode', 'barcode_2', 'barcode_3', 'quantity'];
 
         foreach ($columns as $column)
         {

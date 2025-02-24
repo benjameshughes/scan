@@ -66,6 +66,7 @@ class ScanForm extends Component
             'barcode' => $this->barcode,
             'quantity' => $this->quantity,
             'submitted' => false,
+            'sync_status' => 'pending',
             'user_id' => auth()->check() ? auth()->user()->id : '1',
         ]);
 
