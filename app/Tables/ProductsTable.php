@@ -14,7 +14,7 @@ class ProductsTable extends Table
 
     public function getSearchableColumns(): array
     {
-        return ['sku', 'name', 'barcode', 'barcode_2'. 'barcode_3'];
+        return ['sku', 'name', 'barcode', 'barcode_2', 'barcode_3'];
     }
 
     public function getFilters(): array
