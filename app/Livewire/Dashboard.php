@@ -19,7 +19,7 @@ class Dashboard extends Component
 
     public int $scanDate = 8;
 
-    public $scans;
+    public Collection $scans;
 
     // Mark notification as read
     public function markAsRead($id)
@@ -37,10 +37,10 @@ class Dashboard extends Component
     public function redispatch()
     {
         //Collect all scans that have not been submitted
-        $scans = Scan::where('submitted', false)->get();
+        $failedScans = Scan::where('submitted', false)->get();
 
         // Dispatch all jobs
-        SyncAllPendingScans::handle($scans);
+        (new SyncAllPendingScans($failedScans))->handle();
     }
 
     public function scansByDate(): Collection
