@@ -36,14 +36,11 @@ class Dashboard extends Component
     // Redispatch all jobs that have not been submitted
     public function redispatch()
     {
-        // Collect all scans that have not been submitted
-//        $scans = Scan::where('submitted', false)->get();
-//
-//        // Dispatch all jobs
-//        SyncAllPendingScans::handle($scans);
+        //Collect all scans that have not been submitted
+        $scans = Scan::where('submitted', false)->get();
 
-        // Sleep for 5 seconds to test the spin animation
-        sleep (5);
+        // Dispatch all jobs
+        SyncAllPendingScans::handle($scans);
     }
 
     public function scansByDate(): Collection
