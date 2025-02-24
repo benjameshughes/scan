@@ -16,13 +16,10 @@
                          Change these property names as needed for your data.
                     -->
                     <div class="text-sm font-medium text-gray-900 truncate dark:text-white">
-                        {{$item->id}} - {{ $itemName }}
-                        <span class="text-gray-500 dark:text-gray-400">
-                            {{ $itemDescription }}
-                        </span>
+                        {{$item->id}} - {{ $item->product->sku ?? 'No SKU' }}
                     </div>
                     <div class="text-sm text-gray-500 truncate dark:text-gray-400">
-                        Scan not submitted
+                        {{ $itemDescription }}
                     </div>
                 </div>
             </div>
