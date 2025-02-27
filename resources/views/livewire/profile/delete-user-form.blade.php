@@ -53,14 +53,15 @@ new class extends Component
             <div class="mt-6">
                 <x-input-label for="password" value="{{ __('Password') }}" class="sr-only" />
 
-                <x-text-input
-                    wire:model="password"
-                    id="password"
-                    name="password"
-                    type="password"
-                    class="mt-1 block w-3/4"
-                    placeholder="{{ __('Password') }}"
-                />
+{{--                <x-text-input--}}
+{{--                    wire:model="password"--}}
+{{--                    id="password"--}}
+{{--                    name="password"--}}
+{{--                    type="password"--}}
+{{--                    class="mt-1 block w-3/4"--}}
+{{--                    placeholder="{{ __('Password') }}"--}}
+{{--                />--}}
+                <flux:input wire:model="password" id="password" label="Your Password" type="password" placeholder="Enter your password" />
 
                 <x-input-error :messages="$errors->get('password')" class="mt-2" />
             </div>

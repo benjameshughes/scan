@@ -2,7 +2,7 @@
 
 namespace App\Tables\Concerns;
 
-trait hasSearch
+trait HasSearch
 {
     public function hasSearch(): bool
     {

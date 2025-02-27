@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Actions\SyncAllPendingScans;
+use App\Jobs\SyncBarcode;
 use App\Models\Scan;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
@@ -37,10 +38,12 @@ class Dashboard extends Component
     public function redispatch()
     {
         //Collect all scans that have not been submitted
-        $failedScans = Scan::where('submitted', false)->get();
+        $failedScans = collect(Scan::where('submitted', false)->get());
 
         // Dispatch all jobs
-        (new SyncAllPendingScans($failedScans))->handle();
+        $failedScans->each(function ($scan) use ($failedScans) {
+            SyncBarcode::dispatch($scan);
+        })->chunk(10);
     }
 
     public function scansByDate(): Collection

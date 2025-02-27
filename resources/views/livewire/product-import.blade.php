@@ -1,96 +1,49 @@
+@php
+    $classes = 'mb-4 w-full p-10 bg-white border rounded shadow-sm dark:bg-gray border-gray-500/20 shadow-sm';
+@endphp
 <div>
     <div>
-        {{--    <form wire:submit.prevent="import">--}}
-        {{--        <input type="file" wire:model="file">--}}
-
-        {{--        @error('file') <span class="text-danger">{{ $message }}</span> @enderror--}}
-
-        {{--        <button type="submit" class="bg-green-500 hover:bg-green-700 px-4 py-2 rounded-md text-white">Import</button>--}}
-        {{--    </form>--}}
-
-        {{--    @if (session()->has('message'))--}}
-        {{--        <div class="alert alert-success">--}}
-        {{--            {{ session('message') }}--}}
-        {{--        </div>--}}
-        {{--    @endif--}}
-
-        {{--    @if ($progress > 0 && ! $importFinished)--}}
-        {{--        <div class="progress">--}}
-        {{--            <div class="progress-bar" role="progressbar" style="width: {{ $progress }}%;" aria-valuenow="{{ $progress }}" aria-valuemin="0" aria-valuemax="100">{{ $progress }}%</div>--}}
-        {{--        </div>--}}
-        {{--    @endif--}}
-
-        {{--    @if ($isImporting)--}}
-        {{--        <div>--}}
-        {{--            Import queued. This may take a few minutes.--}}
-        {{--        </div>--}}
-
-        {{--        <div>--}}
-        {{--            {{$totalRows}} rows--}}
-        {{--        </div>--}}
-        {{--    <div>--}}
-        {{--        @foreach($csvHeaders as $key => $value)--}}
-        {{--            <p>{{$key}}</p>--}}
-        {{--            @endforeach--}}
-        {{--    </div>--}}
-
-        {{--        <div wire:poll.500ms="progress" wire:target="import">--}}
-        {{--            <div class="progress">--}}
-        {{--                <div class="progress-bar" role="progressbar" style="width: {{ $progress }}%;" aria-valuenow="{{ $progress }}" aria-valuemin="0" aria-valuemax="100">{{ $progress }}%</div>--}}
-        {{--            </div>--}}
-        {{--        </div>--}}
-        {{--    @endif--}}
-        {{--    @if ($progress > 0 && $isImporting)--}}
-        {{--        <div class="progress">--}}
-        {{--            <div class="progress-bar" role="progressbar" style="width: {{ $progress }}%;" aria-valuenow="{{ $progress }}" aria-valuemin="0" aria-valuemax="100">{{ $progress }}%</div>--}}
-        {{--        </div>--}}
-        {{--    @endif--}}
-
-        {{--    @if (!$isImporting && $progress == 100)--}}
-        {{--        <div class="alert alert-success">--}}
-        {{--            Import finished!--}}
-        {{--        </div>--}}
-        {{--    @endif--}}
-    </div>
-    <div>
         @if ($step === 1)
-            <h2>Step 1: Upload CSV File</h2>
-            <input type="file" wire:model="csvFile">
-            @error('csvFile') <span class="error">{{ $message }}</span> @enderror
-            <button wire:click="uploadFile">Upload & Process</button>
+            <div class="{{$classes}}">
+                @error('csvFile') <span class="error">{{ $message }}</span> @enderror
+                <flux:field class="flex justify-between items-center">
+                    <flux:input type="file" wire:model="csvFile" label="Upload a file"/>
+                    <flux:button variant="danger" type="button" wire:click="uploadFile">Upload</flux:button>
+                </flux:field>
+            </div>
+
         @elseif ($step === 2)
-            <h2>Step 2: Map CSV Headers</h2>
-            <p>Please map CSV columns to model fields:</p>
-            <table border="1" cellpadding="5">
-                <thead>
-                <tr>
-                    <th>CSV Column</th>
-                    <th>Header</th>
-                    <th>Map To (Model Field)</th>
-                </tr>
-                </thead>
-                <tbody>
-                @foreach($headers as $index => $header)
+            <div class="{{$classes}}">
+                <table class="w-full">
+                    <thead>
                     <tr>
-                        <td>{{ $index }}</td>
-                        <td>{{ $header }}</td>
-                        <td>
-                            <select wire:model="mapping.{{ $index }}">
-                                <option value="">-- Skip --</option>
-                                @foreach($modelColumns as $column)
-                                    <option value="{{ $column }}">{{ $column }}</option>
-                                @endforeach
-                            </select>
-                        </td>
+                        <th>File</th>
+                        <th>Database</th>
                     </tr>
-                @endforeach
-                </tbody>
-            </table>
-            @error('mapping') <span class="error">{{ $message }}</span> @enderror
-            <button wire:click="import">Import Data</button>
+                    </thead>
+                    <tbody>
+                    @foreach($headers as $index => $header)
+                        <tr>
+                            <td>{{ $header }}</td>
+                            <td>
+                                <flux:select wire:model="mapping.{{$index}}">
+                                    @foreach($modelColumns as $column)
+                                        <flux:select.option value="{{ $column }}">{{ $column }}</flux:select.option>
+                                    @endforeach
+                                </flux:select>
+                            </td>
+                        </tr>
+                    @endforeach
+                    </tbody>
+                </table>
+                @error('mapping') <span class="error">{{ $message }}</span> @enderror
+                <flux:button variant="primary" wire:click="import">Import Data</flux:button>
+            </div>
         @elseif ($step === 3)
-            <h2>Import Completed!</h2>
-            <p>Your CSV data has been imported.</p>
+            <div class="{{$classes}}">
+                <h2 class="text-2xl text-[var(--color-accent)] mb-4">Import Completed!</h2>
+                <p>Your CSV data has been imported.</p>
+            </div>
         @endif
     </div>
 </div>

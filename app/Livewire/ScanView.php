@@ -6,7 +6,6 @@ use App\Jobs\SyncBarcode;
 use App\Models\Scan;
 use Livewire\Attributes\On;
 use Livewire\Component;
-use App\Events\JobStatus;
 
 class ScanView extends Component
 {
@@ -18,7 +17,6 @@ class ScanView extends Component
     public function updateData()
     {
         $this->scan = Scan::findOrFail($this->scan->id);
-        $this->jobStatus = $this->jobStatus ?? 'Not Submitted';
     }
 
     // Get job status
@@ -35,16 +33,8 @@ class ScanView extends Component
      */
     public function sync()
     {
-        $this->jobStatus = 'Syncing';
-        try {
-            if (!$this->scan->update(['sync_status' => 'Syncing'])) {
-                throw new \Exception('Failed to update sync status');
-            }
-            SyncBarcode::dispatch($this->scan->id)->delay(now()->addMinute());
-        } catch (\Exception $e) {
-            $this->jobStatus = 'Error';
-            throw $e;
-        }
+        // Use the SyncBarcode action to initiate the sync job
+        SyncBarcode::dispatch($this->scan)->delay(now()->addMinute());
     }
 
     public function mount(Scan $scan): void
