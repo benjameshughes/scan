@@ -34,6 +34,16 @@ class Dashboard extends Component
         $this->notifications = auth()->user()->unreadNotifications;
     }
 
+    // Mark all notifications as read
+    public function readAll()
+    {
+        $notifications = collect(auth()->user()->unreadNotifications);
+
+        $notifications->each(function ($notification) {
+            $notification->markAsRead();
+        });
+    }
+
     // Redispatch all jobs that have not been submitted
     public function redispatch()
     {
