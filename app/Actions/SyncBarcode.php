@@ -38,7 +38,7 @@ final class SyncBarcode implements Action {
                 'sync_status' => 'failed',
             ]);
 
-            auth()->user()->notify(new NoSkuFound($this->scan->id));
+            auth()->user()->notify(new NoSkuFound($this->scan->barcode));
 
             return;
         }
