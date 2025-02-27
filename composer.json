@@ -15,9 +15,11 @@
         "laravel/pulse": "^1.3",
         "laravel/reverb": "^1.0",
         "laravel/tinker": "^2.9",
+        "livewire/flux": "^2.0",
         "livewire/livewire": "^3.4",
         "livewire/volt": "^1.0",
         "maatwebsite/excel": "^3.1",
+        "mallardduck/blade-lucide-icons": "^1.23",
         "pusher/pusher-php-server": "^7.2",
         "sentry/sentry-laravel": "^4.11"
     },

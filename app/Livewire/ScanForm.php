@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\DTOs\ScanDTO;
+//use App\Jobs\SyncBarcode;
 use App\Jobs\SyncBarcode;
 use App\Models\Product;
 use App\Models\Scan;
@@ -71,16 +72,7 @@ class ScanForm extends Component
         ]);
 
         // Dispatch the sync job
-        if ($this->checkBarcodeExists()) {
-            SyncBarcode::dispatch($scan->id)->delay(now()->addMinute());
-        } else {
-            $users = User::all();
-            foreach($users as $user) {
-                $user->notify(new NoSkuFound($scan->id));
-            }
-            // Update scan status to failed
-            $scan->update(['status' => 'failed']);
-        }
+        SyncBarcode::dispatch($scan);
 
         Log::channel('barcode')->info("{$this->barcode} Scanned");
 

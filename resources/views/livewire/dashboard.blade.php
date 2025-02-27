@@ -1,12 +1,7 @@
 <div class="flex flex-col gap-y-10">
     <div class="flex justify-between pt-6">
         <div class="flex-none">
-            <x-primary-button wire:target="redispatch" wire:click="redispatch">
-                <div wire:loading wire:target="redispatch">
-                    <x-icons.reload :size="4" class="mr-2 animate-spin"/>
-                </div>
-                Redispatch
-            </x-primary-button>
+            <flux:button class="cursor-pointer" variant="primary" wire:click="redispatch">Re-sync</flux:button>
         </div>
 
         <!-- Notifications drawer -->
@@ -48,21 +43,29 @@
                                         <h2 class="text-base font-semibold text-gray-900" id="slide-over-title">
                                             Notifications</h2>
                                     </div>
+
                                     <div class="relative mt-6 flex-1 px-4 sm:px-6">
-                                        @forelse($notifications as $notification)
-                                            <div class="p-4 space-x-4 text-center min-h-svh border-gray-100 dark:border-gray-700">
-                                                <div class="text-gray-500 dark:text-gray-400">{{ $notification->data['message'] }}</div>
-                                                <div class="text-gray-500 dark:text-gray-400">{{ $notification->read_at ? $notification->read_at->format('d/m/Y H:i:s') : 'Not Read' }}</div>
-                                                <div class="text-gray-500 dark:text-gray-400">{{ $notification->created_at->format('d/m/Y H:i:s') }}</div>
-                                                <x-primary-button type="button" wire:click="markAsRead('{{$notification->id}}')">Acknowledge</x-primary-button>
-                                            </div>
-                                        @empty
-                                            <div class="p-4 text-center">
-                                                <p class="text-gray-500 dark:text-gray-400">You have no notifications.</p>
-                                            </div>
-                                        @endforelse
+                                        <ul role="list">
+                                            @forelse($notifications as $notification)
+                                                <li>
+                                                    <div class="flex min-w-0 gap-x-4 border-b mb-4 pb-4 align-middle justify-center">
+                                                        <x-lucide-alert-circle class="w-4 h-4 text-red-500"/>
+                                                        <div class="min-w-0 flex-auto">
+                                                            <p class="text-gray-500">{{ $notification->data['message'] }}</p>
+                                                            <p class="">Date: {{ $notification->created_at->format('d/m/y')}}</p>
+                                                        </div>
+{{--                                                        <x-primary-button type="button" wire:click="markAsRead('{{$notification->id}}')">Acknowledge</x-primary-button>--}}
+                                                        <flux:button variant="primary" wire:click="markAsRead('{{$notification->id}}')">Acknowledge</flux:button>
+                                                    </div>
+                                                </li>
+                                            @empty
+                                                <span>You have no notifications</span>
+                                            @endforelse
+                                        </ul>
                                     </div>
+
                                 </div>
+
                             </div>
                         </div>
                     </div>
@@ -71,8 +74,8 @@
         </div>
     </div>
 
-    <div class="flex grow gap-4">
-        <x-widget :title="'Pending'" :stat="$scans->where('submitted', false)->count()"/>
+    <div class="flex grow gap-4 max-sm:flex-col max-sm:gap-2">
+        <x-widget :icon="'refresh-ccw'" :title="'Pending'" :stat="$scans->where('submitted', false)->count()"/>
         <x-widget :title="'Completed'" :stat="$scans->where('submitted', true)->count()"/>
         <x-widget :title="'Scans this Week'" :stat="$scans->whereBetween('created_at', [now()->subWeek(), now()])->count()"/>
     </div>

@@ -11,6 +11,7 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet"/>
 
+    @fluxAppearance
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -30,12 +31,15 @@
     <!-- Page Content -->
     <main>
 
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 max-sm:px-4">
             <div class="overflow-hidden">
                 {{ $slot }}
             </div>
         </div>
     </main>
 </div>
+
+@fluxScripts
+
 </body>
 </html>
