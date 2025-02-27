@@ -39,9 +39,10 @@
                                 </div>
 
                                 <div class="flex h-full flex-col overflow-y-scroll bg-white py-6 shadow-xl">
-                                    <div class="px-4 sm:px-6">
+                                    <div class="flex justify-between px-4 sm:px-6">
                                         <h2 class="text-base font-semibold text-gray-900" id="slide-over-title">
                                             Notifications</h2>
+                                        <flux:button wire:click="readAll" size="sm" variant="danger">Read All</flux:button>
                                     </div>
 
                                     <div class="relative mt-6 flex-1 px-4 sm:px-6">
