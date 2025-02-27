@@ -4,6 +4,7 @@ namespace App\Actions;
 
 use App\Actions\Contracts\Action;
 use App\Models\Scan;
+use App\Models\User;
 use App\Notifications\NoSkuFound;
 use App\Services\LinnworksApiService;
 use Illuminate\Support\Facades\Log;
@@ -38,7 +39,10 @@ final class SyncBarcode implements Action {
                 'sync_status' => 'failed',
             ]);
 
-            auth()->user()->notify(new NoSkuFound($this->scan->barcode));
+            $user = User::all();
+            $user->each(function($user) {
+                auth()->user()->notify(new NoSkuFound($this->scan->barcode));
+            });
 
             return;
         }
