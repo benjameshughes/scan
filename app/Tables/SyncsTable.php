@@ -17,6 +17,7 @@ class SyncsTable extends Table
     public function columns(): array
     {
         return [
+            TextColumn::make('id'),
             TextColumn::make('barcode')
             ->label('Barcode'),
             TextColumn::make('sync_status')
