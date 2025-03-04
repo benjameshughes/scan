@@ -22,25 +22,12 @@ class Scan extends Model
 
     public function product()
     {
-        $scanTable = $this->getTable();
         return $this->belongsTo(Product::class, 'barcode', 'barcode')
-            ->orWhere(function ($query) use ($scanTable){
-                $query->where('barcode_2', $this->barcode);
-            })
-            ->orWhere(function ($query) use ($scanTable){
-                $query->where('barcode_3', $this->barcode);
+            ->where(function($query) {
+                $query->where('barcode', $this->barcode)
+                    ->orWhere('barcode_2', $this->barcode)
+                    ->orWhere('barcode_3', $this->barcode);
             });
-    }
-
-    /**
-     * Due to a SKU having multiple barcodes, we need to be able to get the SKU from one of the barcodes.
-     * There is a barcode column, which is the primary barcode, but there is also a barcode_2, column which is the secondary barcode.
-     * This will look up the barcode in the primary barcode column, and if it doesn't exist, it will look in the secondary barcode column, and return the SKU.
-     */
-    public function barcode()
-    {
-        return $this->belongsTo(Product::class, 'barcode', 'barcode')
-            ->orWhere('barcode_2', '=', $this->barcode);
     }
 
     /**

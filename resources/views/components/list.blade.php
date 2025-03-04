@@ -21,6 +21,12 @@
                     <div class="text-sm text-gray-500 truncate dark:text-gray-400">
                         {{ $itemDescription }}
                     </div>
+                    <div class="text-sm text-gray-500 truncate dark:text-gray-400">
+                        {{ $item->barcode }}
+                    </div>
+                    <div class="text-sm text-gray-500 truncate dark:text-gray-400">
+                        {{ Str::ucfirst($item->sync_status) }}
+                    </div>
                 </div>
             </div>
             <div class="shrink-0 sm:flex sm:flex-col sm:items-end">

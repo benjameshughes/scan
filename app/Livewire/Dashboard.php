@@ -6,6 +6,7 @@ use App\Actions\SyncAllPendingScans;
 use App\Jobs\SyncBarcode;
 use App\Models\Scan;
 use Carbon\Carbon;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -14,11 +15,7 @@ class Dashboard extends Component
 {
     use WithPagination;
 
-    public $notifications = [];
-
-    public Collection $scansByDate;
-
-    public int $scanDate = 8;
+    public Collection $notifications;
 
     public Collection $scans;
 
@@ -28,10 +25,10 @@ class Dashboard extends Component
         $user = auth()->user();
         $notification = $user->unreadNotifications->find($id);
 
-        $notification->markAsRead($id);
+        $notification->markAsRead();
 
         // refresh notifications
-        $this->notifications = auth()->user()->unreadNotifications;
+        $this->notifications = collect(auth()->user()->unreadNotifications);
     }
 
     // Mark all notifications as read
@@ -42,18 +39,24 @@ class Dashboard extends Component
         $notifications->each(function ($notification) {
             $notification->markAsRead();
         });
+
+        $this->notifications = collect(auth()->user()->unreadNotifications);
     }
 
-    // Redispatch all jobs that have not been submitted
+    /**
+     * Redispatch all jobs that have not been submitted
+     * Livewire is already loading the scans. Just filter the scans by submitted status
+     * whereFalse is a macro is AppProvider
+     */
     public function redispatch()
     {
-        //Collect all scans that have not been submitted
-        $failedScans = collect(Scan::where('submitted', false)->get());
+        // Filter unsubmitted scans from the scan array
+        $failedScans = $this->scans->whereFalse('submitted');
 
         // Dispatch all jobs
-        $failedScans->each(function ($scan) use ($failedScans) {
+        $failedScans->each(function (Scan $scan) {
             SyncBarcode::dispatch($scan);
-        })->chunk(10);
+        });
     }
 
     public function scansByDate(): Collection

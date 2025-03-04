@@ -33,8 +33,30 @@ class ScanView extends Component
      */
     public function sync()
     {
-        // Use the SyncBarcode action to initiate the sync job
+        // Use the SyncBarcodeAction action to initiate the sync job
         SyncBarcode::dispatch($this->scan)->delay(now()->addMinute());
+
+        // Update scan status to syncing
+        $this->scan->update([
+            'sync_status' => 'syncing',
+        ]);
+    }
+
+    // Delete sync
+    public function delete($id, \Request $request)
+    {
+        // Find the scan
+        $scan = Scan::findOrFail($id);
+
+        if($request->user()->cannot('delete', $scan))
+        {
+            abort(403);
+        }
+
+        // Can the user perform this action?
+        $scan->delete();
+
+        redirect('dashboard');
     }
 
     public function mount(Scan $scan): void

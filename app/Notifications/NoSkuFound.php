@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Models\Scan;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -10,14 +11,14 @@ class NoSkuFound extends Notification
 {
     use Queueable;
 
-    public $barcode;
+    public Scan $scan;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct($barcode)
+    public function __construct(Scan $scan)
     {
-        $this->barcode = $barcode;
+        $this->scan = $scan;
     }
 
     /**
@@ -36,19 +37,22 @@ class NoSkuFound extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->line('The introduction to the notification.')
-            ->action('Notification Action', url('/'))
-            ->line('Thank you for using our application!');
+            ->subject("No Sku Found For Scan {{$notifiable->id}}")
+            ->line('There was no SKU found for this scan.')
+            ->action('View The Scan', url(route('scan.show', ['scan' => $this->scan->id])))
+            ->line('Please leave Ben alone about this');
     }
 
     /**
      * Create a database notification
      */
-    public function toDatabase($notifiable): array
+    public function toDatabase(object $notifiable): array
     {
-        return $notifiableData = [
-            'message' => 'No Sku found for barcode',
-            'barcode' => $this->barcode,
+        return [
+            'message' => 'No Sku found',
+            'scan_id' => $this->scan->id,
+            'barcode' => $this->scan->barcode,
+            'date' => $this->scan->created_at,
         ];
     }
 

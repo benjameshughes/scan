@@ -53,6 +53,7 @@
                                                         <x-lucide-alert-circle class="w-4 h-4 text-red-500"/>
                                                         <div class="min-w-0 flex-auto">
                                                             <p class="text-gray-500">{{ $notification->data['message'] }}</p>
+                                                            <p class="text-xs text-gray-500">{{$notification->data['barcode']}}</p>
                                                             <p class="">Date: {{ $notification->created_at->format('d/m/y')}}</p>
                                                         </div>
 {{--                                                        <x-primary-button type="button" wire:click="markAsRead('{{$notification->id}}')">Acknowledge</x-primary-button>--}}
