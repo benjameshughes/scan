@@ -162,7 +162,7 @@ class LinnworksApiService
     /**
      * Get inventory count
      */
-    public function getInventoryCount()
+    public function getInventoryCount(): int
     {
         $response = $this->client->request('GET', $this->base_url . 'Inventory/GetInventoryItemsCount', [
                 'headers' => [
@@ -174,6 +174,62 @@ class LinnworksApiService
         $response = json_decode($response->getBody(), true);
 
         return (int)$response;
+    }
+
+    // Get full stock details
+
+    /**
+     * @throws GuzzleException
+     */
+    public function getStockDetails(string $sku = '')
+    {
+        $body = json_encode([
+            'keyword' => trim($sku),
+            'loadCompositeParents' => false,
+            'loadVariationParents' => false,
+            'entriesPerPage' => 1,
+            'pageNumber' => 1,
+            "dataRequirements" => ["StockLevels"],
+            "searchTypes" => ["SKU","Title","Barcode"],
+        ]);
+
+        $response = $this->client->request('POST', $this->base_url . 'Stock/GetStockItemsFull', [
+            'body' => $body,
+            'headers' => [
+                'Authorization' => Cache::get('linnworks.session_token'),
+                'accept' => 'application/json',
+                'content-type' => 'application/json',
+            ],
+        ]);
+
+        $data = json_decode($response->getBody(), true);
+
+        return $data[0];
+    }
+
+    /**
+     * Get stock item history of a sku
+     * I need to do a search, get the id first
+     */
+
+    public function getStockItemHistory(string $sku = '')
+    {
+        // First I need to do an api call to get the sku item id in linnworks using getInventory
+        $itemDetail = $this->getStockDetails($sku);
+
+        // Get the stock id
+        $itemId = $itemDetail[0]->StockItemId;
+
+        // Now run the api for the stock item history
+        $response = $this->client->request('GET', $this->base_url . 'Stock/GetItemChangesHistory?stockItemId=' . $itemId . '&locationId=00000000-0000-0000-0000-000000000000&entriesPerPage=0&pageNumber=0', [
+            'headers' => [
+                'accept' => 'application/json',
+            ],
+        ]);
+
+        Log::channel('lw_auth')->info('getStockItemHistory: ' . $response->getBody()->getContents());
+
+        return json_decode($response->getBody(), true);
     }
 
 }

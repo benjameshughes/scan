@@ -26,21 +26,17 @@ final class CheckBarcodeExists implements Action
     /**
      * Takes a barcode and checks if it exists in the database.
      * If it does, return the product.
-     * If it doesn't, notify all users via the database notification system
+     * If no product is found then return null
      *
      * @return Product|null
      */
     public function handle()
     {
-        $product = Product::where('barcode', $this->scan->product)->first();
+        $product = Product::where('barcode', $this->scan->barcode)->first();
 
         if ($product) {
             return $product;
         }
-
-        // Notify users of no SKU found for a barcode
-        $this->notifyAllUsers(new NoSkuFound($this->scan));
-        $this->markScanAsFailed($this->scan);
 
         return null;
     }
