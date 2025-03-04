@@ -91,6 +91,16 @@
                     </dt>
                 </div>
             @endcan
+
+            <flux:modal.trigger name="getStockItemHistory">
+                <flux:button variant="primary">Get Stock History</flux:button>
+            </flux:modal.trigger>
+            <flux:modal name="getStockItemHistory" x-on:open="$wire.getStockItemHistory">
+                <div class="p-10">
+                    {{$scan->product->name}}
+                    {{$stockHistory}}
+                </div>
+            </flux:modal>
         </dl>
     </div>
 </div>

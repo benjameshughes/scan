@@ -23,11 +23,8 @@ class Scan extends Model
     public function product()
     {
         return $this->belongsTo(Product::class, 'barcode', 'barcode')
-            ->where(function($query) {
-                $query->where('barcode', $this->barcode)
-                    ->orWhere('barcode_2', $this->barcode)
-                    ->orWhere('barcode_3', $this->barcode);
-            });
+            ->orWhere('barcode_2', $this->barcode)
+            ->orWhere('barcode_3', $this->barcode);
     }
 
     /**

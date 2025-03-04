@@ -4,13 +4,15 @@ namespace App\Actions;
 
 use App\Actions\Contracts\Action;
 use App\Actions\Concerns\UpdateScanStatus;
+use App\Actions\Concerns\SendNotifications;
+use App\Notifications\NoSkuFound;
 use App\Models\Scan;
 use App\Services\LinnworksApiService;
 use Illuminate\Support\Facades\Log;
 
 final class SyncBarcodeAction implements Action {
 
-    use UpdateScanStatus;
+    use UpdateScanStatus, SendNotifications;
 
     public Scan $scan;
     public LinnworksApiService $linnworks;
@@ -38,6 +40,9 @@ final class SyncBarcodeAction implements Action {
 
         if($product === null)
         {
+            // Notify users of no SKU found for a barcode
+            $this->notifyAllUsers(new NoSkuFound($this->scan));
+            $this->markScanAsFailed($this->scan);
             return;
         }
 
@@ -56,9 +61,11 @@ final class SyncBarcodeAction implements Action {
         $this->linnworks->updateStockLevel($sku, $quantity);
 
         // Mark the scan as submitted
-        $this->scan->update(['submitted' => true, 'submitted_at' => now(),'sync_status' => 'synced']);
-        // Do I gotta save? Update should also save, no?
-        $this->scan->save();
+        $this->scan->update(['submitted' => true, 'submitted_at' => now()]);
+
+        // Update scan as synced
+        $this->markScanAsSuccessful($this->scan);
+
     }
 
 }

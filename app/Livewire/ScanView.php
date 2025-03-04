@@ -4,14 +4,15 @@ namespace App\Livewire;
 
 use App\Jobs\SyncBarcode;
 use App\Models\Scan;
+use App\Services\LinnworksApiService;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
 class ScanView extends Component
 {
-
     public $scan;
     public $jobStatus;
+    public $stockHistory;
 
     #[On('syncedBarcode')]
     public function updateData()
@@ -26,7 +27,6 @@ class ScanView extends Component
         $this->scan = $scan;
     }
 
-    // Sync the job by dispatching the sync job
     /**
      * Initiates barcode synchronization with a 1-minute delay to allow for potential batching
      * @throws \Exception If status update fails
@@ -40,6 +40,12 @@ class ScanView extends Component
         $this->scan->update([
             'sync_status' => 'syncing',
         ]);
+    }
+
+    public function getStockItemHistory()
+    {
+        // Linnworks
+        $this->stockHistory = LinnworksApiService::getStockItemHistory($this->scan);
     }
 
     // Delete sync

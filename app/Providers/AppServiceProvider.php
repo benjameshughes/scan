@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Tables\TableComponent;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Http;
@@ -61,6 +62,12 @@ class AppServiceProvider extends ServiceProvider
          */
         Collection::macro('whereFalse', function ($column) {
             return $this->where($column, false);
+        });
+
+        // Barcode relationship macro
+        Relation::macro('orWhere', function ($column, $value) {
+            $this->query->orWhere($column, $value);
+            return $this;
         });
 
         // Table Component
