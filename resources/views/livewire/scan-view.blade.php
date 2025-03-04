@@ -17,7 +17,7 @@
     {{-- Breadcrumbs --}}
     <div class="mb-4">
         <flux:breadcrumbs>
-            <flux:breadcrumbs.item icon="Home" href="{{route('dashboard')}}">Dashboard</flux:breadcrumbs.item>
+            <flux:breadcrumbs.item icon="home" href="{{route('dashboard')}}">Dashboard</flux:breadcrumbs.item>
             <flux:breadcrumbs.item href="{{route('scan.index')}}">Scans</flux:breadcrumbs.item>
             <flux:breadcrumbs.item>{{$scan->id}}</flux:breadcrumbs.item>
         </flux:breadcrumbs>
