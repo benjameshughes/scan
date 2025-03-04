@@ -10,10 +10,10 @@ class Product extends Model
     /** @use HasFactory<\Database\Factories\ProductFactory> */
     use HasFactory;
 
-//    protected $guarded = [
-//        'id',
-//        'created_at',
-//    ];
+    protected $guarded = [
+        'id',
+        'created_at',
+    ];
 
     protected $fillable = [
         'sku',

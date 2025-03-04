@@ -92,7 +92,7 @@ class ScanController extends Controller
         $scan = Scan::findOrFail($scanId);
 
         // Dispatch a syncBarcode job
-//        SyncBarcode::dispatch($scanId)->delay(now()->addMinutes(1));
+//        SyncBarcodeAction::dispatch($scanId)->delay(now()->addMinutes(1));
         SyncBarcode::dispatch($scanId);
 
         // Ternery operator to set the status

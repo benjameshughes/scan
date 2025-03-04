@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Tables\TableComponent;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Http;
@@ -33,6 +34,33 @@ class AppServiceProvider extends ServiceProvider
                 }
             }
             return $this;
+        });
+
+        /**
+         * Filter query to where column is true.
+         *
+         * @param string $column
+         * @return \Illuminate\Database\Eloquent\Builder
+         */
+        Builder::macro('whereTrue', function ($column) {
+            return $this->where($column, true);
+        });
+
+        /**
+         * Filter query to where column is false.
+         *
+         * @param string $column
+         * @return \Illuminate\Database\Eloquent\Builder
+         */
+        Builder::macro('whereFalse', function ($column) {
+            return $this->where($column, false);
+        });
+
+        /**
+         * Collection filter macro
+         */
+        Collection::macro('whereFalse', function ($column) {
+            return $this->where($column, false);
         });
 
         // Table Component

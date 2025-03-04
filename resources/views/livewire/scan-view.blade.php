@@ -14,6 +14,15 @@
 @endphp
 
 <div class="max-sm:px-4">
+    {{-- Breadcrumbs --}}
+    <div class="mb-4">
+        <flux:breadcrumbs>
+            <flux:breadcrumbs.item icon="Home" href="{{route('dashboard')}}">Dashboard</flux:breadcrumbs.item>
+            <flux:breadcrumbs.item href="{{route('scan.index')}}">Scans</flux:breadcrumbs.item>
+            <flux:breadcrumbs.item>{{$scan->id}}</flux:breadcrumbs.item>
+        </flux:breadcrumbs>
+    </div>
+
     {{-- Header Section --}}
     <div>
         <h3 class="text-base/7 font-semibold text-gray-900 dark:text-white">
@@ -73,6 +82,15 @@
                 <dt class="{{ $dtClass }}">{{ __('Scanned By') }}</dt>
                 <dd class="{{ $ddClass }}">{{ $scan->user->name }}</dd>
             </div>
+
+            {{--Actions--}}
+            @can('delete')
+                <div class="sm:col-span-1 pb-5 {{$borderClass}}">
+                    <dt class="{{ $dtClass }}">
+                        <flux:button variant="danger" wire:click="delete('{{$scan->id}}')">Delete</flux:button>
+                    </dt>
+                </div>
+            @endcan
         </dl>
     </div>
 </div>

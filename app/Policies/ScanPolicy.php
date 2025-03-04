@@ -45,7 +45,7 @@ class ScanPolicy
      */
     public function delete(User $user, Scan $scan): bool
     {
-        return false;
+        return true;
     }
 
     /**

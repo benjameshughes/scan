@@ -3,16 +3,17 @@
 namespace App\Actions;
 
 use App\Actions\Contracts\Action;
+use App\Actions\Concerns\UpdateScanStatus;
 use App\Models\Scan;
-use App\Models\User;
-use App\Notifications\NoSkuFound;
 use App\Services\LinnworksApiService;
 use Illuminate\Support\Facades\Log;
 
-final class SyncBarcode implements Action {
+final class SyncBarcodeAction implements Action {
 
-    private Scan $scan;
-    private LinnworksApiService $linnworks;
+    use UpdateScanStatus;
+
+    public Scan $scan;
+    public LinnworksApiService $linnworks;
 
     public function __construct(Scan $scan) {
         $this->scan = $scan;
@@ -30,29 +31,18 @@ final class SyncBarcode implements Action {
             return;
         }
 
-        // Check barcode exists and has a SKU
-        $product = (new CheckBarcodeExists($this->scan->barcode))->handle();
+        $this->markScanAsSyncing($this->scan);
 
-        if(!$product)
+        // Check barcode exists and has a SKU, if null stop
+        $product = (new CheckBarcodeExists($this->scan))->handle();
+
+        if($product === null)
         {
-            $this->scan->update([
-                'sync_status' => 'failed',
-            ]);
-
-            $user = User::all();
-            $user->each(function($user) {
-                auth()->user()->notify(new NoSkuFound($this->scan->barcode));
-            });
-
             return;
         }
 
+        // Get the SKU of the product
         $sku = $product->sku;
-
-        // Update the scan sync status
-        $this->scan->update([
-            'sync_status' => 'syncing',
-        ]);
 
         // Get the stock level from Linnworks using the SKU
         $lwStockLevel = $this->linnworks->getStockLevel($sku);
@@ -67,9 +57,8 @@ final class SyncBarcode implements Action {
 
         // Mark the scan as submitted
         $this->scan->update(['submitted' => true, 'submitted_at' => now(),'sync_status' => 'synced']);
+        // Do I gotta save? Update should also save, no?
         $this->scan->save();
-
-
     }
 
 }

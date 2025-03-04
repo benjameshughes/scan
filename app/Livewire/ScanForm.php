@@ -3,7 +3,7 @@
 namespace App\Livewire;
 
 use App\DTOs\ScanDTO;
-//use App\Jobs\SyncBarcode;
+//use App\Jobs\SyncBarcodeAction;
 use App\Jobs\SyncBarcode;
 use App\Models\Product;
 use App\Models\Scan;
