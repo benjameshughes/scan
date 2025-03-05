@@ -2,11 +2,10 @@
 
 namespace App\Livewire;
 
-use App\Actions\SyncAllPendingScans;
+use App\Actions\MarkScanAsSubmitted;
 use App\Jobs\SyncBarcode;
 use App\Models\Scan;
 use Carbon\Carbon;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -57,6 +56,17 @@ class Dashboard extends Component
         $failedScans->each(function (Scan $scan) {
             SyncBarcode::dispatch($scan);
         });
+    }
+
+    public function markAsSubmitted(int $id)
+    {
+        // I assume I first need to find the ID of the scan to then pass the object of the scan to the action?
+        $scan = Scan::where('id', $id)->first();
+
+        // Then pass the scan variable to the action
+        (new MarkScanAsSubmitted($scan))->handle();
+
+        $this->scans = Scan::all();
     }
 
     public function scansByDate(): Collection

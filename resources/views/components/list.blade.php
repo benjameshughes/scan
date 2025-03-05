@@ -8,8 +8,8 @@
 
 <ul role="list" class="divide-y divide-gray-200 dark:divide-gray-700 w-full max-sm:w-full">
     @forelse($items as $item)
-        <li class="flex justify-between gap-x-6 py-5">
-            <div class="flex min-w-0 flex-1 items-center space-x-4">
+        <li class="flex items-center justify-between gap-x-6 py-5">
+            <div class="flex min-w-0 flex-grow space-x-4">
                 <div class="flex-1 min-w-0">
                     <!-- 
                          Display the barcode along with its associated SKU. 
@@ -29,8 +29,9 @@
                     </div>
                 </div>
             </div>
-            <div class="shrink-0 sm:flex sm:flex-col sm:items-end">
+            <div class="shrink-0 max-sm:flex-col items-end">
                 <flux:button variant="primary" href="{{route($routeName, $item->id)}}">{{__('View')}}</flux:button>
+                <flux:button variant="primary" wire:click="markAsSubmitted('{{$item->id}}')">{{__('Mark As Submitted')}}</flux:button>
             </div>
         </li>
     @empty

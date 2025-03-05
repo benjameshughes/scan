@@ -97,7 +97,7 @@
             </flux:modal.trigger>
             <flux:modal name="getStockItemHistory" x-on:open="$wire.getStockItemHistory">
                 <div class="p-10">
-                    {{$scan->product->name}}
+                    {{$scan->product->name ?? 'No product found'}}
                     {{$stockHistory}}
                 </div>
             </flux:modal>
