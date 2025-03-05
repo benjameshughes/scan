@@ -32,14 +32,6 @@ class SyncBarcode implements ShouldQueue
     public function handle()
     {
         // Try using the sync barcode action
-        (new SyncBarcodeAction($this->scan))->handle();
-    }
-
-    /**
-     * Retry the job three times before removing it from the queue.
-     */
-    public function tries(): int
-    {
-        return 3;
+        new SyncBarcodeAction($this->scan);
     }
 }

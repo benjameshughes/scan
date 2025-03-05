@@ -26,7 +26,7 @@ final class SyncAllPendingScans implements Action
     {
         // Process jobs in chunks of 10 to avoid memory issues
         $this->scans->each(function ($scan) {
-            SyncBarcode::dispatch($scan)->delay(now()->addMinute(1));
+            SyncBarcode::dispatch($scan);
         })->chunk(10);
     }
 }

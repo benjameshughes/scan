@@ -28,7 +28,18 @@ class NoSkuFound extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database', 'mail'];
+        return ['database'];
+        // Respect the users settings for notifications
+//        $channels = [];
+//
+//        if($notifiable->notification_emails) {
+//            $channels[] = 'mail';
+//        }
+//        if($notifiable->notification_database) {
+//            $channels[] = 'database';
+//        }
+//
+//        return $channels;
     }
 
     /**
@@ -37,7 +48,7 @@ class NoSkuFound extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject("No Sku Found For Scan {{$notifiable->id}}")
+            ->subject("No Sku Found For Scan {$this->scan->id}")
             ->line('There was no SKU found for this scan.')
             ->action('View The Scan', url(route('scan.show', ['scan' => $this->scan->id])))
             ->line('Please leave Ben alone about this');

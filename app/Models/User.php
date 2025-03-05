@@ -88,4 +88,30 @@ class User extends Authenticatable implements MustVerifyEmail
             ->map(fn(string $name) => Str::of($name)->substr(0, 1))
             ->implode('');
     }
+
+    /**
+     * Get the settings attribute with defaults
+     */
+    public function getSettingsAttribute($value)
+    {
+        $defaults = [
+            'notification_emails' => true,
+            'notification_database' => true,
+        ];
+
+        if (!$value) {
+            return $defaults;
+        }
+
+        $settings = json_decode($value, true);
+        return array_merge($defaults, $settings);
+    }
+
+    /**
+     * Set the settings attribute
+     */
+    public function setSettingsAttribute($value)
+    {
+        $this->attributes['settings'] = is_array($value) ? json_encode($value) : $value;
+    }
 }

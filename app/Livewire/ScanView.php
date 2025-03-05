@@ -34,7 +34,7 @@ class ScanView extends Component
     public function sync()
     {
         // Use the SyncBarcodeAction action to initiate the sync job
-        SyncBarcode::dispatch($this->scan)->delay(now()->addMinute());
+        SyncBarcode::dispatch($this->scan);
 
         // Update scan status to syncing
         $this->scan->update([
