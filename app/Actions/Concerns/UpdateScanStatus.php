@@ -10,6 +10,7 @@ trait UpdateScanStatus {
     {
         $scan->update([
             'sync_status' => 'synced',
+            'updated_at' => now(),
         ]);
 
         return $scan;
@@ -19,6 +20,7 @@ trait UpdateScanStatus {
     {
         $scan->update([
             'sync_status' => 'syncing',
+            'updated_at' => now(),
         ]);
 
         return $scan;
@@ -27,7 +29,8 @@ trait UpdateScanStatus {
     protected function markScanAsFailed(Scan $scan): Scan
     {
         $scan->update([
-            'sync_status' => 'failed'
+            'sync_status' => 'failed',
+            'updated_at' => now(),
         ]);
 
         return $scan;

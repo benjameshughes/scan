@@ -2,13 +2,9 @@
 
 namespace App\Livewire;
 
-use App\DTOs\ScanDTO;
-//use App\Jobs\SyncBarcodeAction;
 use App\Jobs\SyncBarcode;
 use App\Models\Product;
 use App\Models\Scan;
-use App\Models\User;
-use App\Notifications\NoSkuFound;
 use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Validate;
