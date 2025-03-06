@@ -13,9 +13,4 @@ abstract class Table {
         return $this->model::query();
     }
 
-    public function getUrl()
-    {
-        return null;
-    }
-
 }
