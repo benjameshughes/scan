@@ -66,11 +66,6 @@ use App\Tables\Concerns\HasSearch;
         return $query;
     }
 
-    public function getUrl()
-    {
-        return $this->getTable()->getUrl();
-    }
-
     public function render()
     {
         $data = $this->getQuery()->paginate($this->perPage);
@@ -104,6 +99,12 @@ use App\Tables\Concerns\HasSearch;
     {
         return method_exists($this->getTable(), 'getSearchableColumns') &&
             !empty($this->getTable()->getSearchableColumns());
+    }
+
+    public function hasFilter(): bool
+    {
+        return method_exists($this->getTable(), 'getFilters') &&
+            !empty($this->getTable()->getFilters());
     }
 
     public function getPerPageOptions(): array
