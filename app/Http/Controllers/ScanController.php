@@ -83,34 +83,4 @@ class ScanController extends Controller
         $layout = auth()->check() ? 'app' : 'guest';
         return view('scan.index')->layout('layouts.' . $layout);
     }
-
-    /**
-     * Sync the scan with the barcode
-     */
-    public function sync(int $scanId)
-    {
-        $scan = Scan::findOrFail($scanId);
-
-        // Dispatch a syncBarcode job
-//        SyncBarcodeAction::dispatch($scanId)->delay(now()->addMinutes(1));
-        SyncBarcode::dispatch($scanId);
-
-        // Ternery operator to set the status
-        session()->flash('status', 'Syncing...');
-
-        // Redirect to the scan view
-        return redirect()->route('scan.show', $scan);
-    }
-
-    /**
-     * Aggregate barcodes and sum quantities
-     */
-    public function aggregated()
-    {
-        $aggregatedScans = Scan::select('barcode', DB::raw('SUN(quantity as total_quantity'))
-            ->groupBy('barcode')
-            ->get();
-
-        return view('scan.aggregated', compact('aggregatedScans'));
-    }
 }
