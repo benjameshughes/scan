@@ -32,6 +32,6 @@ class SyncBarcode implements ShouldQueue
     public function handle()
     {
         // Try using the sync barcode action
-        new SyncBarcodeAction($this->scan);
+        (new SyncBarcodeAction($this->scan))->handle();
     }
 }

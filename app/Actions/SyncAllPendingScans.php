@@ -2,7 +2,6 @@
 
 namespace App\Actions;
 
-
 use App\Actions\Contracts\Action;
 use App\Jobs\SyncBarcode;
 use Illuminate\Support\Collection;

@@ -6,11 +6,21 @@ use App\Models\Scan;
 
 trait UpdateScanStatus {
 
+    protected function updateScanStatus(Scan $scan, string $status): Scan
+    {
+        $scan->update([
+            'sync_status' => $status,
+        ]);
+
+        return $scan;
+    }
+
     protected function markScanAsSuccessful(Scan $scan): Scan
     {
         $scan->update([
             'sync_status' => 'synced',
-            'updated_at' => now(),
+            'submitted' => true,
+            'submitted_at' => now(),
         ]);
 
         return $scan;
@@ -20,7 +30,6 @@ trait UpdateScanStatus {
     {
         $scan->update([
             'sync_status' => 'syncing',
-            'updated_at' => now(),
         ]);
 
         return $scan;
@@ -30,7 +39,6 @@ trait UpdateScanStatus {
     {
         $scan->update([
             'sync_status' => 'failed',
-            'updated_at' => now(),
         ]);
 
         return $scan;
