@@ -30,17 +30,18 @@ final class SyncBarcodeAction implements Action
     public function handle()
     {
         // Let's first check the scan has not already been submitted as resubmitted would be a bit silly
-        if ($this->scan->submitted === true) {
+        if ($this->scan->submitted) {
             return;
         }
 
-        $this->updateScanStatus($this->scan, 'boobies');
+        $this->updateScanStatus($this->scan, 'syncing');
 
         // Check barcode exists and has a SKU, if null stop
         $product = (new CheckBarcodeExists($this->scan))->handle();
+
         Log::channel('inventory')->info($product);
 
-        if ($product === null) {
+        if (empty($product)) {
             // Notify users of no SKU found for a barcode
             $this->notifyAllUsers(new NoSkuFound($this->scan));
             $this->markScanAsFailed($this->scan);
