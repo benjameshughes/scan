@@ -99,11 +99,11 @@ return [
     */
 
     'trim' => [
-        'recent' => 60,
+        'recent' => 600,
         'pending' => 60,
-        'completed' => 60,
-        'recent_failed' => 10080,
-        'failed' => 10080,
+        'completed' => 43200,
+        'recent_failed' => 3600,
+        'failed' => 43200,
         'monitored' => 10080,
     ],
 
@@ -135,8 +135,8 @@ return [
 
     'metrics' => [
         'trim_snapshots' => [
-            'job' => 24,
-            'queue' => 24,
+            'job' => 168,
+            'queue' => 168,
         ],
     ],
 
