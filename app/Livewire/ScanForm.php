@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
+use PhpParser\Node\Expr\Ternary;
 
 class ScanForm extends Component
 {
@@ -37,18 +38,6 @@ class ScanForm extends Component
         $this->barcode = $barcode;
         $this->barcodeScanned = true;
         $this->dispatch('stop-scan');
-    }
-
-    public function checkBarcodeExists(): bool
-    {
-        // Find the sku for the barcode
-        $product = Product::where('barcode', $this->barcode)->first();
-
-        if (!$product) {
-            return false;
-        }
-
-        return true;
     }
 
     // Save function
