@@ -1,8 +1,9 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
     "name": "laravel/laravel",
+    "version": "1.0.1",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "A barcode scanning app to control stock movement",
     "keywords": [
         "laravel",
         "framework"
