@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Actions\Dashboard\MarkNotificationAsRead;
 use App\Actions\MarkScanAsSubmitted;
 use App\Jobs\SyncBarcode;
 use App\Models\Scan;
@@ -18,28 +19,26 @@ class Dashboard extends Component
 
     public Collection $scans;
 
+    public array $scansByDate;
+
     // Mark notification as read
     public function markAsRead($id)
     {
-        $user = auth()->user();
-        $notification = $user->unreadNotifications->find($id);
+        (new MarkNotificationAsRead($id))->handle();
 
-        $notification->markAsRead();
-
-        // refresh notifications
-        $this->notifications = collect(auth()->user()->unreadNotifications);
+        $this->notifications = auth()->user()->unreadNotifications()->get();
     }
 
     // Mark all notifications as read
     public function readAll()
     {
-        $notifications = collect(auth()->user()->unreadNotifications);
+        $notifications = auth()->user()->unreadNotifications();
 
         $notifications->each(function ($notification) {
             $notification->markAsRead();
         });
 
-        $this->notifications = collect(auth()->user()->unreadNotifications);
+        $this->notifications = auth()->user()->unreadNotifications()->get();
     }
 
     /**
@@ -88,7 +87,7 @@ class Dashboard extends Component
 
     public function mount()
     {
-        $this->notifications = auth()->user()->unreadNotifications;
+        $this->notifications = auth()->user()->unreadNotifications()->get();
         $this->scans = Scan::all();
     }
 

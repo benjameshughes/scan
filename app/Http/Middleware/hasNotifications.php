@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 class hasNotifications
@@ -15,9 +16,9 @@ class hasNotifications
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (auth()->user()) {
-            $unreadNotifications = auth()->user()->unreadNotifications;
-            view()->share('unreadNotifications', $unreadNotifications);
+        if (Auth::check()) {
+            // Set the unread notification count globally
+            view()->share('notificationCount', Auth::user()->unreadNotifications()->count());
         }
 
         return $next($request);

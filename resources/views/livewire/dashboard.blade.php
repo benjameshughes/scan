@@ -48,13 +48,14 @@
                                     <div class="relative mt-6 flex-1 px-4 sm:px-6">
                                         <ul role="list">
                                             @forelse($notifications as $notification)
-                                                <li>
-                                                    <div class="flex min-w-0 gap-x-4 border-b mb-4 pb-4 align-middle justify-center">
+                                                <li wire:key="{{$notification->id}}">
+                                                    <div class="flex min-w-0 gap-x-4 border-b mb-4 pb-4 items-center">
                                                         <x-lucide-alert-circle class="w-4 h-4 text-red-500"/>
                                                         <div class="min-w-0 flex-auto">
                                                             <p class="text-gray-500">{{ $notification->data['message'] }}</p>
+                                                            <p class="text-xs text-gray-500">{{ $notification->data['scan_id'] }}</p>
                                                             <p class="text-xs text-gray-500">{{$notification->data['barcode']}}</p>
-                                                            <p class="">Date: {{ $notification->created_at->format('d/m/y')}}</p>
+                                                            <p class="text-xs text-gray-500">Date: {{ $notification->created_at->format('d/m/y')}}</p>
                                                         </div>
                                                         <flux:button variant="primary" wire:click="markAsRead('{{$notification->id}}')">Acknowledge</flux:button>
                                                     </div>
@@ -64,9 +65,7 @@
                                             @endforelse
                                         </ul>
                                     </div>
-
                                 </div>
-
                             </div>
                         </div>
                     </div>

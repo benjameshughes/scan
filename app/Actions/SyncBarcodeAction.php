@@ -5,6 +5,7 @@ namespace App\Actions;
 use App\Actions\Concerns\SendNotifications;
 use App\Actions\Concerns\UpdateScanStatus;
 use App\Actions\Contracts\Action;
+use App\Exceptions\NoSkuFoundException;
 use App\Models\Scan;
 use App\Notifications\NoSkuFound;
 use App\Services\LinnworksApiService;
@@ -47,7 +48,7 @@ final class SyncBarcodeAction implements Action
             $this->markScanAsFailed($this->scan);
             Log::channel('inventory')->info('No product found for ' . $this->scan->barcode);
 
-            return;
+            throw new NoSkuFoundException('No SKU found for ' . $this->scan->barcode);
         }
 
         // Get the SKU of the product
