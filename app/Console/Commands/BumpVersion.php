@@ -186,7 +186,7 @@ class BumpVersion extends Command
      */
     private function commitAndTag(string $newVersion): void
     {
-        exec("git add composer.json");
+        exec("git add .");
         exec("git commit -m 'Bump version to $newVersion'");
         exec("git tag -a $newVersion -m 'Release version $newVersion'");
         exec("git push origin master");

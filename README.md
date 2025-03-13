@@ -80,5 +80,5 @@ For more details, see the [LICENSE](LICENSE) file or visit the [Creative Commons
 ## 📧 Contact
 
 For questions or feedback, feel free to reach out:
-- **Email**: [your-email@example.com]
-- **GitHub**: [your-username](https://github.com/your-username)
+- **Email**: [ben@benjh.com](mailto:ben@benjh.com)
+- **GitHub**: [benjameshughes](https://github.com/benjameshughes)
