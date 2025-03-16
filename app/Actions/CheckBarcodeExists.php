@@ -25,7 +25,8 @@ final class CheckBarcodeExists implements Action
      */
     public function handle()
     {
-        $product = Product::where('barcode', $this->scan->barcode)->first();
+        // Find the product using the scan product relationship. Else it won't search the other barcodes...
+        $product = $this->scan->product;
 
         if ($product) {
             return $product;

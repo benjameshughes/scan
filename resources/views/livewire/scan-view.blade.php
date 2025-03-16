@@ -41,8 +41,11 @@
                 <dt class="{{ $dtClass }}">{{ __('Barcode') }}</dt>
                 <dd class="{{ $ddClass }}">{{ $scan->barcode }}</dd>
                 <dd class="{{ $ddClass }}">
-                    <span class="text-sm text-gray-500">
-                        {{ $scan->product->sku ?? __('No SKU Found') }}
+                    <span class="text-sm text-gray-500 flex justify-between">
+                        <div class="w-full">
+                            {{ $scan->product->sku ?? __('No SKU Found') }}
+                        </div>
+                        <flux:input icon="copy" as="button" placeholder="{{ $scan->product->sku ?? __('No SKU Found') }}" readonly copyable />
                     </span>
                 </dd>
             </div>
@@ -95,10 +98,12 @@
             <flux:modal.trigger name="getStockItemHistory">
                 <flux:button variant="primary">Get Stock History</flux:button>
             </flux:modal.trigger>
-            <flux:modal name="getStockItemHistory" x-on:open="$wire.getStockItemHistory">
+            <flux:modal name="getStockItemHistory" x-on:open="getStockItemHistory('{{$scan->product->sku ?? '026-001'}}')">
                 <div class="p-10">
                     {{$scan->product->name ?? 'No product found'}}
-                    {{$stockHistory}}
+                    <div wire:loading wire:target="stockHistory">
+                        {{$stockHistory}}
+                    </div>
                 </div>
             </flux:modal>
         </dl>

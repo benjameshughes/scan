@@ -203,6 +203,7 @@ class LinnworksApiService
         ]);
 
         $data = json_decode($response->getBody(), true);
+        Log::channel('inventory')->info("Stock Details: " . json_encode($data['ItemTitle']));
 
         return $data[0];
     }
@@ -210,15 +211,19 @@ class LinnworksApiService
     /**
      * Get stock item history of a sku
      * I need to do a search, get the id first
+     * @throws GuzzleException
      */
 
-    public function getStockItemHistory(string $sku = '')
+    public function getStockItemHistory(string $sku)
     {
         // First I need to do an api call to get the sku item id in linnworks using getInventory
         $itemDetail = $this->getStockDetails($sku);
 
+        dd($itemDetail);
+
         // Get the stock id
         $itemId = $itemDetail[0]->StockItemId;
+        Log::channel('inventory')->info("{$sku} - {$itemId} for stock item history search");
 
         // Now run the api for the stock item history
         $response = $this->client->request('GET', $this->base_url . 'Stock/GetItemChangesHistory?stockItemId=' . $itemId . '&locationId=00000000-0000-0000-0000-000000000000&entriesPerPage=0&pageNumber=0', [

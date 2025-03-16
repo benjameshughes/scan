@@ -22,9 +22,12 @@ class Scan extends Model
 
     public function product()
     {
+        // This creates a custom relationship that checks all barcode columns
         return $this->belongsTo(Product::class, 'barcode', 'barcode')
-            ->orWhere('barcode_2', $this->barcode)
-            ->orWhere('barcode_3', $this->barcode);
+            ->orWhere(function($query) {
+                $query->where('barcode_2', $this->barcode)
+                      ->orWhere('barcode_3', $this->barcode);
+            });
     }
 
     /**

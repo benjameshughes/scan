@@ -64,11 +64,11 @@ class AppServiceProvider extends ServiceProvider
             return $this->where($column, false);
         });
 
-        // Barcode relationship macro
-        Relation::macro('orWhere', function ($column, $value) {
-            $this->query->orWhere($column, $value);
-            return $this;
-        });
+//        // Barcode relationship macro
+//        Relation::macro('orWhere', function ($column, $value) {
+//            $this->query->orWhere($column, $value);
+//            return $this;
+//        });
 
         // Table Component
         Livewire::component('table', TableComponent::class);
