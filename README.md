@@ -56,10 +56,17 @@ A lightweight Laravel application for managing stock levels with barcode scannin
 
 ## 📜 Change Log
 
-### Version 1.0.6
-- Fixed versioning numbers. Still getting used to version control.
+### Version 1.0.7
+- Fixed the model product look up relationship
+- Added flux copyable trait to scan views - WIP
+- Removed orWhere Macro
+- Ability to edit a scan - WIP
 
 ---
+
+### To Do
+
+- Update tables to allow for viewing/editing of resources
 
 ## 📄 License
 

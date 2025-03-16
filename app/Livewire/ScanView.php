@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Jobs\SyncBarcode;
 use App\Models\Scan;
 use App\Services\LinnworksApiService;
+use GuzzleHttp\Exception\GuzzleException;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
@@ -20,13 +21,6 @@ class ScanView extends Component
         $this->scan = Scan::findOrFail($this->scan->id);
     }
 
-    // Get job status
-    public function jobStatusUpdate($status, $scan)
-    {
-        $this->jobStatus = $status;
-        $this->scan = $scan;
-    }
-
     /**
      * Initiates barcode synchronization with a 1-minute delay to allow for potential batching
      * @throws \Exception If status update fails
@@ -35,17 +29,15 @@ class ScanView extends Component
     {
         // Use the SyncBarcodeAction action to initiate the sync job
         SyncBarcode::dispatch($this->scan);
-
-        // Update scan status to syncing
-        $this->scan->update([
-            'sync_status' => 'syncing',
-        ]);
     }
 
-    public function getStockItemHistory()
+    /**
+     * @throws GuzzleException
+     */
+    public function getStockItemHistory(string $sku)
     {
         // Linnworks
-        $this->stockHistory = LinnworksApiService::getStockItemHistory($this->scan);
+        return LinnworksApiService::getStockItemHistory($sku);
     }
 
     // Delete sync
