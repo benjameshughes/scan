@@ -3,16 +3,16 @@
 use App\Http\Controllers\LinnworksController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ScanController;
+use App\Models\User;
 use App\Services\LinnworksApiService;
 use Illuminate\Support\Facades\Route;
-use App\Http\Middleware\hasNotifications;
 
 /*
 |--------------------------------------------------------------------------
 | Public Routes
 |--------------------------------------------------------------------------
 */
-//Route::redirect('/', 'dashboard')->name('home');
+// Route::redirect('/', 'dashboard')->name('home');
 Route::redirect('/', 'scanner')->name('home');
 Route::get('scanner', [ScanController::class, 'scan'])->name('scan.scan');
 
@@ -26,6 +26,25 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::view('dashboard', 'dashboard')->name('dashboard');
     Route::view('profile', 'profile')->name('profile');
+
+    /*
+|--------------------------------------------------------------------------
+| Admin Routes
+|--------------------------------------------------------------------------
+*/
+    Route::prefix('admin')->name('admin.')->group( function () {
+        Route::prefix('users')->name('users.')->group(function () {
+
+            Route::get('/', function () {
+                return view('admin.users.index');
+            })->name('index');
+
+            Route::get('/{user}/edit', function (User $user) {
+                return view('admin.users.edit', compact('user'));
+            })->name('edit');
+
+        })->middleware('role:admin');
+    });
 
     /*
     |--------------------------------------------------------------------------
@@ -53,8 +72,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Profile & Resource Routes
         Route::view('profile', 'linnworks.profile')->name('profile');
-        Route::get('inventory', LinnworksController::class . '@index')->name('inventory');
-        Route::get('inventory/sync', LinnworksController::class . '@fetchInventory')->name('fetchInventory');
+        Route::get('inventory', LinnworksController::class.'@index')->name('inventory');
+        Route::get('inventory/sync', LinnworksController::class.'@fetchInventory')->name('fetchInventory');
         Route::resource('/', LinnworksController::class);
     });
 
@@ -74,4 +93,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
 | Authentication Routes
 |--------------------------------------------------------------------------
 */
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';

@@ -13,11 +13,12 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
 
-    use Notifiable;
+    use Notifiable, HasRoles;
 
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;

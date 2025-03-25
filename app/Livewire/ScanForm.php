@@ -2,34 +2,33 @@
 
 namespace App\Livewire;
 
+use App\Actions\GetProductFromScannedBarcode;
+use App\DTOs\EmptyBayDTO;
+use App\Jobs\EmptyBayJob;
 use App\Jobs\SyncBarcode;
 use App\Models\Product;
 use App\Models\Scan;
+use App\Rules\BarcodePrefixCheck;
 use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
-use PhpParser\Node\Expr\Ternary;
 
 class ScanForm extends Component
 {
     public Scan $scan;
 
-    #[Validate('required')]
-    public int $barcode;
-
+    #[Validate(['required', new BarcodePrefixCheck('505903')])]
+    public ?int $barcode = null;
     #[Validate('required|min:1')]
     public int $quantity = 1;
-
-    public int $productId;
-
     public bool $barcodeScanned = false;
-
     public bool $showSuccessMessage = false;
+    public string $successMessage;
 
-    public function incrementQuantity()
+    public function incrementQuantity(): int
     {
-        $this->quantity++;
+        return $this->quantity++;
     }
 
     #[On('barcode')]
@@ -37,18 +36,38 @@ class ScanForm extends Component
     {
         $this->barcode = $barcode;
         $this->barcodeScanned = true;
+
+        if($this->validate())
+        {
+            $product = (new GetProductFromScannedBarcode($this->barcode))->handle();
+            $this->successMessage = $product ? $product->name : "Barcode scanned";
+            $this->showSuccessMessage = true;
+        }
+
         $this->dispatch('stop-scan');
+    }
+
+    public function emptyBayNotification()
+    {
+        // Create a DTO
+        $emptyBayDTO = new EmptyBayDTO(
+            $this->barcode,
+        );
+
+        // Pass DTO to notification
+        EmptyBayJob::dispatch($emptyBayDTO);
+
+        $this->showSuccessMessage = true;
+        $this->successMessage = 'Empty bay notification sent';
     }
 
     // Save function
     public function save()
     {
-        $this->showSuccessMessage = true;
-
         $this->validate();
 
         // Create a new ScanDTO
-        $scan = Scan::create([
+        $this->scan = Scan::create([
             'barcode' => $this->barcode,
             'quantity' => $this->quantity,
             'submitted' => false,
@@ -57,7 +76,7 @@ class ScanForm extends Component
         ]);
 
         // Dispatch the sync job
-        SyncBarcode::dispatch($scan);
+        SyncBarcode::dispatch($this->scan);
 
         Log::channel('barcode')->info("{$this->barcode} Scanned");
 
