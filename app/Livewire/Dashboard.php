@@ -93,6 +93,11 @@ class Dashboard extends Component
 
     public function render()
     {
+        // Get all scans
+        $this->scans = Scan::all();
+        // Get users notifications
+        $this->notifications = auth()->user()->unreadNotifications()->get();
+
         return view('livewire.dashboard');
     }
 }

@@ -3,8 +3,7 @@
 use App\Livewire\Actions\Logout;
 use Livewire\Volt\Component;
 
-new class extends Component
-{
+new class extends Component {
     /**
      * Log the current user out of the application.
      */
@@ -24,7 +23,7 @@ new class extends Component
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('dashboard') }}" wire:navigate>
-                        <x-application-logo class="block h-9 w-auto fill-current text-gray-800 dark:text-gray-200" />
+                        <x-application-logo class="block h-9 w-auto fill-current text-gray-800 dark:text-gray-200"/>
                     </a>
                 </div>
 
@@ -40,22 +39,32 @@ new class extends Component
                     <x-nav-link :href="route('scan.index')" :active="request()->routeIs('scan.index')" wire:navigate>
                         {{ __('Syncs') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('products.index')" :active="request()->routeIs('products.index')" wire:navigate>
+                    <x-nav-link :href="route('products.index')" :active="request()->routeIs('products.index')"
+                                wire:navigate>
                         {{ __('Products') }}
                     </x-nav-link>
+                    @role('admin')
+                        <x-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.index')"
+                                    wire:navigate>
+                            Users
+                        </x-nav-link>
+                    @endrole
                 </div>
             </div>
 
             <!-- Settings Dropdown -->
             <div class="hidden sm:flex sm:items-center sm:ms-6">
-                <flux:button x-data x-on:click="$flux.dark = ! $flux.dark" icon="moon" variant="subtle" aria-label="Toggle dark mode" />
+                <flux:button x-data x-on:click="$flux.dark = ! $flux.dark" icon="moon" variant="subtle"
+                             aria-label="Toggle dark mode"/>
                 <flux:dropdown position="bottom" align="end">
-                    <flux:profile avatar="{{  auth()->user()->avatar }}" name="{{ auth()->user()->initials() }}" />
+                    <flux:profile avatar="{{  auth()->user()->avatar }}" name="{{ auth()->user()->initials() }}"/>
 
                     <flux:navmenu>
                         <flux:menu.group heading="Signed in as">
-                            <flux:navmenu.item href="{{route('profile')}}" icon="user">{{__('My Profile')}}</flux:navmenu.item>
-                            <flux:navmenu.item href="{{route('products.import')}}" icon="import">Import</flux:navmenu.item>
+                            <flux:navmenu.item href="{{route('profile')}}"
+                                               icon="user">{{__('My Profile')}}</flux:navmenu.item>
+                            <flux:navmenu.item href="{{route('products.import')}}" icon="import">Import
+                            </flux:navmenu.item>
                         </flux:menu.group>
                         <flux:navmenu.item wire:click="logout" icon="trash" variant="danger">Logout</flux:navmenu.item>
                     </flux:navmenu>
@@ -64,10 +73,14 @@ new class extends Component
 
             <!-- Hamburger -->
             <div class="-me-2 flex items-center sm:hidden">
-                <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-gray-500 dark:focus:text-gray-400 transition duration-150 ease-in-out">
+                <button @click="open = ! open"
+                        class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-gray-500 dark:focus:text-gray-400 transition duration-150 ease-in-out">
                     <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                        <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                        <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex"
+                              stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M4 6h16M4 12h16M4 18h16"/>
+                        <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round"
+                              stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
                 </button>
             </div>
@@ -81,13 +94,15 @@ new class extends Component
                 {{ __('Dashboard') }}
                 <livewire:notification-badge/>
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('scan.create')" :active="request()->routeIs('scan.create')" wire:navigate>
+            <x-responsive-nav-link :href="route('scan.create')" :active="request()->routeIs('scan.create')"
+                                   wire:navigate>
                 {{ __('Scans') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('scan.index')" :active="request()->routeIs('scan.index')" wire:navigate>
                 {{ __('Syncs') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('products.index')" :active="request()->routeIs('products.index')" wire:navigate>
+            <x-responsive-nav-link :href="route('products.index')" :active="request()->routeIs('products.index')"
+                                   wire:navigate>
                 {{ __('Products') }}
             </x-responsive-nav-link>
         </div>
@@ -95,7 +110,9 @@ new class extends Component
         <!-- Responsive Settings Options -->
         <div class="pt-4 pb-1 border-t border-gray-200 dark:border-gray-600">
             <div class="px-4">
-                <div class="font-medium text-base text-gray-800 dark:text-gray-200" x-data="{{ json_encode(['name' => auth()->user()->name]) }}" x-text="name" x-on:profile-updated.window="name = $event.detail.name"></div>
+                <div class="font-medium text-base text-gray-800 dark:text-gray-200"
+                     x-data="{{ json_encode(['name' => auth()->user()->name]) }}" x-text="name"
+                     x-on:profile-updated.window="name = $event.detail.name"></div>
                 <div class="font-medium text-sm text-gray-500">{{ auth()->user()->email }}</div>
             </div>
 

@@ -1,6 +1,6 @@
 # 📦 Laravel Barcode Stock Sync
 
-**Version: 1.0.6**  
+**Version: 1.1.0**  
 A lightweight Laravel application for managing stock levels with barcode scanning and Linnworks synchronization.
 
 ---
@@ -10,38 +10,6 @@ A lightweight Laravel application for managing stock levels with barcode scannin
 - **Barcode Scanning**: Use your phone's camera to scan barcodes and submit them to the database.
 - **Stock Sync**: Automatically sync stock levels with Linnworks via a background job.
 - **Modern Tech**: Built with the latest versions of PHP and Laravel for performance and security along with Livewire v3 for interactivity.
-
----
-
-## 📂 Installation
-
-1. Clone the repository:
-    ```bash
-    git clone https://github.com/your-username/laravel-barcode-stock-sync.git
-    cd laravel-barcode-stock-sync
-    ```
-
-2. Install dependencies:
-    ```bash
-    composer install
-    npm install
-    ```
-
-3. Set up the environment:
-    ```bash
-    cp .env.example .env
-    php artisan key:generate
-    ```
-
-4. Run migrations:
-    ```bash
-    php artisan migrate
-    ```
-
-5. Start the application:
-    ```bash
-    php artisan serve
-    ```
 
 ---
 
@@ -56,11 +24,15 @@ A lightweight Laravel application for managing stock levels with barcode scannin
 
 ## 📜 Change Log
 
-### Version 1.0.7
 - Fixed the model product look up relationship
 - Added flux copyable trait to scan views - WIP
 - Removed orWhere Macro
 - Ability to edit a scan - WIP
+- Fixed product import and added auto mapping
+- Added a feature to send an empty bay notification to admins (admins only)
+- Added a simple permission system to set a user to either admin or user
+- Updated the successful barcode scan message to show the product title of the scanned barcode
+- Added validation for the barcode with a custom rule to check the barcode starts with the correct prefix
 
 ---
 

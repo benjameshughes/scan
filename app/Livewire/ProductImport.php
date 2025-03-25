@@ -6,7 +6,6 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use App\Models\Product;
 use Maatwebsite\Excel\Facades\Excel;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Validator;
 
 class ProductImport extends Component
@@ -19,12 +18,17 @@ class ProductImport extends Component
     public $rows = [];
     public $step = 1; // step 1: upload, step 2: mapping, step 3: import
 
-    // The fillable columns of the Product (except SKU is our key)
-    public $modelColumns = ['sku', 'name', 'barcode', 'barcode_2', 'barcode_3', 'quantity'];
+    // The fillable columns of the Product
+    public $modelColumns = [];
 
     public function render()
     {
         return view('livewire.product-import');
+    }
+
+    public function mount()
+    {
+        $this->modelColumns = (new Product())->getFillable();
     }
 
     /**
@@ -32,7 +36,7 @@ class ProductImport extends Component
      */
     public function uploadFile()
     {
-        $data = $this->validate([
+        $this->validate([
             'csvFile' => 'required|file|mimes:csv,txt',
         ]);
 
@@ -44,9 +48,22 @@ class ProductImport extends Component
         }
 
         // Assume first row as header
-        $this->headers = $collection->first()->first();
+        $this->headers = $collection->first()->first()->toArray();
+
         // Save rows for later (skip header row)
         $this->rows = $collection->first()->slice(1)->toArray();
+
+        // Initialize mapping with empty values
+        $this->mapping = array_fill_keys($this->modelColumns, '');
+
+        // Try to auto-map columns based on header names
+        foreach ($this->headers as $index => $header) {
+            $normalizedHeader = strtolower(trim($header));
+            if (in_array($normalizedHeader, $this->modelColumns)) {
+                $this->mapping[$normalizedHeader] = $index;
+            }
+        }
+
         $this->step = 2;
     }
 
@@ -56,39 +73,46 @@ class ProductImport extends Component
     public function import()
     {
         // Validate that mapping has keys for required fields
-        $required = ['sku']; // always require sku for matching
-        foreach ($required as $field) {
-            if (!in_array($field, $this->mapping)) {
-                $this->addError('mapping', "Mapping for {$field} is required.");
-                return;
-            }
+        if (!isset($this->mapping['sku']) || $this->mapping['sku'] === '') {
+            $this->addError('mapping', 'Mapping for SKU is required.');
+            return;
         }
+
+        $importCount = 0;
+        $errorCount = 0;
 
         // Loop through each row and build the data for upsert
         foreach ($this->rows as $rowIndex => $row) {
             $data = [];
-            foreach ($this->mapping as $modelField) {
-                // Get the CSV column index that maps to this model field.
-                $csvIndex = array_search($modelField, $this->mapping);
-                if ($csvIndex !== false && isset($row[$csvIndex])) {
-                    $data[$modelField] = $row[$csvIndex];
+
+            // Extract data based on mapping
+            foreach ($this->mapping as $modelField => $headerIndex) {
+                if ($headerIndex !== '' && isset($row[$headerIndex])) {
+                    $data[$modelField] = $row[$headerIndex];
                 }
             }
 
-            // Validate data if needed; here we do a simple check
+            // Validate data
             $validator = Validator::make($data, [
                 'sku' => 'required',
             ]);
 
             if ($validator->fails()) {
-                // Optional: Handle errors (log or accumulate errors to show later)
+                $errorCount++;
                 continue;
             }
 
-            // We upsert based on sku. The keys you want to update (only mapped values)
-            Product::updateOrCreate(['sku' => $data['sku']], $data);
+            // Upsert based on sku
+            try {
+                Product::updateOrCreate(['sku' => $data['sku']], $data);
+                $importCount++;
+            } catch (\Exception $e) {
+                $errorCount++;
+                // You might want to log the error or handle it differently
+            }
         }
 
+        session()->flash('message', "Import completed: $importCount products imported, $errorCount errors.");
         $this->step = 3;
     }
 }

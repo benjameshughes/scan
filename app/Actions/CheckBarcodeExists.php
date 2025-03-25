@@ -3,11 +3,14 @@
 namespace App\Actions;
 
 use App\Actions\Contracts\Action;
+use App\Actions\Concerns\UpdateScanStatus;
 use App\Models\Product;
 use App\Models\Scan;
 
 final class CheckBarcodeExists implements Action
 {
+
+    use UpdateScanStatus;
 
     public Scan $scan;
 
@@ -31,7 +34,8 @@ final class CheckBarcodeExists implements Action
         if ($product) {
             return $product;
         }
-
+        // Update the status to failed
+        $this->markScanAsFailed($this->scan);
         return null;
     }
 
