@@ -57,7 +57,10 @@ new class extends Component {
                 <flux:button x-data x-on:click="$flux.dark = ! $flux.dark" icon="moon" variant="subtle"
                              aria-label="Toggle dark mode"/>
                 <flux:dropdown position="bottom" align="end">
-                    <flux:profile avatar="{{  auth()->user()->avatar }}" name="{{ auth()->user()->initials() }}"/>
+                    <flux:profile
+                            initials="{{ auth()->user()->initials() }}"
+                            color="auto"
+                    />
 
                     <flux:navmenu>
                         <flux:menu.group heading="Signed in as">

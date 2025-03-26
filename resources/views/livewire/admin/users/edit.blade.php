@@ -1,38 +1,30 @@
 <div>
-    <form wire:submit="updateRoles">
-        <div class="mb-4">
-{{--            <label class="block text-gray-700 text-sm font-bold mb-2">Roles</label>--}}
-{{--            @foreach($roles as $role)--}}
-{{--                <div class="flex items-center mb-2">--}}
-{{--                    <input type="radio"--}}
-{{--                           wire:model="userRoles"--}}
-{{--                           value="{{ $role->name }}"--}}
-{{--                           id="role-{{ $role->id }}"--}}
-{{--                           {{in_array($role->name, $userRoles) ? 'checked' : ''}}--}}
-{{--                           class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">--}}
-{{--                    <label for="role-{{ $role->id }}" class="ml-2 text-sm text-gray-700">--}}
-{{--                        {{ ucfirst($role->name) }}--}}
-{{--                    </label>--}}
-{{--                </div>--}}
-{{--            @endforeach--}}
+    {{-- Session flash message display --}}
+    @if (session()->has('message'))
+        <div class="mb-4 p-4 bg-green-100 text-green-700 rounded">
+            {{ session('message') }}
+        </div>
+    @endif
 
+    <form wire:submit.prevent="updateRoles">
+        <div class="mb-4">
             <flux:radio.group wire:model="selectedRole" name="Roles" label="Roles">
-                @foreach($roles as $role)
-                    <flux:radio value="{{$role}}" label="{{$role}}" {{ $currentRole === $role ? 'checked' : '' }}/>
-                @endforeach
+                @forelse($roles as $roleName => $roleLabel)
+                <flux:radio
+                        id="role_{{ $roleName }}" value="{{ $roleName }}"
+                        label="{{ Str::ucfirst($roleLabel) }}"
+                />
+                @empty
+                    <p class="text-gray-500">No roles available.</p>
+                @endforelse
             </flux:radio.group>
+            @error('selectedRole') <span class="text-red-500 text-sm mt-1">{{ $message }}</span> @enderror
 
         </div>
 
-        <div class="flex items-center">
-            <button type="submit"
-                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                Update Roles
-            </button>
-            <a href="{{ route('admin.users.index') }}"
-               class="ml-4 inline-flex items-center px-4 py-2 bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-300 active:bg-gray-300 focus:outline-none focus:border-gray-300 focus:ring ring-gray-300 disabled:opacity-25 transition ease-in-out duration-150">
-                Cancel
-            </a>
+        <div class="flex items-center space-x-4">
+            <flux:button type="submit" variant="primary">Update Role</flux:button>
+            <flux:button :href="route('admin.users.index')">Cancel</flux:button>
         </div>
     </form>
 </div>
