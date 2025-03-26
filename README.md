@@ -1,6 +1,6 @@
 # 📦 Laravel Barcode Stock Sync
 
-**Version: 1.1.1**  
+**Version: 1.1.2**  
 A lightweight Laravel application for managing stock levels with barcode scanning and Linnworks synchronization.
 
 ---
@@ -24,9 +24,7 @@ A lightweight Laravel application for managing stock levels with barcode scannin
 
 ## 📜 Change Log
 
-- Added console command to assign a user to admin role - php artisan user:permissions yourname@email.com
-- Fixed the user admin permission page
-- Fixed avatar in nav bar
+- Fixed: Getting users with "admin" role in EmptyBayJob
 
 ---
 
