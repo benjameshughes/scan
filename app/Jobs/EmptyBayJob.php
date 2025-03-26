@@ -39,7 +39,10 @@ class EmptyBayJob implements ShouldQueue
         }
 
         // Dispatch notification with SKU
-        $users = User::role('admin')->get();
+        $users = User::with('roles')->get()->filter(
+            fn($user) => $user->roles->where('name', 'admin')->toArray()
+        );
+
         $users->each(function ($user) use ($product) {
             $user->notify(new EmptyBayNotification($product));
         });
