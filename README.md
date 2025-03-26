@@ -1,6 +1,6 @@
 # 📦 Laravel Barcode Stock Sync
 
-**Version: 1.1.0**  
+**Version: 1.1.1**  
 A lightweight Laravel application for managing stock levels with barcode scanning and Linnworks synchronization.
 
 ---
@@ -24,15 +24,9 @@ A lightweight Laravel application for managing stock levels with barcode scannin
 
 ## 📜 Change Log
 
-- Fixed the model product look up relationship
-- Added flux copyable trait to scan views - WIP
-- Removed orWhere Macro
-- Ability to edit a scan - WIP
-- Fixed product import and added auto mapping
-- Added a feature to send an empty bay notification to admins (admins only)
-- Added a simple permission system to set a user to either admin or user
-- Updated the successful barcode scan message to show the product title of the scanned barcode
-- Added validation for the barcode with a custom rule to check the barcode starts with the correct prefix
+- Added console command to assign a user to admin role - php artisan user:permissions yourname@email.com
+- Fixed the user admin permission page
+- Fixed avatar in nav bar
 
 ---
 
