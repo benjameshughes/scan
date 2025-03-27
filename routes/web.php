@@ -43,8 +43,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 return view('admin.users.edit', compact('user'));
             })->name('edit');
 
-        })->middleware('role:admin');
-    });
+        });
+        Route::prefix('external')->name('external.')->group(function () {
+            Route::get('/', function () {
+                return view('admin.external.index');
+            })->name('index');
+        });
+    })->middleware('role:admin');
 
     /*
     |--------------------------------------------------------------------------

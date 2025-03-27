@@ -64,10 +64,12 @@ new class extends Component {
 
                     <flux:navmenu>
                         <flux:menu.group heading="Signed in as">
-                            <flux:navmenu.item href="{{route('profile')}}"
-                                               icon="user">{{__('My Profile')}}</flux:navmenu.item>
-                            <flux:navmenu.item href="{{route('products.import')}}" icon="import">Import
-                            </flux:navmenu.item>
+                            <flux:navmenu.item href="{{route('profile')}}" icon="user">{{__('My Profile')}}</flux:navmenu.item>
+                            @role('admin')
+                            <flux:separator/>
+                            <flux:navmenu.item href="{{route('admin.external.index')}}" icon="send">External</flux:navmenu.item>
+                            <flux:navmenu.item href="{{route('products.import')}}" icon="import">Import</flux:navmenu.item>
+                            @endrole
                         </flux:menu.group>
                         <flux:navmenu.item wire:click="logout" icon="trash" variant="danger">Logout</flux:navmenu.item>
                     </flux:navmenu>
