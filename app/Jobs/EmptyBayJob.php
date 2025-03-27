@@ -2,11 +2,13 @@
 
 namespace App\Jobs;
 
+use App\Models\ExternalEmail;
 use App\Models\Scan;
 use App\Models\User;
 use App\Notifications\EmptyBayNotification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\Log;
 
 class EmptyBayJob implements ShouldQueue
 {
@@ -27,25 +29,28 @@ class EmptyBayJob implements ShouldQueue
      */
     public function handle(): void
     {
-
         // Can I instantiate a new scan model to use the relationship?
         $tempScan = new Scan(['barcode' => $this->barcode]);
-
         $product = $tempScan->product;
 
-        if(!$product)
-        {
+        if (! $product) {
             return;
         }
 
-        // Dispatch notification with SKU
-        $users = User::with('roles')->get()->filter(
-            fn($user) => $user->roles->where('name', 'admin')->toArray()
-        );
+        // Get admin users
+        $users = User::with('roles')
+            ->get()
+            ->filter(fn ($user) => $user->roles->contains('name', 'admin'));
 
-        $users->each(function ($user) use ($product) {
-            $user->notify(new EmptyBayNotification($product));
+        // Get external emails
+        $externalEmails = ExternalEmail::all();
+
+        // Merge collections
+        $recipients = $users->merge($externalEmails);
+
+        // Notify each recipient
+        $recipients->each(function ($recipient) use ($product) {
+            $recipient->notify(new EmptyBayNotification($product));
         });
-        // $user->notify(new \App\Notifications\EmptyBayNotification($product));
     }
 }
