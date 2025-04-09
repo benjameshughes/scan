@@ -10,231 +10,256 @@ use Exception;
 
 class LinnworksApiService
 {
-    protected string $app_id;
-    protected string $app_secret;
-    protected string $app_token;
-    protected string $base_url;
-    protected string $auth_url;
-    protected string $session_token;
-    private Client $client;
+    protected readonly string $appId;
+    protected readonly string $appSecret;
+    protected readonly string $appToken;
+    protected readonly string $baseUrl;
+    protected readonly string $authUrl;
+    protected Client $client;
+    protected string $cacheKey = 'linnworks.session_token';
+
     public function __construct()
     {
         $this->client = new Client();
-        $this->app_id = config('linnworks.app_id');
-        $this->app_secret = config('linnworks.app_secret');
-        $this->app_token = config('linnworks.app_token');
-        $this->base_url = config('linnworks.base_url');
-        $this->auth_url = config('linnworks.auth_url');
+        $this->appId = config('linnworks.app_id');
+        $this->appSecret = config('linnworks.app_secret');
+        $this->appToken = config('linnworks.app_token');
+        $this->baseUrl = config('linnworks.base_url');
+        $this->authUrl = config('linnworks.auth_url');
 
-        $this->checkAndAuthorize();
+        $this->ensureAuthorized();
     }
 
-    // Helper function to check the session token and refresh it if necessary
-    private function checkAndAuthorize()
+    /**
+     * Ensure we have a valid session token
+     */
+    private function ensureAuthorized(): string
     {
-        // Check if the session token is expired or missing
-        if (Cache::has('linnworks.session_token')) {
-            // Refresh the session token by calling the authorization function
-            $this->session_token = Cache::get('linnworks.session_token');
+
+        // Make a call to get the latest token and compare it to the token in the cache. If different save the new token in the cache
+        $token = $this->authorizeByApplication();
+        $cachedToken = Cache::get($this->cacheKey);
+
+        // If for some reason there is no token get a new token
+        if (Cache::missing($this->cacheKey)) {
+            return $this->authorizeByApplication();
         }
 
-        return $this->authorizeByApplication();
+        if ($token !== $cachedToken) {
+            Cache::pull($this->cacheKey);
+            return $this->authorizeByApplication();
+        }
+        Log::channel('lw_auth')->info('Checking the linnworks token');
+        return Cache::get($this->cacheKey);
     }
 
-    private function authorizeByApplication()
+    /**
+     * Authorize with Linnworks API
+     */
+    private function authorizeByApplication(): string
     {
-        // Let's check to see if we have a session token or not so we don't have to re-authenticate
-        if (Cache::has('linnworks.session_token')) {
-            return $this->session_token = Cache::get('linnworks.session_token');
-        }
+        $body = [
+            "ApplicationId" => $this->appId,
+            "ApplicationSecret" => $this->appSecret,
+            "Token" => $this->appToken,
+        ];
 
-        $body = json_encode([
-            "ApplicationId" => $this->app_id,
-            "ApplicationSecret" => $this->app_secret,
-            "Token" => $this->app_token,
-        ]);
+        try {
+            $response = $this->makeRequest('POST', $this->authUrl . 'Auth/AuthorizeByApplication', [
+                'body' => json_encode($body),
+                'headers' => [
+                    'accept' => 'application/json',
+                    'content-type' => 'application/json',
+                ],
+            ]);
 
-        $response = $this->client->request('POST', $this->auth_url . 'Auth/AuthorizeByApplication', [
-            'body' => $body,
-            'headers' => [
-                'accept' => 'application/json',
-                'content-type' => 'application/json',
-            ],
-        ]);
+            $sessionToken = $response['Token'];
 
-        // Check if the response is successful (status code 200)
-        if ($response->getStatusCode() === 200) {
-            // Decode the response body to retrieve the token
-            $responseBody = json_decode($response->getBody()->getContents(), true);
-            $session_token = $responseBody['Token'];
-
-            // Store the session token in the cache for later use (expires in 60 minutes)
-            Cache::add('linnworks.session_token', $session_token, now()->addMinutes(60));
+            // Store the session token in the cache
+            Cache::put($this->cacheKey, $sessionToken);
             Log::channel('lw_auth')->info('Authorized by application');
 
-            // Return the session token
-            return $session_token;
+            return $sessionToken;
+        } catch (Exception $e) {
+            Log::channel('lw_auth')->error('Authorization failed: ' . $e->getMessage());
+            throw new Exception('Unable to authorize by application: ' . $e->getMessage());
         }
-
-        // If the response was not successful, log the error and throw an exception
-        Log::channel('lw_auth')->error('Authorization failed: ' . $response->getBody()->getContents());
-        throw new Exception('Unable to authorize by application');
     }
 
-    public function updateStockLevel(string $sku, int $quantity)
+    /**
+     * Make an authenticated API request to Linnworks
+     */
+    protected function makeAuthenticatedRequest(string $method, string $endpoint, array $options = []): array
     {
-        $body = json_encode([
+        $token = $this->ensureAuthorized();
+
+        // Add authorization header
+        $options['headers'] = array_merge($options['headers'] ?? [], [
+            'Authorization' => $token,
+            'accept' => 'application/json',
+            'content-type' => 'application/json',
+        ]);
+
+        try {
+            return $this->makeRequest($method, $this->baseUrl . $endpoint, $options);
+        } catch (Exception $e) {
+            // If we get a 401, try to refresh the token and retry once
+            if (str_contains($e->getMessage(), '401')) {
+                Cache::forget($this->cacheKey);
+                $token = $this->authorizeByApplication();
+
+                $options['headers']['Authorization'] = $token;
+                return $this->makeRequest($method, $this->baseUrl . $endpoint, $options);
+            }
+
+            throw $e;
+        }
+    }
+
+    /**
+     * Raw dawg the API with a request
+     */
+    protected function makeRequest(string $method, string $url, array $options = []): array
+    {
+        try {
+            $response = $this->client->request($method, $url, $options);
+            return json_decode($response->getBody()->getContents(), true);
+        } catch (GuzzleException $e) {
+            Log::channel('lw_auth')->error("API request failed: {$method} {$url} - " . $e->getMessage());
+            throw new Exception("API request failed: {$e->getMessage()}");
+        }
+    }
+
+    /**
+     * Refresh the session token
+     */
+    public function refreshToken(): string
+    {
+        Log::channel('lw_auth')->info('Refreshing token');
+        return $this->ensureAuthorized();
+    }
+
+    /**
+     * Update stock level for a SKU
+     */
+    public function updateStockLevel(string $sku, int $quantity): array
+    {
+        $body = [
             'stockLevels' => [
                 [
                     'SKU' => $sku,
                     'LocationId' => '00000000-0000-0000-0000-000000000000',
-                    'Level' => $quantity, // Ensure $quantity is an integer
+                    'Level' => $quantity,
                 ]
             ]
-        ]);
+        ];
 
-        $response = $this->client->request('POST', $this->base_url . 'Stock/SetStockLevel', [
-            'body' => $body,
-            'headers' => [
-                'Authorization' => Cache::get('linnworks.session_token'),
-                'accept' => 'application/json',
-                'content-type' => 'application/json',
-            ],
-        ]);
-
-        return json_decode($response->getBody());
+        return $this->makeAuthenticatedRequest(
+            'POST',
+            'Stock/SetStockLevel',
+            ['body' => json_encode($body)]
+        );
     }
-
-    // Get stock level
-    public function getStockLevel(string $sku = '')
-    {
-        $body = json_encode([
-            'keyword' => trim($sku),
-            'loadCompositeParents' => false,
-            'loadVariationParents' => false,
-            'entriesPerPage' => 1,
-            'pageNumber' => 1,
-            "dataRequirements" => ["StockLevels"],
-            "searchTypes" => ["SKU","Title","Barcode"],
-        ]);
-
-        $response = $this->client->request('POST', $this->base_url . 'Stock/GetStockItemsFull', [
-            'body' => $body,
-            'headers' => [
-                'Authorization' => Cache::get('linnworks.session_token'),
-                'accept' => 'application/json',
-                'content-type' => 'application/json',
-            ],
-        ]);
-
-        $data = json_decode($response->getBody());
-
-        return $data[0]->StockLevels[0]->StockLevel;
-    }
-
-    // Get all stock items
 
     /**
-     * @throws GuzzleException
+     * Get stock level for a SKU
      */
-    public function getInventory(int $pageNumber, int $entriesPerPage = 200)
+    public function getStockLevel(string $sku): int
     {
-        $data = [
+        $data = $this->searchStockItems($sku, 1, ['StockLevels']);
+        return $data[0]['StockLevels'][0]['StockLevel'];
+    }
+
+    /**
+     * Get inventory with pagination
+     */
+    public function getInventory(int $pageNumber = 1, int $entriesPerPage = 200): array
+    {
+        $body = [
             "loadCompositeParents" => false,
             "loadVariationParents" => false,
-            "entriesPerPage" => $pageNumber,
-            "pageNumber" => $entriesPerPage,
+            "entriesPerPage" => $entriesPerPage,
+            "pageNumber" => $pageNumber,
             "dataRequirements" => ["StockLevels"],
         ];
 
-        $response = $this->client->request('POST', $this->base_url . 'Stock/GetStockItemsFull', [
-            'body' => json_encode($data),
-            'headers' => [
-                'Authorization' => Cache::get('linnworks.session_token'),
-                'accept' => 'application/json',
-                'content-type' => 'application/json',
-            ],
-        ]);
-
-        return json_decode($response->getBody(), true);
+        return $this->makeAuthenticatedRequest(
+            'POST',
+            'Stock/GetStockItemsFull',
+            ['body' => json_encode($body)]
+        );
     }
 
     /**
-     * Get inventory count
+     * Get total inventory count
      */
     public function getInventoryCount(): int
     {
-        $response = $this->client->request('GET', $this->base_url . 'Inventory/GetInventoryItemsCount', [
-                'headers' => [
-                    'Authorization' => Cache::get('linnworks.session_token'),
-                    'accept' => 'application/json',
-                ],
-            ]);
-        // Make sure the response is an integer
-        $response = json_decode($response->getBody(), true);
-
+        $response = $this->makeAuthenticatedRequest('GET', 'Inventory/GetInventoryItemsCount');
         return (int)$response;
     }
 
-    // Get full stock details
+    /**
+     * Get detailed stock information for a SKU
+     */
+    public function getStockDetails(string $sku): array
+    {
+        $data = $this->searchStockItems($sku, 1, ['StockLevels']);
+
+        if (!empty($data)) {
+            Log::channel('inventory')->info("Stock Details: " . ($data[0]['ItemTitle'] ?? 'Not found'));
+            return $data[0];
+        }
+
+        return [];
+    }
 
     /**
-     * @throws GuzzleException
+     * Search for stock items
      */
-    public function getStockDetails(string $sku = '')
-    {
-        $body = json_encode([
-            'keyword' => trim($sku),
+    protected function searchStockItems(
+        string $keyword,
+        int $entriesPerPage = 1,
+        array $dataRequirements = ['StockLevels'],
+        array $searchTypes = ["SKU", "Title", "Barcode"]
+    ): array {
+        $body = [
+            'keyword' => trim($keyword),
             'loadCompositeParents' => false,
             'loadVariationParents' => false,
-            'entriesPerPage' => 1,
+            'entriesPerPage' => $entriesPerPage,
             'pageNumber' => 1,
-            "dataRequirements" => ["StockLevels"],
-            "searchTypes" => ["SKU","Title","Barcode"],
-        ]);
+            "dataRequirements" => $dataRequirements,
+            "searchTypes" => $searchTypes,
+        ];
 
-        $response = $this->client->request('POST', $this->base_url . 'Stock/GetStockItemsFull', [
-            'body' => $body,
-            'headers' => [
-                'Authorization' => Cache::get('linnworks.session_token'),
-                'accept' => 'application/json',
-                'content-type' => 'application/json',
-            ],
-        ]);
-
-        $data = json_decode($response->getBody(), true);
-        Log::channel('inventory')->info("Stock Details: " . json_encode($data['ItemTitle']));
-
-        return $data[0];
+        return $this->makeAuthenticatedRequest(
+            'POST',
+            'Stock/GetStockItemsFull',
+            ['body' => json_encode($body)]
+        );
     }
 
     /**
-     * Get stock item history of a sku
-     * I need to do a search, get the id first
-     * @throws GuzzleException
+     * Get stock item history for a SKU
      */
-
-    public function getStockItemHistory(string $sku)
+    public function getStockItemHistory(string $sku): array
     {
-        // First I need to do an api call to get the sku item id in linnworks using getInventory
         $itemDetail = $this->getStockDetails($sku);
 
-        dd($itemDetail);
+        if (empty($itemDetail)) {
+            Log::channel('inventory')->warning("SKU not found: {$sku}");
+            return [];
+        }
 
-        // Get the stock id
-        $itemId = $itemDetail[0]->StockItemId;
+        $itemId = $itemDetail['StockItemId'];
         Log::channel('inventory')->info("{$sku} - {$itemId} for stock item history search");
 
-        // Now run the api for the stock item history
-        $response = $this->client->request('GET', $this->base_url . 'Stock/GetItemChangesHistory?stockItemId=' . $itemId . '&locationId=00000000-0000-0000-0000-000000000000&entriesPerPage=0&pageNumber=0', [
-            'headers' => [
-                'accept' => 'application/json',
-            ],
-        ]);
+        $endpoint = "Stock/GetItemChangesHistory?stockItemId={$itemId}&locationId=00000000-0000-0000-0000-000000000000&entriesPerPage=0&pageNumber=0";
 
-        Log::channel('lw_auth')->info('getStockItemHistory: ' . $response->getBody()->getContents());
+        $response = $this->makeAuthenticatedRequest('GET', $endpoint);
+        Log::channel('lw_auth')->info('getStockItemHistory: ' . json_encode($response));
 
-        return json_decode($response->getBody(), true);
+        return $response;
     }
-
 }

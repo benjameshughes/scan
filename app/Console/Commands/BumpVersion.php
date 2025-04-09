@@ -62,6 +62,8 @@ class BumpVersion extends Command
             return 0;
         }
 
+        $this->updateReadMeVersion($newVersion, $currentVersion);
+
         $this->updateComposerVersion($newVersion);
 
         $this->info("Updated version: $newVersion");
@@ -179,6 +181,18 @@ class BumpVersion extends Command
 
         $composerJson['version'] = $newVersion;
         file_put_contents($composerPath, json_encode($composerJson, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+    }
+
+    /**
+     * Update readme.md version number
+     */
+    private function updateReadMeVersion(string $newVersion, string $currentVersion): void
+    {
+        $readMePath = base_path('README.md');
+        $readMeContent = file_get_contents($readMePath);
+        $updatedContent = str_replace($currentVersion, $newVersion, $readMeContent);
+
+        file_put_contents($readMePath, $updatedContent);
     }
 
     /**

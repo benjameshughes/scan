@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin;
 
 use App\Models\ExternalEmail;
+use Flux\Flux;
 use Illuminate\Foundation\Auth\User;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
@@ -31,7 +32,7 @@ class ExternalEmails extends Component
 
         $this->mount();
 
-        $this->modal('addEmail')->close();
+        Flux::modal('addEmail')->close();
     }
 
     public function delete(ExternalEmail $externalEmail)
@@ -42,6 +43,15 @@ class ExternalEmails extends Component
             $externalEmail->delete();
         }
 
+    }
+
+    public function edit($id)
+    {
+        // Get the user from the id
+        $user = User::findOrFail($id);
+
+        // Load the modal
+        $this->modal('editUser')->show();
     }
 
     public function mount()
