@@ -2,11 +2,14 @@
 
 namespace App\Livewire;
 
+use App\Enums\ImportTypes;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use App\Models\Product;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class ProductImport extends Component
 {
@@ -16,19 +19,21 @@ class ProductImport extends Component
     public $headers = [];
     public $mapping = [];
     public $rows = [];
+    public int $importCount = 0;
+    public int $errorCount = 0;
+    public array $errors = [];
     public $step = 1; // step 1: upload, step 2: mapping, step 3: import
-
-    // The fillable columns of the Product
     public $modelColumns = [];
-
-    public function render()
-    {
-        return view('livewire.product-import');
-    }
+    public array $importTypes = [];
+    public string $importAction = 'create';
+    public $previewRows = [];
+    public $totalRows = 0;
 
     public function mount()
     {
-        $this->modelColumns = (new Product())->getFillable();
+        $this->modelColumns = new Product()->getFillable();
+        $this->mapping = array_fill_keys($this->modelColumns, '');
+        $this->importTypes = ImportTypes::toArray();
     }
 
     /**
@@ -37,34 +42,49 @@ class ProductImport extends Component
     public function uploadFile()
     {
         $this->validate([
-            'csvFile' => 'required|file|mimes:csv,txt',
+            'csvFile' => 'required|file|mimes:csv,xlsx|max:10240',
         ]);
 
-        // Load CSV and get data as collection
-        $collection = Excel::toCollection(null, $this->csvFile->getRealPath());
-        if ($collection->isEmpty() || $collection->first()->isEmpty()) {
-            $this->addError('csvFile', 'CSV is empty or invalid.');
-            return;
-        }
+        try {
+            // Load CSV and get data as collection
+            $collection = Excel::toCollection((object)null, $this->csvFile->getRealPath());
 
-        // Assume first row as header
-        $this->headers = $collection->first()->first()->toArray();
-
-        // Save rows for later (skip header row)
-        $this->rows = $collection->first()->slice(1)->toArray();
-
-        // Initialize mapping with empty values
-        $this->mapping = array_fill_keys($this->modelColumns, '');
-
-        // Try to auto-map columns based on header names
-        foreach ($this->headers as $index => $header) {
-            $normalizedHeader = strtolower(trim($header));
-            if (in_array($normalizedHeader, $this->modelColumns)) {
-                $this->mapping[$normalizedHeader] = $index;
+            if ($collection->isEmpty() || $collection->first()->isEmpty()) {
+                $this->addError('csvFile', 'CSV is empty or invalid.');
+                return;
             }
-        }
 
-        $this->step = 2;
+            $firstSheet = $collection->first();
+
+            // Assume first row as header
+            $this->headers = $firstSheet->first()->toArray();
+
+            // Get header indexes for mapping
+            $headerIndexes = array_flip($this->headers);
+
+            // Save rows for later (skip header row)
+            $this->rows = $firstSheet->slice(1)->toArray();
+            $this->totalRows = count($this->rows);
+
+            // Get a preview of the first 5 rows for display
+            $this->previewRows = array_slice($this->rows, 0, 5);
+
+            // Initialize mapping with empty values
+            $this->mapping = array_fill_keys($this->modelColumns, '');
+
+            // Try to auto-map columns based on header names
+            foreach ($this->headers as $index => $header) {
+                $normalizedHeader = strtolower(trim($header));
+                if (in_array($normalizedHeader, $this->modelColumns)) {
+                    $this->mapping[$normalizedHeader] = $index;
+                }
+            }
+
+            $this->step = 2;
+        } catch (\Exception $e) {
+            Log::error('CSV upload error: ' . $e->getMessage());
+            $this->addError('csvFile', 'Failed to process the file: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -78,10 +98,11 @@ class ProductImport extends Component
             return;
         }
 
-        $importCount = 0;
-        $errorCount = 0;
+        $this->importCount = 0;
+        $this->errorCount = 0;
+        $this->errors = [];
 
-        // Loop through each row and build the data for upsert
+        // Loop through each row and build the data for import
         foreach ($this->rows as $rowIndex => $row) {
             $data = [];
 
@@ -93,26 +114,59 @@ class ProductImport extends Component
             }
 
             // Validate data
-            $validator = Validator::make($data, [
-                'sku' => 'required',
-            ]);
-
-            if ($validator->fails()) {
-                $errorCount++;
-                continue;
-            }
-
-            // Upsert based on sku
             try {
-                Product::updateOrCreate(['sku' => $data['sku']], $data);
-                $importCount++;
+                $validator = Validator::make($data, [
+                    'sku' => 'required|string|max:255',
+                    // Add other validation rules as needed
+                ]);
+
+                if ($validator->fails()) {
+                    $this->errorCount++;
+                    $this->errors[] = [
+                        'row' => $rowIndex + 2, // +2 because of 0-index and header row
+                        'message' => 'Validation failed: ' . implode(', ', $validator->errors()->all()),
+                        'data' => $data
+                    ];
+                    continue;
+                }
+
+                // Handle the action (create, update, or delete)
+                switch ($this->importAction) {
+                    case 'create':
+                        Product::create($data);
+                        break;
+                    case 'update':
+                        $product = Product::where('sku', $data['sku'])->first();
+                        if ($product) {
+                            $product->update($data);
+                        } else {
+                            throw new \Exception("Product with SKU {$data['sku']} not found");
+                        }
+                        break;
+                    case 'delete':
+                        $product = Product::where('sku', $data['sku'])->first();
+                        if ($product) {
+                            $product->delete();
+                        } else {
+                            throw new \Exception("Product with SKU {$data['sku']} not found");
+                        }
+                        break;
+                    default:
+                        throw new \Exception("Invalid import action: {$this->importAction}");
+                }
+
+                $this->importCount++;
             } catch (\Exception $e) {
-                $errorCount++;
-                // You might want to log the error or handle it differently
+                $this->errorCount++;
+                $this->errors[] = [
+                    'row' => $rowIndex + 2,
+                    'message' => $e->getMessage(),
+                    'data' => $data
+                ];
+                Log::error("Import error at row " . ($rowIndex + 2) . ": " . $e->getMessage());
             }
         }
 
-        session()->flash('message', "Import completed: $importCount products imported, $errorCount errors.");
         $this->step = 3;
     }
 }
