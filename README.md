@@ -1,6 +1,6 @@
 # 📦 Laravel Barcode Stock Sync
 
-**Version: 1.1.5**  
+**Version: 1.1.6**  
 A lightweight Laravel application for managing stock levels with barcode scanning and Linnworks synchronization.
 
 ---
@@ -24,8 +24,7 @@ A lightweight Laravel application for managing stock levels with barcode scannin
 
 ## 📜 Change Log
 
-- Finally added pagination to dashboard sync table
-- Admin role only functions
+- Broke dashboard. Reverted.
 
 ---
 

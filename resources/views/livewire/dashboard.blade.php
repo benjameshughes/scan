@@ -80,7 +80,7 @@
         <x-widget :title="'Scans this Week'" :stat="$scans->whereBetween('created_at', [now()->subWeek(), now()])->count()"/>
     </div>
     <div>
-        <x-list :items="$scans->where('submitted', false)" :itemName="'Scan'" :itemDescription="'Not submitted'" :routeName="'scan.show'"/>
+        <x-list :items="$scans" :itemName="'Scan'" :itemDescription="'Not submitted'" :routeName="'scan.show'"/>
     </div>
-    {{ $scans->links() }}
+{{--    {{ $scans->links() }}--}}
 </div>

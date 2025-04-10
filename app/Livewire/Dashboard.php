@@ -17,6 +17,8 @@ class Dashboard extends Component
 
     public Collection $notifications;
 
+    public Collection $scans;
+
     public array $scansByDate;
 
     // Mark notification as read
@@ -86,13 +88,11 @@ class Dashboard extends Component
     public function mount()
     {
         $this->notifications = auth()->user()->unreadNotifications()->get();
-//        $this->scans = Scan::all();
+        $this->scans = Scan::all();
     }
 
     public function render()
     {
-        return view('livewire.dashboard', [
-            'scans' => Scan::search('submitted', false)->paginate(10),
-        ]);
+        return view('livewire.dashboard');
     }
 }
