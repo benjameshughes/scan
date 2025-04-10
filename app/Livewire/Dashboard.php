@@ -17,14 +17,12 @@ class Dashboard extends Component
 
     public Collection $notifications;
 
-    public Collection $scans;
-
     public array $scansByDate;
 
     // Mark notification as read
     public function markAsRead($id)
     {
-        (new MarkNotificationAsRead($id))->handle();
+        new MarkNotificationAsRead($id)->handle();
 
         $this->notifications = auth()->user()->unreadNotifications()->get();
     }
@@ -63,7 +61,7 @@ class Dashboard extends Component
         $scan = Scan::where('id', $id)->first();
 
         // Then pass the scan variable to the action
-        (new MarkScanAsSubmitted($scan))->handle();
+        new MarkScanAsSubmitted($scan)->handle();
 
         $this->scans = Scan::all();
     }
@@ -88,16 +86,13 @@ class Dashboard extends Component
     public function mount()
     {
         $this->notifications = auth()->user()->unreadNotifications()->get();
-        $this->scans = Scan::all();
+//        $this->scans = Scan::all();
     }
 
     public function render()
     {
-        // Get all scans
-        $this->scans = Scan::all();
-        // Get users notifications
-        $this->notifications = auth()->user()->unreadNotifications()->get();
-
-        return view('livewire.dashboard');
+        return view('livewire.dashboard', [
+            'scans' => Scan::search('submitted', false)->paginate(10),
+        ]);
     }
 }

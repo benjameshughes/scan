@@ -1,5 +1,5 @@
 @props([
-    'items' => collect(), // The collection of items to display.
+    'items' => $items, // The collection of items to display.
     "itemName" => "item", // The name of the item property.
     "itemDescription" => "description", // The name of the item description property.
     'routeName' => 'scan.show', // The route name to use for the "View" button.
@@ -31,7 +31,9 @@
             </div>
             <div class="shrink-0 max-sm:flex-col items-end">
                 <flux:button variant="primary" href="{{route($routeName, $item->id)}}">{{__('View')}}</flux:button>
+                @role('admin')
                 <flux:button variant="primary" wire:click="markAsSubmitted('{{$item->id}}')">{{__('Mark As Submitted')}}</flux:button>
+                @endrole()
             </div>
         </li>
     @empty
