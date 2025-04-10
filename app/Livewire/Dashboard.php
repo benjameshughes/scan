@@ -17,9 +17,11 @@ class Dashboard extends Component
 
     public Collection $notifications;
 
-    public Collection $scans;
+    // Remove the public scans property
+    // public Collection $scans;
 
-    public array $scansByDate;
+    public array $scansByDate = [];
+    public $scanDate = 7; // Added default value for scanDate
 
     // Mark notification as read
     public function markAsRead($id)
@@ -43,13 +45,11 @@ class Dashboard extends Component
 
     /**
      * Redispatch all jobs that have not been submitted
-     * Livewire is already loading the scans. Just filter the scans by submitted status
-     * whereFalse is a macro is AppProvider
      */
     public function redispatch()
     {
-        // Filter unsubmitted scans from the scan array
-        $failedScans = $this->scans->whereFalse('submitted');
+        // Get unsubmitted scans directly from the database
+        $failedScans = Scan::whereFalse('submitted')->get();
 
         // Dispatch all jobs
         $failedScans->each(function (Scan $scan) {
@@ -59,19 +59,18 @@ class Dashboard extends Component
 
     public function markAsSubmitted(int $id)
     {
-        // I assume I first need to find the ID of the scan to then pass the object of the scan to the action?
-        $scan = Scan::where('id', $id)->first();
+        $scan = Scan::findOrFail($id);
 
-        // Then pass the scan variable to the action
+        // Pass the scan variable to the action
         new MarkScanAsSubmitted($scan)->handle();
 
-        $this->scans = Scan::all();
+        // No need to reload all scans, Livewire will refresh the component
     }
 
     public function scansByDate(): Collection
     {
-        // Get unsubmitted scans
-        $scans = $this->scans;
+        // Get scans directly from the database
+        $scans = Scan::all();
 
         // Define the date range
         $startDate = Carbon::now()->subDays($this->scanDate);
@@ -82,17 +81,22 @@ class Dashboard extends Component
             return $scan->submitted_at->between($startDate, $endDate);
         });
 
-        return $this->scansByDate = $scans;
+        return $scans;
     }
 
     public function mount()
     {
         $this->notifications = auth()->user()->unreadNotifications()->get();
-        $this->scans = Scan::all();
+        // Remove loading all scans here
     }
 
     public function render()
     {
-        return view('livewire.dashboard');
+        // Get paginated scans in the render method
+        $scans = Scan::paginate(10);
+
+        return view('livewire.dashboard', [
+            'scans' => $scans
+        ]);
     }
 }

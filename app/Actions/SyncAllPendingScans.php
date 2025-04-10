@@ -23,6 +23,8 @@ final class SyncAllPendingScans implements Action
      */
     public function handle()
     {
+        // Get all failed scans
+
         // Process jobs in chunks of 10 to avoid memory issues
         $this->scans->each(function ($scan) {
             SyncBarcode::dispatch($scan);
