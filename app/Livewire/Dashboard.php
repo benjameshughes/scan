@@ -16,9 +16,7 @@ class Dashboard extends Component
     use WithPagination;
 
     public Collection $notifications;
-
-    // Remove the public scans property
-    // public Collection $scans;
+    public Collection $scans;
 
     public array $scansByDate = [];
     public $scanDate = 7; // Added default value for scanDate
@@ -63,8 +61,6 @@ class Dashboard extends Component
 
         // Pass the scan variable to the action
         new MarkScanAsSubmitted($scan)->handle();
-
-        // No need to reload all scans, Livewire will refresh the component
     }
 
     public function scansByDate(): Collection
@@ -87,16 +83,11 @@ class Dashboard extends Component
     public function mount()
     {
         $this->notifications = auth()->user()->unreadNotifications()->get();
-        // Remove loading all scans here
+        $this->scans = Scan::all();
     }
 
     public function render()
     {
-        // Get paginated scans in the render method
-        $scans = Scan::paginate(10);
-
-        return view('livewire.dashboard', [
-            'scans' => $scans
-        ]);
+        return view('livewire.dashboard');
     }
 }
