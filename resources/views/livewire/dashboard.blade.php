@@ -82,4 +82,5 @@
     <div>
         <x-list :items="$scans->where('submitted', false)" :itemName="'Scan'" :itemDescription="'Not submitted'" :routeName="'scan.show'"/>
     </div>
+    {{ $scans->links() }}
 </div>
