@@ -12,4 +12,5 @@ Artisan::command('inspire', function () {
 Schedule::command('horizon:snapshot')->everyFiveMinutes();
 
 // Schedule Linnworks API auth call every 15 minutes
-Schedule::command('linnworks:refresh-token')->everyFifteenMinutes();
+Schedule::command('linnworks:refresh-token')->everyFifteenMinutes()->name('validate_linnworks_token')
+    ->withoutOverlapping();;

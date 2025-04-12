@@ -2,6 +2,7 @@
     <div class="flex justify-between pt-6">
         <div class="flex-none">
             <flux:button class="cursor-pointer" variant="primary" wire:click="redispatch">Re-sync</flux:button>
+            Retried: {{$retryCount}}
         </div>
 
         <!-- Notifications drawer -->

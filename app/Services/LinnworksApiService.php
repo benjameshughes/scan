@@ -35,28 +35,56 @@ class LinnworksApiService
      */
     private function ensureAuthorized(): string
     {
-
-        // Make a call to get the latest token and compare it to the token in the cache. If different save the new token in the cache
-        $token = $this->authorizeByApplication();
-        $cachedToken = Cache::get($this->cacheKey);
-
-        // If for some reason there is no token get a new token
-        if (Cache::missing($this->cacheKey)) {
-            return $this->authorizeByApplication();
+        // Simply return the cached token if it exists
+        if (Cache::has($this->cacheKey)) {
+            return Cache::get($this->cacheKey);
         }
 
-        if ($token !== $cachedToken) {
-            Cache::pull($this->cacheKey);
-            return $this->authorizeByApplication();
-        }
-        Log::channel('lw_auth')->info('Checking the linnworks token');
-        return Cache::get($this->cacheKey);
+        // If no token in cache, get a new one
+        Log::channel('lw_auth')->info('No token in cache, authorizing with Linnworks');
+        return $this->authorizeByApplication();
     }
 
     /**
-     * Authorize with Linnworks API
+     * Validate the cached token against a fresh one from the API
+     * This method should be called from your scheduled task
      */
-    private function authorizeByApplication(): string
+    public function validateCachedToken(): bool
+    {
+        Log::channel('lw_auth')->info('Validating Linnworks token');
+
+        // Get the cached token
+        $cachedToken = Cache::get($this->cacheKey);
+
+        if (!$cachedToken) {
+            Log::channel('lw_auth')->warning('No cached token found during validation');
+            $this->authorizeByApplication();
+            return false;
+        }
+
+        try {
+            // Get a fresh token from the API without updating the cache
+            $freshToken = $this->getTokenFromApi();
+
+            // Compare the tokens
+            if ($freshToken === $cachedToken) {
+                Log::channel('lw_auth')->info('Token validation successful - tokens match');
+                return true;
+            } else {
+                Log::channel('lw_auth')->warning('Token mismatch detected, updating cached token');
+                Cache::put($this->cacheKey, $freshToken);
+                return false;
+            }
+        } catch (Exception $e) {
+            Log::channel('lw_auth')->error('Token validation failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Get a token from the API without caching it
+     */
+    private function getTokenFromApi(): string
     {
         $body = [
             "ApplicationId" => $this->appId,
@@ -64,22 +92,30 @@ class LinnworksApiService
             "Token" => $this->appToken,
         ];
 
-        try {
-            $response = $this->makeRequest('POST', $this->authUrl . 'Auth/AuthorizeByApplication', [
-                'body' => json_encode($body),
-                'headers' => [
-                    'accept' => 'application/json',
-                    'content-type' => 'application/json',
-                ],
-            ]);
+        $response = $this->makeRequest('POST', $this->authUrl . 'Auth/AuthorizeByApplication', [
+            'body' => json_encode($body),
+            'headers' => [
+                'accept' => 'application/json',
+                'content-type' => 'application/json',
+            ],
+        ]);
 
-            $sessionToken = $response['Token'];
+        return $response['Token'];
+    }
+
+    /**
+     * Authorize with Linnworks API and update the cache
+     */
+    private function authorizeByApplication(): string
+    {
+        try {
+            $token = $this->getTokenFromApi();
 
             // Store the session token in the cache
-            Cache::put($this->cacheKey, $sessionToken);
-            Log::channel('lw_auth')->info('Authorized by application');
+            Cache::put($this->cacheKey, $token);
+            Log::channel('lw_auth')->info('Authorized by application and updated cache');
 
-            return $sessionToken;
+            return $token;
         } catch (Exception $e) {
             Log::channel('lw_auth')->error('Authorization failed: ' . $e->getMessage());
             throw new Exception('Unable to authorize by application: ' . $e->getMessage());
@@ -105,6 +141,7 @@ class LinnworksApiService
         } catch (Exception $e) {
             // If we get a 401, try to refresh the token and retry once
             if (str_contains($e->getMessage(), '401')) {
+                Log::channel('lw_auth')->warning('Received 401 error, refreshing token and retrying request');
                 Cache::forget($this->cacheKey);
                 $token = $this->authorizeByApplication();
 
@@ -117,7 +154,7 @@ class LinnworksApiService
     }
 
     /**
-     * Raw dawg the API with a request
+     * Make a raw API request
      */
     protected function makeRequest(string $method, string $url, array $options = []): array
     {
@@ -135,8 +172,9 @@ class LinnworksApiService
      */
     public function refreshToken(): string
     {
-        Log::channel('lw_auth')->info('Refreshing token');
-        return $this->ensureAuthorized();
+        Log::channel('lw_auth')->info('Manually refreshing token');
+        Cache::forget($this->cacheKey);
+        return $this->authorizeByApplication();
     }
 
     /**
