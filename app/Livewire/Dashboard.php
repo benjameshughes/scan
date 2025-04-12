@@ -17,6 +17,7 @@ class Dashboard extends Component
 
     public Collection $notifications;
     public Collection $scans;
+    public int $retryCount = 0;
 
     public array $scansByDate = [];
     public $scanDate = 7; // Added default value for scanDate
@@ -27,6 +28,7 @@ class Dashboard extends Component
         new MarkNotificationAsRead($id)->handle();
 
         $this->notifications = auth()->user()->unreadNotifications()->get();
+        $this->dispatch('notification.markAsRead');
     }
 
     // Mark all notifications as read
@@ -37,6 +39,8 @@ class Dashboard extends Component
         $notifications->each(function ($notification) {
             $notification->markAsRead();
         });
+
+        $this->dispatch('notification.markAllAsRead');
 
         $this->notifications = auth()->user()->unreadNotifications()->get();
     }
@@ -51,8 +55,12 @@ class Dashboard extends Component
 
         // Dispatch all jobs
         $failedScans->each(function (Scan $scan) {
-            SyncBarcode::dispatch($scan);
-        });
+            if($scan->product)
+            {
+                SyncBarcode::dispatch($scan);
+                $this->retryCount++;
+            }
+        })->chunk(10);
     }
 
     public function markAsSubmitted(int $id)

@@ -6,7 +6,6 @@ use App\Services\LinnworksApiService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use Symfony\Component\Console\Command\Command as CommandAlias;
 
 class LinnworksRefreshToken extends Command
 {
@@ -15,33 +14,52 @@ class LinnworksRefreshToken extends Command
      *
      * @var string
      */
-    protected $signature = 'linnworks:refresh-token';
+    protected $signature = 'linnworks:refresh-token {--validate : Only validate the token without forcing refresh}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'Refresh or validate the Linnworks API token';
 
     /**
      * Execute the console command.
      */
     public function handle(LinnworksApiService $linnworks)
     {
-        $this->info('Refreshing token');
+        if ($this->option('validate')) {
+            $this->info('Validating Linnworks token...');
 
-        try
-        {
-            $linnworks->refreshToken();
-            $this->info('Token refreshed: ' . Cache::get('linnworks.session_token'));
-        }
-        catch (\Exception $exception)
-        {
-            Log::channel('lw_auth')->error($exception->getMessage());
-            $this->error($exception->getMessage());
-        }
+            try {
+                $result = $linnworks->validateCachedToken();
 
-        return 'Success';
+                if ($result) {
+                    $this->info('✓ Token is valid and matches the API response');
+                } else {
+                    $this->warn('Token was updated during validation');
+                }
+
+                $this->info('Current token: ' . Cache::get('linnworks.session_token'));
+                return 0;
+            } catch (\Exception $exception) {
+                Log::channel('lw_auth')->error($exception->getMessage());
+                $this->error('Validation failed: ' . $exception->getMessage());
+                return 1;
+            }
+        } else {
+            $this->info('Forcing token refresh...');
+
+            try {
+                $token = $linnworks->refreshToken();
+                $this->info('✓ Token refreshed successfully');
+                $this->info('New token: ' . $token);
+                return 0;
+            } catch (\Exception $exception) {
+                Log::channel('lw_auth')->error($exception->getMessage());
+                $this->error('Refresh failed: ' . $exception->getMessage());
+                return 1;
+            }
+        }
     }
 }
