@@ -47,21 +47,28 @@ class Dashboard extends Component
 
     /**
      * Redispatch all jobs that have not been submitted
+     * Only do the scans with a product model
      */
     public function redispatch()
     {
-        // Get unsubmitted scans directly from the database
-        $failedScans = Scan::whereFalse('submitted')->get();
+        // Get count for logging
+        $totalUnsubmitted = Scan::whereFalse('submitted')->count();
 
-        // Dispatch all jobs
-        $failedScans->each(function (Scan $scan) {
-            if($scan->product)
-            {
-                SyncBarcode::dispatch($scan);
-                $this->retryCount++;
-            }
-        })->chunk(10);
+        // Process in chunks of 100 to avoid memory issues
+        Scan::whereFalse('submitted')
+            ->with('product') // Eager load the product relationship
+            ->chunk(100, function ($scans) {
+                foreach ($scans as $scan) {
+                    if ($scan->product) {
+                        SyncBarcode::dispatch($scan);
+                        $this->retryCount++;
+                    }
+                }
+            });
+
+        return $this->retryCount;
     }
+
 
     public function markAsSubmitted(int $id)
     {
