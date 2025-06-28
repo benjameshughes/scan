@@ -5,6 +5,7 @@ namespace App\Actions;
 use App\Actions\Concerns\SendNotifications;
 use App\Actions\Concerns\UpdateScanStatus;
 use App\Actions\Contracts\Action;
+use App\Actions\LinnworksStockAction;
 use App\Exceptions\NoSkuFoundException;
 use App\Models\Scan;
 use App\Notifications\NoSkuFound;
@@ -38,7 +39,7 @@ final class SyncBarcodeAction implements Action
         $this->updateScanStatus($this->scan, 'syncing');
 
         // Check barcode exists and has a SKU, if null stop
-        $product = (new CheckBarcodeExists($this->scan))->handle();
+        $product = new CheckBarcodeExists($this->scan)->handle();
 
         Log::channel('inventory')->info($product);
 
@@ -59,9 +60,9 @@ final class SyncBarcodeAction implements Action
         $lwStockLevel = $this->linnworks->getStockLevel($sku);
         Log::channel('sku_lookup')->info('Found Linnworks stock level '.$lwStockLevel.' for SKU '.$sku.' Scan quantity '.$this->scan->quantity);
 
-        // Minus the scan quantity from the stock level, if less than 0 set to 0
-        (int) $quantity = max(0, (int) $lwStockLevel - (int) $this->scan->quantity);
-        Log::channel('sku_lookup')->info('Updated Linnworks stock level '.$quantity.' for SKU '.$sku.' Scan quantity '.$this->scan->quantity);
+        $quantity = new LinnworksStockAction($this->scan, $lwStockLevel);
+
+        Log::channel('sku_lookup')->info("Updated Linnworks stock level {$quantity} for SKU {$sku} Scan quantity {$this->scan->quantity}");
 
         // Update the stock level
         $this->linnworks->updateStockLevel($sku, $quantity);

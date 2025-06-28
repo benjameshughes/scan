@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Enums\ImportTypes;
+use Illuminate\Support\Collection;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use App\Models\Product;
@@ -10,6 +11,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
+use Maatwebsite\Excel\HeadingRowImport;
 
 class ProductImport extends Component
 {
@@ -57,17 +59,16 @@ class ProductImport extends Component
             $firstSheet = $collection->first();
 
             // Assume first row as header
-            $this->headers = $firstSheet->first()->toArray();
-
-            // Get header indexes for mapping
-            $headerIndexes = array_flip($this->headers);
+            $this->headers = new HeadingRowImport()->toCollection($this->csvFile->getRealPath());
 
             // Save rows for later (skip header row)
-            $this->rows = $firstSheet->slice(1)->toArray();
+            $this->rows = $firstSheet->slice(1);
             $this->totalRows = count($this->rows);
 
             // Get a preview of the first 5 rows for display
-            $this->previewRows = array_slice($this->rows, 0, 5);
+            $this->previewRows = $firstSheet->slice(1,5)->mapWithKeys()->each(function ($row) {
+                $this->previewRows[] = $row;
+            });
 
             // Initialize mapping with empty values
             $this->mapping = array_fill_keys($this->modelColumns, '');

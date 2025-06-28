@@ -39,9 +39,9 @@
                                     </button>
                                 </div>
 
-                                <div class="flex h-full flex-col overflow-y-scroll bg-white py-6 shadow-xl">
+                                <div class="flex h-full flex-col overflow-y-scroll bg-white py-6 shadow-xl dark:bg-zinc-800">
                                     <div class="flex justify-between px-4 sm:px-6">
-                                        <h2 class="text-base font-semibold text-gray-900" id="slide-over-title">
+                                        <h2 class="text-base font-semibold text-shadow-zinc-600 dark:text-white" id="slide-over-title">
                                             Notifications</h2>
                                         <flux:button wire:click="readAll" size="sm" variant="danger">Read All</flux:button>
                                     </div>
@@ -53,10 +53,10 @@
                                                     <div class="flex min-w-0 gap-x-4 border-b mb-4 pb-4 items-center">
                                                         <x-lucide-alert-circle class="w-4 h-4 text-red-500"/>
                                                         <div class="min-w-0 flex-auto">
-                                                            <p class="text-gray-500">{{ $notification->data['message'] }}</p>
-                                                            <p class="text-xs text-gray-500">{{ $notification->data['scan_id'] }}</p>
-                                                            <p class="text-xs text-gray-500">{{$notification->data['barcode']}}</p>
-                                                            <p class="text-xs text-gray-500">Date: {{ $notification->created_at->format('d/m/y')}}</p>
+                                                            <p class="text-gray-500 dark:text-white">{{ $notification->data['message'] }}</p>
+                                                            <p class="text-xs text-gray-500 dark:text-white">{{ $notification->data['scan_id'] }}</p>
+                                                            <p class="text-xs text-gray-500 dark:text-white">{{$notification->data['barcode']}}</p>
+                                                            <p class="text-xs text-gray-500 dark:text-white">Date: {{ $notification->created_at->format('d/m/y')}}</p>
                                                         </div>
                                                         <flux:button variant="primary" wire:click="markAsRead('{{$notification->id}}')">Acknowledge</flux:button>
                                                     </div>
@@ -75,6 +75,10 @@
         </div>
     </div>
 
-    <livewire:dashboard.widgets :scan="$scans" />
-    <livewire:dashboard.failed-scan-list :scans="$scans"/>
+    <div class="py-4">
+        <livewire:dashboard.widgets :scan="$scans" />
+    </div>
+    <div class="py-4">
+        <livewire:dashboard.failed-scan-list :scans="$scans"/>
+    </div>
 </div>

@@ -6,7 +6,16 @@
         </div>
     @endif
 
-    <form wire:submit.prevent="updateRoles">
+    <form wire:submit="updateUser">
+
+        <div>
+            <flux:input name="name" wire:model="form.name" />
+            <flux:input name="email" wire:model="form.email"/>
+        </div>
+
+        <div>
+            <flux:input type="password" name="password" wire:model="form.password" viewable />
+        </div>
         <div class="mb-4">
             <flux:radio.group wire:model="selectedRole" name="Roles" label="Roles">
                 @forelse($roles as $roleName => $roleLabel)
@@ -27,4 +36,6 @@
             <flux:button :href="route('admin.users.index')">Cancel</flux:button>
         </div>
     </form>
+
+
 </div>
