@@ -48,7 +48,7 @@ class ProductScanner extends Component
 
             if ($this->validate()) {
                 $this->product = (new GetProductFromScannedBarcode($this->barcode))->handle();
-                $this->successMessage = $this->product ? $this->product->name : "No Product Found With That Barcode";
+                $this->successMessage = $this->product ? ($this->product->name ?? 'Product Found') : "No Product Found With That Barcode";
                 $this->showSuccessMessage = true;
             }
         }
@@ -123,7 +123,7 @@ class ProductScanner extends Component
 
         if ($this->validate()) {
             $this->product = (new GetProductFromScannedBarcode($this->barcode))->handle();
-            $this->successMessage = $this->product ? $this->product->name : "No Product Found With That Barcode";
+            $this->successMessage = $this->product ? ($this->product->name ?? 'Product Found') : "No Product Found With That Barcode";
             $this->showSuccessMessage = true;
         }
     }
