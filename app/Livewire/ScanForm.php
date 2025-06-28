@@ -26,9 +26,17 @@ class ScanForm extends Component
     public bool $showSuccessMessage = false;
     public string $successMessage;
 
+    public bool $scanAction = false;
+
     public function incrementQuantity(): int
     {
         return $this->quantity++;
+    }
+
+    public function updatedScanAction()
+    {
+        // Remove the toggle logic - wire:model.live handles the update automatically
+        // The previous code was causing an infinite loop
     }
 
     #[On('barcode')]
@@ -71,6 +79,7 @@ class ScanForm extends Component
             'barcode' => $this->barcode,
             'quantity' => $this->quantity,
             'submitted' => false,
+            'scanAction' => $this->scanAction,
             'sync_status' => 'pending',
             'user_id' => auth()->check() ? auth()->user()->id : '1',
         ]);
