@@ -1,4 +1,8 @@
-<nav class="-mx-3 flex flex-1 justify-end dark:bg-gray-800 px-4">
+<nav class="-mx-3 flex flex-1 justify-end items-center dark:bg-zinc-800 px-4">
+    <!-- Dark mode toggle -->
+    <flux:button x-data x-on:click="$flux.dark = ! $flux.dark" icon="moon" variant="subtle"
+                 aria-label="Toggle dark mode" class="mr-2"/>
+    
     @auth
         <a
             href="{{ url('/dashboard') }}"

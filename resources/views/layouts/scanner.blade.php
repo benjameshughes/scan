@@ -11,6 +11,8 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
+    @fluxAppearance
+
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -18,10 +20,11 @@
 @auth
     <livewire:welcome.navigation />
 @endauth
-<div class="min-h-screen flex flex-col md:justify-center items-center bg-gray-100 dark:bg-gray-900">
-    <div class="w-full max-h-screen sm:max-w-md bg-white dark:bg-gray-800 shadow-md overflow-hidden sm:rounded-lg">
+<div class="min-h-screen flex flex-col md:justify-center items-center bg-gray-100 dark:bg-zinc-900">
+    <div class="w-full max-h-screen sm:max-w-md bg-white dark:bg-zinc-800 shadow-md overflow-hidden sm:rounded-lg">
         {{ $slot }}
     </div>
 </div>
+@fluxScripts
 </body>
 </html>

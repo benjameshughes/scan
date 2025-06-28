@@ -1,7 +1,32 @@
 import { BrowserMultiFormatReader, NotFoundException } from "@zxing/library";
 
-window.addEventListener("load", function () {
-    Livewire.dispatch("loadingCamera", [true]);
+window.addEventListener("livewire:initialized", function () {
+    // Wait for DOM to be ready and video element to exist
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeBarcodeScanner();
+    });
+    
+    // Also try to initialize if DOM is already loaded
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeBarcodeScanner();
+        });
+    } else {
+        // DOM is already loaded, check if video element exists
+        setTimeout(() => {
+            if (document.getElementById('video')) {
+                initializeBarcodeScanner();
+            }
+        }, 100);
+    }
+});
+
+function initializeBarcodeScanner() {
+    // Prevent multiple initializations
+    if (window.barcodeScannerInitialized) return;
+    window.barcodeScannerInitialized = true;
+    
+    Livewire.dispatch("loadingCamera", {loadingCamera: true});
     let cameraIsActive = true;
     let codeReader; // Declare codeReader outside the function
 
@@ -15,7 +40,7 @@ window.addEventListener("load", function () {
             .then((videoInputDevices) => {
                 if (videoInputDevices.length === 0) {
                     console.error("No video input devices found.");
-                    Livewire.dispatch("loadingCamera", [false]);
+                    Livewire.dispatch("loadingCamera", {loadingCamera: false});
                     return;
                 }
 
@@ -29,13 +54,13 @@ window.addEventListener("load", function () {
                 }
 
                 if (!selectedDeviceId) {
-                    console.warn("No back camera found, using first available camera.");
+                    // console.warn("No back camera found, using first available camera.");
                     selectedDeviceId = videoInputDevices[0].deviceId;
                 }
 
                 // Start continuous barcode scanning from the selected video device
                 startScanning(selectedDeviceId);
-                Livewire.dispatch('startScan');
+                Livewire.dispatch('camera', [true]);
 
                 // Try to select the back camera explicitly using 'facingMode' constraint
                 navigator.mediaDevices
@@ -43,9 +68,12 @@ window.addEventListener("load", function () {
                         video: {
                             deviceId: { exact: selectedDeviceId }, // Use the selected device ID
                             facingMode: { exact: "environment" },
-                            aspectRatio: { ideal: 16 / 9 },
-                            width: { ideal: 1920 },
-                            height: { ideal: 1080 },
+                            aspectRatio: { ideal: 4 / 3 },
+                            width: { min: 640, ideal: 1280, max: 1920 },
+                            height: { min: 480, ideal: 720, max: 1080 },
+                            audio: false,
+                            frameRate: { ideal: 30, min:1, max:60},
+                            resizeMode: 'crop-and-scale',
                         },
                     })
                     .then((stream) => {
@@ -53,40 +81,38 @@ window.addEventListener("load", function () {
                         const videoTracks = stream.getVideoTracks();
                         if (videoTracks.length > 0) {
                             const videoTrack = videoTracks[0];
+                            Livewire.on("torch", () => { // Keep the existing name for now if it works with Livewire
+                                const videoTrack = stream.getVideoTracks()[0]; // Make sure stream and videoTrack are accessible here
+                                if (videoTrack && typeof videoTrack.applyConstraints === 'function') { // Check if supported
+                                    // Assume torch will be on, update UI immediately for better UX
+                                    Livewire.dispatch("torchStatus", {torchStatus: true});
 
-                            // Allow the user to turn the torch on or off
-                            Livewire.on("torchOn", () => {
-                                videoTrack
-                                    .applyConstraints({
-                                        advanced: [{ torch: true  }],
-                                    })
-                                    .then((r) => Livewire.dispatch("torchOn"))
-                                    .catch((error) => {
-                                        console.error("Error turning torch on:", error);
-                                    });
-                            });
-
-                            Livewire.on("torchOff", () => {
-                                videoTracks
-                                    .applyConstraints({ advanced: [{ torch: false }] })
-                                    .then((r) => {
-                                        Livewire.dispatch("torchOff");
-                                    })
-                                    .catch((error) => {
-                                        console.error("Error turning torch off:", error);
-                                    });
+                                    videoTrack
+                                        .applyConstraints({
+                                            advanced: [{ torch: true }],
+                                        })
+                                        .catch((error) => {
+                                            console.error("Error turning torch on:", error);
+                                            // If failed, revert UI state
+                                            Livewire.dispatch("torchStatus", { torchStatus: false, on: false, error: true });
+                                            // Optionally show an alert to the user that torch isn't supported/failed
+                                        });
+                                } else {
+                                    console.warn("Torch not supported on this device/browser.");
+                                    Livewire.dispatch("torchStatusUpdated", { on: false, supported: false });
+                                }
                             });
                         }
                     })
                     .catch((err) => {
-                        console.error("Error accessing back camera:", err);
-                        alert("Unable to access the back camera.");
-                        Livewire.dispatch("loadingCamera", [false]);
+                        // console.error("Error accessing back camera:", err);
+                        // alert("Unable to access the back camera.");
+                        Livewire.dispatch("loadingCamera", {loadingCamera: false});
                     });
             })
             .catch((err) => {
                 console.error("Error initializing camera:", err);
-                Livewire.dispatch("loadingCamera", [false]);
+                Livewire.dispatch("loadingCamera", {loadingCamera: false});
             });
     };
 
@@ -116,7 +142,7 @@ window.addEventListener("load", function () {
         Livewire.dispatch("result", [result]);
         Livewire.dispatch("barcodeScanned");
         cameraIsActive = false;
-        Livewire.dispatch('stopScan');
+        Livewire.dispatch('camera');
     }
 
     // Function to ask for camera permissions and initialize the camera
@@ -130,7 +156,8 @@ window.addEventListener("load", function () {
             .catch((err) => {
                 console.error("Permission denied or error:", err);
                 alert("Camera access is required to scan.");
-                Livewire.dispatch("loadingCamera", [false]);
+                Livewire.dispatch("loadingCamera", {loadingCamera: false
+                });
             });
     };
 
@@ -150,7 +177,8 @@ window.addEventListener("load", function () {
                     alert(
                         "Camera access denied. Please enable camera permissions to use this feature."
                     );
-                    Livewire.dispatch("loadingCamera", [false]);
+                    Livewire.dispatch("loadingCamera", {loadingCamera: false
+                    });
                 }
 
                 // Listen for permission changes and initialize the camera if granted
@@ -169,7 +197,8 @@ window.addEventListener("load", function () {
         askForPermissionAndInitializeCamera();
     }
 
-    Livewire.on("stopScan", () => {
+    Livewire.on("camera", () => {
+        Livewire.isScanning = false;
         cameraIsActive = false;
         const video = document.getElementById("video");
 
@@ -182,4 +211,4 @@ window.addEventListener("load", function () {
             codeReader.reset();
         }
     });
-});
+}
