@@ -1,12 +1,11 @@
 <x-scan-layout>
     <div class="">
         <div class="w-full mx-auto">
-            <div class="bg-white overflow-hidden">
-                <div class="p-0 bg-white">
-
+            <div class="bg-white dark:bg-zinc-900 overflow-hidden">
+                <div>
                     <livewire:scanner/>
-                    <livewire:scan-form/>
 
+                    <livewire:scan-form/>
                 </div>
             </div>
         </div>

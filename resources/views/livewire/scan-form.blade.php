@@ -1,4 +1,4 @@
-<div class="space-y-6 p-4 dark:bg-gray-800 dark:border-gray-700">
+<div class="space-y-6 p-4 dark:bg-zinc-800 dark:border-b-zinc-700">
     <form class="space-y-6" wire:submit="save">
         <!-- Barcode Input -->
         <div>
@@ -19,6 +19,8 @@
 
             <flux:error name="quantity"/>
         </div>
+
+            <flux:switch wire:model.live="scanAction" label="Stock In" description="Add to stock"/>
 
         <!-- Submit Button -->
         <div class="flex">

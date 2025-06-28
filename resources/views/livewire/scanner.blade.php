@@ -1,54 +1,22 @@
-<div class="dark:bg-gray-800">
+<div class="dark:bg-zinc-800">
     <!-- Video element -->
-    <div
-            {{--            x-show="showVideo"--}}
-            class="mb-4 relative">
-        <video
-                id="video"
-                class="w-full h-80 object-fill"
-                playsinline
-                autoplay
-        ></video>
-    </div>
-
-    <!-- Controls -->
-    <div class="flex gap-4 px-4">
-        @if(!$isScanning)
-            <button
-                    type="button"
-                    wire:click="startScan"
-                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full"
+        <div wire:x-cloak class="rounded-t mb-4">
+            <div wire:loading class="flex justify-center">
+                Loading camera...
+            </div>
+            <video
+                    id="video"
+                    class="w-full h-80 object-fill rounded-t"
+                    playsinline
+                    autoplay
             >
-                Start Scanner
-            </button>
-        @else
-            <button
-                    type="button"
-                    wire:click="stopScan"
-                    class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded w-full"
-            >
-                Stop Scanner
-            </button>
-        @endif
-        @if(!$isTorchOn)
-            <button
-                    type="button"
-                    wire:click="torchOn"
-                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full"
-            >
-                Torch On
-            </button>
-        @else
-            <button
-                    type="button"
-                    wire:click="torchOff"
-                    class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded w-full"
-            >
-                Torch Off
-            </button>
-        @endif
-
-    </div>
+            </video>
+            <!-- Controls -->
+            <div class="flex justify-end gap-4 px-4 relative right-0 bottom-12">
+                <flux:button type="button" loading wire:click="torchStatus" icon="flashlight" square size="xs" variant="primary" color="{{$isTorchOn ? 'orange' : 'primary'}}"/>
+                <flux:button type="button" loading wire:click="camera" icon="video" square size="xs" variant="primary" class="{{$isScanning ? 'animate-pulse' : ''}}" color="{{$isScanning ? 'orange' : 'primary'}}"/>
+            </div>
+        </div>
 
     <!-- Video source select -->
     <div id="sourceSelectPanel" class="hidden">

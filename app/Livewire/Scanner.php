@@ -21,31 +21,19 @@ class Scanner extends Component
     #[On('loadingCamera')]
     public function updateLoadingCamera(bool $loadingCamera)
     {
-        $this->loadingCamera = $loadingCamera;
+        $this->loadingCamera = !$loadingCamera;
     }
 
-    #[On('startScan')]
-    public function startScan()
+    #[On('camera')]
+    public function camera()
     {
-        $this->isScanning = true;
+        $this->isScanning = ! $this->isScanning;
     }
 
-    #[On('stopScan')]
-    public function stopScan()
+    #[On('torch')]
+    public function torchStatus()
     {
-        $this->isScanning = false;
-    }
-
-    #[On('torchOn')]
-    public function torchOn()
-    {
-        $this->isTorchOn = true;
-    }
-
-    #[On('torchOff')]
-    public function torchOff()
-    {
-        $this->isTorchOn = false;
+        $this->isTorchOn = ! $this->isTorchOn;
     }
 
     #[On('result')]
