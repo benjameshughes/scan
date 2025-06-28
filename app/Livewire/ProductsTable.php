@@ -1,9 +1,11 @@
 <?php
 
-namespace App\Tables;
+namespace App\Livewire;
 
 use App\Models\Product;
 use App\Tables\Columns\TextColumn;
+use App\Tables\Table;
+use App\Tables\TableComponent;
 
 class ProductsTable extends TableComponent
 {
@@ -18,6 +20,6 @@ class ProductsTable extends TableComponent
                 TextColumn::make('updated_at')->label('Last Updated')->dateForHumans(),
             ])
             ->searchable(['sku', 'name', 'barcode'])
-            ->defaultSort('name', 'asc');
+            ->defaultSort('name');
     }
 }

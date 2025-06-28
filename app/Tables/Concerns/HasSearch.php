@@ -6,8 +6,8 @@ trait HasSearch
 {
     public function hasSearch(): bool
     {
-        return method_exists($this->getTable(), 'getSearchableColumns')
-            && !empty($this->getTable()->getSearchableColumns());
+        return collect($this->getTable()->getColumns())
+            ->some(fn($column) => $column->isSearchable());
     }
 
     protected function applySearch($query)
@@ -16,11 +16,18 @@ trait HasSearch
             return $query;
         }
 
-        $searchableColumns = $this->getTable()->getSearchableColumns();
+        $searchableColumns = collect($this->getTable()->getColumns())
+            ->filter(fn($column) => $column->isSearchable());
 
         return $query->where(function ($query) use ($searchableColumns) {
             foreach ($searchableColumns as $column) {
-                $query->search($column, $this->search);
+                if ($column->getSearchCallback()) {
+                    // Use custom search callback
+                    $column->getSearchCallback()($query, $this->search);
+                } else {
+                    // Default search behavior
+                    $query->orWhere($column->getName(), 'like', '%' . $this->search . '%');
+                }
             }
         });
     }

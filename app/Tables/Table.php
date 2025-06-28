@@ -2,20 +2,69 @@
 
 namespace App\Tables;
 
-abstract class Table {
+use Illuminate\Database\Eloquent\Builder;
 
-    protected string $model;
+class Table
+{
+    protected $query;
+    protected array $columns = [];
+    protected array $searchableColumns = [];
+    protected string $defaultSortField = 'id';
+    protected string $defaultSortDirection = 'asc';
 
-    abstract public function columns(): array;
-
-    public function query()
+    public static function make(): self
     {
-        return $this->model::query();
+        return new static();
     }
 
-    public function getUrl()
+    public function query(\Closure $callback): self
     {
-        return null;
+        $this->query = $callback;
+        return $this;
     }
 
+    public function columns(array $columns): self
+    {
+        $this->columns = $columns;
+        return $this;
+    }
+
+    public function searchable(array $columns): self
+    {
+        $this->searchableColumns = $columns;
+        return $this;
+    }
+
+    public function defaultSort(string $field, string $direction = 'asc'): self
+    {
+        $this->defaultSortField = $field;
+        $this->defaultSortDirection = $direction;
+        return $this;
+    }
+
+    // Getters
+    public function getQuery(): Builder
+    {
+        return call_user_func($this->query);
+    }
+
+    public function getColumns(): array
+    {
+        return $this->columns;
+    }
+
+    public function getSearchableColumns(): array
+    {
+        return $this->searchableColumns;
+    }
+
+    public function getDefaultSortField(): string
+    {
+        return $this->defaultSortField;
+    }
+
+    public function getDefaultSortDirection(): string
+    {
+        return $this->defaultSortDirection;
+    }
 }
