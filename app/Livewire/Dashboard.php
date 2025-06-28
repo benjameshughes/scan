@@ -83,7 +83,7 @@ class Dashboard extends Component
     public function render()
     {
         return view('livewire.dashboard', [
-            'scans' => Scan::query()->whereNot('status','completed')->paginate(5),
+            'scans' => Scan::query()->whereNot('sync_status','completed')->paginate(5),
         ]);
     }
 }
