@@ -1,16 +1,18 @@
 import { BrowserMultiFormatReader, NotFoundException } from "@zxing/library";
 
 /**
- * Improved Barcode Scanner - backward compatible version
+ * Improved Barcode Scanner with proper state management and controls
  */
 class BarcodeScanner {
     constructor() {
         this.codeReader = null;
         this.videoElement = null;
         this.currentStream = null;
-        this.cameraIsActive = false;
+        this.isScanning = false;
         this.isInitialized = false;
         this.selectedDeviceId = null;
+        this.torchSupported = false;
+        this.torchEnabled = false;
         
         this.init();
     }
@@ -18,24 +20,24 @@ class BarcodeScanner {
     async init() {
         if (this.isInitialized) return;
         
-        Livewire.dispatch("loadingCamera", [true]);
-        
         try {
-            // Wait for video element
+            // Wait for video element to be available
             this.videoElement = await this.waitForVideoElement();
             this.codeReader = new BrowserMultiFormatReader();
             
-            // Set up Livewire listeners
+            // Set up Livewire event listeners
             this.setupLivewireListeners();
             
-            // Check permissions and initialize
+            // Check camera permissions and initialize
             await this.checkPermissionsAndInit();
             
             this.isInitialized = true;
+            Livewire.dispatch("loadingCamera", [false]);
             
         } catch (error) {
             console.error('Scanner initialization failed:', error);
             Livewire.dispatch("loadingCamera", [false]);
+            this.showError('Failed to initialize scanner: ' + error.message);
         }
     }
 
@@ -46,35 +48,38 @@ class BarcodeScanner {
                 if (video) {
                     resolve(video);
                 } else {
-                    setTimeout(checkForVideo, 50);
+                    setTimeout(checkForVideo, 100);
                 }
             };
             
             checkForVideo();
+            
+            // Timeout after 5 seconds
             setTimeout(() => reject(new Error('Video element not found')), timeout);
         });
     }
 
     setupLivewireListeners() {
-        // Camera toggle
+        // Camera start/stop toggle
         Livewire.on("camera", () => {
-            this.stopScanning();
-        });
-
-        // Stop scan event  
-        Livewire.on("stop-scan", () => {
-            this.stopScanning();
+            this.toggleScanning();
         });
 
         // Torch toggle
         Livewire.on("torch", () => {
             this.toggleTorch();
         });
+
+        // Listen for stop-scan event
+        Livewire.on("stop-scan", () => {
+            this.stopScanning();
+        });
     }
 
     async checkPermissionsAndInit() {
         try {
             if (!navigator.permissions) {
+                // Fallback for browsers without Permissions API
                 await this.requestCameraAndInit();
                 return;
             }
@@ -89,28 +94,29 @@ class BarcodeScanner {
                 throw new Error('Camera permission denied');
             }
             
+            // Listen for permission changes
             permission.onchange = () => {
-                if (permission.state === 'granted' && !this.cameraIsActive) {
+                if (permission.state === 'granted' && !this.isScanning) {
                     this.initializeCamera();
                 }
             };
             
         } catch (error) {
             console.error('Permission check failed:', error);
-            alert("Camera access denied. Please enable camera permissions to use this feature.");
-            Livewire.dispatch("loadingCamera", [false]);
+            throw error;
         }
     }
 
     async requestCameraAndInit() {
         try {
+            // Request basic camera access to trigger permission prompt
             const tempStream = await navigator.mediaDevices.getUserMedia({ video: true });
             tempStream.getTracks().forEach(track => track.stop());
+            
+            // Now initialize properly
             await this.initializeCamera();
         } catch (error) {
-            console.error("Permission denied or error:", error);
-            alert("Camera access is required to scan.");
-            Livewire.dispatch("loadingCamera", [false]);
+            throw new Error('Camera access denied');
         }
     }
 
@@ -119,20 +125,20 @@ class BarcodeScanner {
             const devices = await this.codeReader.listVideoInputDevices();
             
             if (devices.length === 0) {
-                console.error("No video input devices found.");
-                Livewire.dispatch("loadingCamera", [false]);
-                return;
+                throw new Error('No camera devices found');
             }
 
             // Find back camera or use first available
             this.selectedDeviceId = this.findBackCamera(devices) || devices[0].deviceId;
             
-            // Start scanning
+            console.log(`Camera initialized with device: ${this.selectedDeviceId}`);
+            
+            // Auto-start scanning
             await this.startScanning();
             
         } catch (error) {
             console.error('Camera initialization failed:', error);
-            Livewire.dispatch("loadingCamera", [false]);
+            throw error;
         }
     }
 
@@ -146,18 +152,19 @@ class BarcodeScanner {
     }
 
     async startScanning() {
-        if (this.cameraIsActive || !this.selectedDeviceId) return;
+        if (this.isScanning || !this.selectedDeviceId) return;
         
         try {
-            // Get optimized camera stream
+            console.log('Starting barcode scanning...');
+            
+            // Get camera stream with optimized constraints
             this.currentStream = await navigator.mediaDevices.getUserMedia({
                 video: {
                     deviceId: { exact: this.selectedDeviceId },
                     facingMode: { ideal: "environment" },
-                    aspectRatio: { ideal: 4 / 3 },
-                    width: { min: 640, ideal: 1280, max: 1920 },
-                    height: { min: 480, ideal: 720, max: 1080 },
-                    frameRate: { ideal: 30, min: 1, max: 60 }
+                    width: { ideal: 1280, min: 640, max: 1920 },
+                    height: { ideal: 720, min: 480, max: 1080 },
+                    frameRate: { ideal: 30, max: 60 }
                 }
             });
 
@@ -168,33 +175,30 @@ class BarcodeScanner {
             this.checkTorchSupport();
             
             // Start ZXing decoding
-            this.codeReader.decodeFromVideoDevice(
+            await this.codeReader.decodeFromVideoDevice(
                 this.selectedDeviceId,
-                "video",
+                'video',
                 (result, err) => {
-                    if (result && this.cameraIsActive) {
+                    if (result && this.isScanning) {
                         this.handleBarcodeResult(result);
                     }
                     if (err && !(err instanceof NotFoundException)) {
-                        console.error(err);
+                        console.warn('Decode error:', err);
                     }
                 }
             );
             
-            this.cameraIsActive = true;
+            this.isScanning = true;
             Livewire.dispatch('camera', [true]);
-            Livewire.dispatch("loadingCamera", [false]);
-            
-            console.log(`Started continuous decode from camera with id ${this.selectedDeviceId}`);
             
         } catch (error) {
             console.error('Failed to start scanning:', error);
-            Livewire.dispatch("loadingCamera", [false]);
+            this.showError('Failed to start camera: ' + error.message);
         }
     }
 
     stopScanning() {
-        if (!this.cameraIsActive) return;
+        if (!this.isScanning) return;
         
         console.log('Stopping barcode scanning...');
         
@@ -210,11 +214,22 @@ class BarcodeScanner {
         }
         
         // Clear video element
-        if (this.videoElement && this.videoElement.srcObject) {
+        if (this.videoElement) {
             this.videoElement.srcObject = null;
         }
         
-        this.cameraIsActive = false;
+        this.isScanning = false;
+        this.torchEnabled = false;
+        
+        Livewire.dispatch('camera', [false]);
+    }
+
+    async toggleScanning() {
+        if (this.isScanning) {
+            this.stopScanning();
+        } else {
+            await this.startScanning();
+        }
     }
 
     checkTorchSupport() {
@@ -224,43 +239,37 @@ class BarcodeScanner {
         if (!videoTrack) return;
         
         const capabilities = videoTrack.getCapabilities();
-        const torchSupported = !!(capabilities && capabilities.torch);
+        this.torchSupported = !!(capabilities && capabilities.torch);
         
-        Livewire.dispatch("torchStatusUpdated", [false, torchSupported]);
+        // Send torch support info to Livewire
+        Livewire.dispatch("torchStatusUpdated", [false, this.torchSupported]);
         
-        console.log('Torch supported:', torchSupported);
+        console.log('Torch supported:', this.torchSupported);
     }
 
     async toggleTorch() {
-        if (!this.currentStream) {
-            console.warn('No camera stream available');
-            return;
-        }
-
-        const videoTrack = this.currentStream.getVideoTracks()[0];
-        if (!videoTrack) return;
-
-        const capabilities = videoTrack.getCapabilities();
-        if (!(capabilities && capabilities.torch)) {
-            console.warn("Torch not supported on this device/browser.");
+        if (!this.torchSupported || !this.currentStream) {
+            console.warn('Torch not supported on this device');
             Livewire.dispatch("torchStatusUpdated", [false, false]);
             return;
         }
 
         try {
-            const constraints = videoTrack.getConstraints();
-            const currentTorchState = constraints.advanced?.[0]?.torch || false;
-            const newTorchState = !currentTorchState;
+            const videoTrack = this.currentStream.getVideoTracks()[0];
+            this.torchEnabled = !this.torchEnabled;
             
             await videoTrack.applyConstraints({
-                advanced: [{ torch: newTorchState }]
+                advanced: [{ torch: this.torchEnabled }]
             });
             
-            console.log('Torch', newTorchState ? 'enabled' : 'disabled');
-            Livewire.dispatch("torchStatus", [newTorchState]);
+            console.log('Torch', this.torchEnabled ? 'enabled' : 'disabled');
+            
+            Livewire.dispatch("torchStatus", [this.torchEnabled]);
             
         } catch (error) {
-            console.error("Error toggling torch:", error);
+            console.error('Torch toggle failed:', error);
+            this.torchEnabled = false;
+            
             Livewire.dispatch("torchStatus", [false]);
         }
     }
@@ -273,15 +282,21 @@ class BarcodeScanner {
             navigator.vibrate(300);
         }
         
+        // Stop scanning after successful read
+        this.stopScanning();
+        
         // Dispatch result to Livewire
         Livewire.dispatch("result", [result]);
         Livewire.dispatch("barcodeScanned");
-        
-        // Stop scanning after successful read
-        this.cameraIsActive = false;
-        Livewire.dispatch('camera');
     }
 
+    showError(message) {
+        console.error(message);
+        // You could show a toast notification here
+        alert(message);
+    }
+
+    // Cleanup method
     destroy() {
         this.stopScanning();
         this.isInitialized = false;
@@ -295,7 +310,7 @@ window.addEventListener("livewire:initialized", function () {
         window.barcodeScanner.destroy();
     }
     
-    // Initialize scanner
+    // Initialize scanner (it will handle loading state)
     window.barcodeScanner = new BarcodeScanner();
 });
 
