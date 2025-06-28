@@ -74,6 +74,28 @@ php artisan migrate:fresh --seed
 php artisan make:migration create_example_table
 ```
 
+### Version Management
+
+```bash
+# Bump version (interactive with safety checks and backups)
+php artisan version:bump-improved
+
+# Bump specific version type (patch/minor/major)
+php artisan version:bump-improved patch
+
+# Dry run to preview version bump
+php artisan version:bump-improved patch --dry
+
+# Generate Claude-style commit messages
+php artisan version:bump-improved patch --claude
+
+# Rollback to previous version
+php artisan version:bump-improved --rollback=2.0.0
+
+# Downgrade to specific version
+php artisan version:bump-improved --downgrade=1.9.0
+```
+
 ## Architecture Overview
 
 ### Core Models & Their Relationships
