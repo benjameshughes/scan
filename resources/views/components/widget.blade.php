@@ -1,5 +1,5 @@
 @props(['title' => 'title', 'stat' => '10', 'icon'=>'hourglass'])
-<div {{ $attributes->merge(['class' => 'bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 p-4
+<div {{ $attributes->merge(['class' => 'bg-white dark:bg-zinc-800 border-b border-gray-100 dark:border-zinc-700 p-4
     space-x-4 text-center mr-4 rounded-md shadow-sm w-full']) }}>
     <div class="flex justify-between text-left">
         <div>
