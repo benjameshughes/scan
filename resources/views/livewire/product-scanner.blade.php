@@ -1,15 +1,5 @@
 <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-zinc-900 dark:to-zinc-800">
     <div class="container mx-auto px-4 py-6">
-        <!-- Header -->
-        <div class="mb-6">
-            <h1 class="text-3xl font-bold text-gray-900 dark:text-white text-center">
-                Product Scanner
-            </h1>
-            <p class="text-center text-gray-600 dark:text-gray-300 mt-2">
-                Scan barcodes to track inventory
-            </p>
-        </div>
-
         <!-- Main Card -->
         <div class="max-w-2xl mx-auto">
             <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl overflow-hidden">
