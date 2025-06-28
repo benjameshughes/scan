@@ -16,11 +16,7 @@ class Dashboard extends Component
     use WithPagination;
 
     public Collection $notifications;
-    public Collection $scans;
     public int $retryCount = 0;
-
-    public array $scansByDate = [];
-    public $scanDate = 7; // Added default value for scanDate
 
     // Mark notification as read
     public function markAsRead($id)
@@ -51,19 +47,20 @@ class Dashboard extends Component
      */
     public function redispatch()
     {
-        // Get count for logging
-        $totalUnsubmitted = Scan::whereFalse('submitted')->count();
+        $this->retryCount = 0;
 
-        // Process in chunks of 100 to avoid memory issues
+        // Process in chunks to avoid memory issues
         Scan::whereFalse('submitted')
-            ->with('product') // Eager load the product relationship
-            ->chunk(100, function ($scans) {
-                foreach ($scans as $scan) {
+            ->with('product')
+            ->get()
+            ->chunk(100)
+            ->each(function ($chunk) {
+                $chunk->each(function ($scan) {
                     if ($scan->product) {
                         SyncBarcode::dispatch($scan);
                         $this->retryCount++;
                     }
-                }
+                });
             });
 
         return $this->retryCount;
@@ -78,31 +75,15 @@ class Dashboard extends Component
         new MarkScanAsSubmitted($scan)->handle();
     }
 
-    public function scansByDate(): Collection
-    {
-        // Get scans directly from the database
-        $scans = Scan::all();
-
-        // Define the date range
-        $startDate = Carbon::now()->subDays($this->scanDate);
-        $endDate = Carbon::now();
-
-        // Filter the scans by date
-        $scans = $scans->filter(function ($scan) use ($startDate, $endDate) {
-            return $scan->submitted_at->between($startDate, $endDate);
-        });
-
-        return $scans;
-    }
-
     public function mount()
     {
         $this->notifications = auth()->user()->unreadNotifications()->get();
-        $this->scans = Scan::all();
     }
 
     public function render()
     {
-        return view('livewire.dashboard');
+        return view('livewire.dashboard', [
+            'scans' => Scan::query()->whereNot('status','completed')->paginate(5),
+        ]);
     }
 }

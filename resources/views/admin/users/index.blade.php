@@ -6,6 +6,6 @@
     </x-slot>
 
     {{--    <livewire:products.index />--}}
-    <livewire:admin.users.user-list/>
+    <livewire:admin.users.user-list table="\App\Tables\UsersTable"/>
 
 </x-app-layout>

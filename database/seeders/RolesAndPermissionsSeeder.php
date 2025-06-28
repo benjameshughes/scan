@@ -17,18 +17,50 @@ class RolesAndPermissionsSeeder extends Seeder
     {
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // Create Permissions
-        Permission::create(['name' => 'create users']);
-        Permission::create(['name' => 'read users']);
-        Permission::create(['name' => 'update users']);
-        Permission::create(['name' => 'delete users']);
+        // User-related permissions
+        $userPermissions = [
+            'view users',
+            'create users',
+            'edit users',
+            'delete users',
+        ];
+
+        // Scan-related permissions
+        $scanPermissions = [
+            'view scans',
+            'view scanner',
+            'create scans',
+            'edit scans',
+            'delete scans',
+            'sync scans',
+        ];
+
+        // Product-related permissions
+        $productPermissions = [
+            'view products',
+            'create products',
+            'edit products',
+            'delete products',
+            'import products',
+        ];
+
+        // Invite-related permissions
+        $invitePermissions = [
+            'view invites',
+            'create invites',
+            'edit invites',
+            'delete invites',
+        ];
 
         // Create Roles
-        $adminRole = Role::create(['name' => 'admin']);
+        $adminRole = Role::findOrCreate('admin');
         $adminRole->givePermissionTo(Permission::all());
 
         // Create User Role
-        Role::create(['name' => 'user']);
+        $userRole = Role::findOrCreate('user');
+        $userRole->givePermissionTo([
+            
+        ]);
 
         // Assign admin role to user
         $user = User::find(1);
