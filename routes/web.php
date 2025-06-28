@@ -6,6 +6,7 @@ use App\Http\Controllers\ScanController;
 use App\Models\User;
 use App\Services\LinnworksApiService;
 use Illuminate\Support\Facades\Route;
+use App\Http\Middleware\IsInviteValid;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,6 +16,9 @@ use Illuminate\Support\Facades\Route;
 // Route::redirect('/', 'dashboard')->name('home');
 Route::redirect('/', 'scanner')->name('home');
 Route::get('scanner', [ScanController::class, 'scan'])->name('scan.scan');
+Route::get('/invite/{token}', function ($token) {
+    return view('admin.users.invite.accept', ['token' => $token]);
+})->name('invite.accept')->middleware(IsInviteValid::class);
 
 /*
 |--------------------------------------------------------------------------
@@ -32,24 +36,37 @@ Route::middleware(['auth', 'verified'])->group(function () {
 | Admin Routes
 |--------------------------------------------------------------------------
 */
-    Route::prefix('admin')->name('admin.')->group( function () {
-        Route::prefix('users')->name('users.')->group(function () {
+    Route::group(['middleware' => ['role:admin']], function () {
+        Route::prefix('admin')->name('admin.')->group( function () {
 
-            Route::get('/', function () {
-                return view('admin.users.index');
-            })->name('index');
+            Route::prefix('users')->name('users.')->group(function () {
+                Route::get('/', function () {
+                    return view('admin.users.index');
+                })->name('index');
 
-            Route::get('/{user}/edit', function (User $user) {
-                return view('admin.users.edit', compact('user'));
-            })->name('edit');
+                Route::get('/{user}/edit', function (User $user) {
+                    return view('admin.users.edit', compact('user'));
+                })->name('edit');
 
+                Route::get('create', function () {
+                    return view('admin.users.add');
+                })->name('add');
+            });
+
+            Route::prefix('invite')->name('invite.')->group(function () {
+                Route::get('create', function () {
+                    return view('admin.users.invite.create');
+                })->name('create');
+                // Accept route needs to be public, it's up top
+            });
+
+            Route::prefix('external')->name('external.')->group(function () {
+                Route::get('/', function () {
+                    return view('admin.external.index');
+                })->name('index');
+            });
         });
-        Route::prefix('external')->name('external.')->group(function () {
-            Route::get('/', function () {
-                return view('admin.external.index');
-            })->name('index');
-        });
-    })->middleware('role:admin');
+    });
 
     /*
     |--------------------------------------------------------------------------
