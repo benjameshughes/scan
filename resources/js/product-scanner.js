@@ -286,7 +286,7 @@ class ProductScanner {
         this.pauseScanning();
         
         // Report to Livewire
-        Livewire.dispatch('onBarcodeDetected', [result]);
+        Livewire.dispatch('onBarcodeDetected', [result.text]);
     }
 
     pauseScanning() {

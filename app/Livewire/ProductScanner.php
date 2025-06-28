@@ -113,7 +113,7 @@ class ProductScanner extends Component
     #[On('onBarcodeDetected')]
     public function onBarcodeDetected($barcodeData)
     {
-        $this->barcode = $barcodeData['text'];
+        $this->barcode = $barcodeData;
         $this->barcodeScanned = true;
         $this->cameraError = '';
 
