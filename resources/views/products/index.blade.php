@@ -5,7 +5,6 @@
         </h2>
     </x-slot>
 
-{{--    <livewire:products.index />--}}
-    <livewire:table table-class="App\Tables\ProductsTable"/>
+    <livewire:products-table />
 
 </x-app-layout>
