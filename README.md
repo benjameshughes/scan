@@ -294,4 +294,69 @@ For technical support or questions:
 
 ---
 
-**Built with ❤️ using Laravel, Livewire, and modern web technologies.**
+## 🙏 Credits & Acknowledgments
+
+This project is built on the shoulders of giants. We gratefully acknowledge the following open source projects and their contributors:
+
+### **Core Framework & Libraries**
+- **[Laravel](https://laravel.com/)** - The PHP framework for web artisans (Taylor Otwell & contributors)
+- **[Livewire](https://livewire.laravel.com/)** - A full-stack framework for Laravel (Caleb Porzio & contributors)
+- **[PHP](https://www.php.net/)** - Server-side scripting language
+- **[Composer](https://getcomposer.org/)** - Dependency manager for PHP
+
+### **Frontend Technologies**
+- **[Flux UI](https://fluxui.dev/)** - Modern Laravel UI components
+- **[Tailwind CSS](https://tailwindcss.com/)** - Utility-first CSS framework (Adam Wathan & contributors)
+- **[Alpine.js](https://alpinejs.dev/)** - Lightweight JavaScript framework (Caleb Porzio)
+- **[ZXing Library](https://github.com/zxing-js/library)** - Barcode scanning JavaScript library
+- **[Vite](https://vitejs.dev/)** - Frontend build tool and development server
+
+### **Laravel Ecosystem**
+- **[Laravel Reverb](https://reverb.laravel.com/)** - WebSocket server for Laravel
+- **[Laravel Horizon](https://laravel.com/docs/horizon)** - Queue monitoring dashboard
+- **[Spatie Laravel Permission](https://spatie.be/docs/laravel-permission)** - Role and permission management
+- **[Laravel Pint](https://laravel.com/docs/pint)** - Code style fixer
+- **[Pest PHP](https://pestphp.com/)** - Testing framework (Nuno Maduro & contributors)
+
+### **Development Tools**
+- **[Node.js](https://nodejs.org/)** - JavaScript runtime environment
+- **[NPM](https://www.npmjs.com/)** - Package manager for JavaScript
+- **[SQLite](https://www.sqlite.org/)** - Lightweight database engine
+- **[Git](https://git-scm.com/)** - Version control system
+
+### **Security & Infrastructure**
+- **[OpenSSL](https://www.openssl.org/)** - Cryptography and SSL/TLS toolkit
+- **[Let's Encrypt](https://letsencrypt.org/)** - Free SSL/TLS certificates (when applicable)
+- **[Symfony Components](https://symfony.com/)** - PHP framework components used by Laravel
+
+### **Email & Communication**
+- **[SwiftMailer](https://swiftmailer.symfony.com/)** / **[Symfony Mailer](https://symfony.com/doc/current/mailer.html)** - Email sending library
+- **[Markdown](https://daringfireball.net/projects/markdown/)** - Text formatting syntax (John Gruber)
+
+### **Development Experience**
+- **[PHPStan](https://phpstan.org/)** - Static analysis tool for PHP
+- **[PHP CS Fixer](https://cs.symfony.com/)** - Code standards fixer
+- **[Faker](https://fakerphp.github.io/)** - Data generation library
+- **[Carbon](https://carbon.nesbot.com/)** - Date manipulation library (Brian Nesbitt)
+
+### **Browser Technologies**
+- **[WebRTC](https://webrtc.org/)** - Real-time communication for camera access
+- **[Progressive Web App](https://web.dev/progressive-web-apps/)** standards
+- **[Web APIs](https://developer.mozilla.org/en-US/docs/Web/API)** - Modern browser capabilities
+
+### **Special Thanks**
+- **The PHP Community** - For continuous innovation and support
+- **The Laravel Community** - For excellent documentation and ecosystem
+- **Open Source Contributors** - Who make projects like this possible
+- **Spatie** - For excellent Laravel packages and developer tools
+- **All Package Maintainers** - Who keep the ecosystem secure and up-to-date
+
+---
+
+## 📜 License Compliance
+
+This project uses open source software under various licenses including MIT, Apache 2.0, and BSD licenses. We respect and comply with all license requirements. For specific license information, please refer to individual package documentation and the `composer.json` file.
+
+---
+
+**Built with ❤️ using Laravel, Livewire, and the incredible open source ecosystem.**
