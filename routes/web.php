@@ -4,6 +4,7 @@ use App\Http\Controllers\LinnworksController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ScanController;
 use App\Http\Middleware\IsInviteValid;
+use App\Models\Product;
 use App\Models\User;
 use App\Services\LinnworksApiService;
 use Illuminate\Support\Facades\Route;
@@ -122,10 +123,10 @@ Route::prefix('products')->name('products.')->middleware('permission:view produc
     Route::get('create', function () {
         return view('products.create');
     })->name('create')->middleware('permission:create products');
-    Route::get('{product}', function ($product) {
+    Route::get('{product}', function (Product $product) {
         return view('products.show', compact('product'));
     })->name('show');
-    Route::get('{product}/edit', function ($product) {
+    Route::get('{product}/edit', function (Product $product) {
         return view('products.edit', compact('product'));
     })->name('edit')->middleware('permission:edit products');
     Route::view('import', 'imports.product')->name('import')->middleware('permission:import products');
