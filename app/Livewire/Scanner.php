@@ -47,14 +47,14 @@ class Scanner extends Component
     #[On('torchStatus')]
     public function updateTorchStatus($enabled)
     {
-        $this->isTorchOn = $enabled;
+        $this->isTorchOn = (bool) $enabled;
     }
 
     #[On('torchStatusUpdated')]
     public function torchStatusUpdated($enabled, $supported)
     {
-        $this->isTorchOn = $enabled;
-        $this->torchSupported = $supported;
+        $this->isTorchOn = (bool) $enabled;
+        $this->torchSupported = (bool) $supported;
 
         if (! $supported) {
             $this->cameraError = 'Torch not supported on this device';

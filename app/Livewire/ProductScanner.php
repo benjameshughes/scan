@@ -144,7 +144,7 @@ class ProductScanner extends Component
     #[On('onTorchStateChanged')]
     public function onTorchStateChanged($enabled)
     {
-        $this->isTorchOn = $enabled;
+        $this->isTorchOn = (bool) $enabled;
     }
 
     #[On('onBarcodeDetected')]
