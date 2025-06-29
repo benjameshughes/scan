@@ -39,13 +39,27 @@ class Add extends Component
         $user->assignRole($this->role);
 
         if ($this->sendInvite) {
+            // Debug log the data before creating invitation
+            \Log::info('Creating invite with data', [
+                'name' => $this->name,
+                'email' => $this->email,
+                'user_id' => $user->id,
+            ]);
+            
             // Create invitation
             $invitation = Invite::create([
                 'name' => $this->name,
                 'email' => $this->email,
                 'token' => Str::random(64),
                 'user_id' => $user->id,
+                'invited_by' => auth()->id(),
                 'expires_at' => now()->addHours(24),
+            ]);
+
+            \Log::info('Created invite', [
+                'invite_id' => $invitation->id,
+                'invite_email' => $invitation->email,
+                'invite_data' => $invitation->toArray()
             ]);
 
             // Send invite notification
