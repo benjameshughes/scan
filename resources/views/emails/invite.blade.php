@@ -9,7 +9,9 @@ You have been invited to join {{ $appName }}. To accept this invitation and set 
 Set Up Your Account
 </x-mail::button>
 
-This invitation link will expire in {{ $expiresIn }} {{ Str::plural('hour', $expiresIn) }}.
+{{--This invitation link will expire in {{ $expiresIn }} {{ Str::plural('hour', $expiresIn) }}.--}}
+    This invitation link will expire in 24 hours.
+
 
 If you're unable to click the button above, you can copy and paste the following link into your browser:
 

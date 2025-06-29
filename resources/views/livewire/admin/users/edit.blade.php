@@ -79,6 +79,30 @@
                 <flux:error name="selectedRole"/>
             </div>
 
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-3">
+                    Notification Permissions
+                </label>
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-700 rounded-md border border-zinc-200 dark:border-zinc-600">
+                        <div>
+                            <label for="emptyBayNotifications" class="text-sm font-medium text-gray-700 dark:text-gray-200 cursor-pointer">
+                                Receive Empty Bay Notifications
+                            </label>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                User will receive email alerts when empty bay notifications are submitted
+                            </p>
+                        </div>
+                        <flux:checkbox 
+                            wire:model="receiveEmptyBayNotifications"
+                            id="emptyBayNotifications"
+                            name="emptyBayNotifications"
+                        />
+                    </div>
+                </div>
+                <flux:error name="receiveEmptyBayNotifications"/>
+            </div>
+
             <div class="flex items-center justify-between pt-4 border-t border-zinc-200 dark:border-zinc-700">
                 <flux:button 
                     variant="ghost" 

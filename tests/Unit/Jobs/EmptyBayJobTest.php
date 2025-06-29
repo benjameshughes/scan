@@ -154,42 +154,42 @@ describe('EmptyBayJob', function () {
         Notification::assertSentTo($adminUser, EmptyBayNotification::class);
     });
 
-    test('it handles multiple admin users', function () {
+    test('it handles multiple users with permission', function () {
         Notification::fake();
 
-        // Create multiple admin users
-        $admin1 = User::factory()->create();
-        $admin1->assignRole('admin');
+        // Create multiple users with empty bay notification permission
+        $user1 = User::factory()->create();
+        $user1->givePermissionTo('receive empty bay notifications');
 
-        $admin2 = User::factory()->create();
-        $admin2->assignRole('admin');
+        $user2 = User::factory()->create();
+        $user2->givePermissionTo('receive empty bay notifications');
 
-        $admin3 = User::factory()->create();
-        $admin3->assignRole('admin');
+        $user3 = User::factory()->create();
+        $user3->givePermissionTo('receive empty bay notifications');
 
         $job = new EmptyBayJob($this->emptyBayDTO);
         $job->handle();
 
-        Notification::assertSentTo($admin1, EmptyBayNotification::class);
-        Notification::assertSentTo($admin2, EmptyBayNotification::class);
-        Notification::assertSentTo($admin3, EmptyBayNotification::class);
+        Notification::assertSentTo($user1, EmptyBayNotification::class);
+        Notification::assertSentTo($user2, EmptyBayNotification::class);
+        Notification::assertSentTo($user3, EmptyBayNotification::class);
     });
 
-    test('it does not notify users without admin role', function () {
+    test('it does not notify users without permission', function () {
         Notification::fake();
 
-        // Create users with various roles
-        $userRole = User::factory()->create();
-        $userRole->assignRole('user');
+        // Create users without the permission
+        $user1 = User::factory()->create();
+        $user1->assignRole('user');
 
-        $managerUser = User::factory()->create();
-        // Don't assign any role
+        $user2 = User::factory()->create();
+        $user2->assignRole('admin'); // Admin but without the specific permission
 
         $job = new EmptyBayJob($this->emptyBayDTO);
         $job->handle();
 
-        Notification::assertNotSentTo($userRole, EmptyBayNotification::class);
-        Notification::assertNotSentTo($managerUser, EmptyBayNotification::class);
+        Notification::assertNotSentTo($user1, EmptyBayNotification::class);
+        Notification::assertNotSentTo($user2, EmptyBayNotification::class);
     });
 
     test('it can be dispatched', function () {

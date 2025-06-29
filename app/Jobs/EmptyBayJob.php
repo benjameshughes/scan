@@ -35,14 +35,12 @@ class EmptyBayJob implements ShouldQueue
             return;
         }
 
-        // Get admin users
-        $admins = User::with('roles')
-            ->get()
-            ->filter(fn ($user) => $user->roles->contains('name', 'admin'));
+        // Get users with permission to receive empty bay notifications
+        $recipients = User::permission('receive empty bay notifications')->get();
 
-        // Notify each admin
-        $admins->each(function ($admin) use ($product) {
-            $admin->notify(new EmptyBayNotification($product));
+        // Notify each recipient
+        $recipients->each(function ($user) use ($product) {
+            $user->notify(new EmptyBayNotification($product));
         });
     }
 }

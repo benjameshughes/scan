@@ -18,6 +18,9 @@ class Edit extends Component
     // Store the name of the role currently selected in the form
     public string $selectedRole = ''; // Initialize as empty string
 
+    // Notification permissions
+    public bool $receiveEmptyBayNotifications = false;
+
     // User data
     public array $form = [
         'name',
@@ -38,6 +41,9 @@ class Edit extends Component
         if ($currentRoleName) {
             $this->selectedRole = $currentRoleName;
         }
+
+        // Load notification permissions
+        $this->receiveEmptyBayNotifications = $user->can('receive empty bay notifications');
     }
 
     // Removed ensureDefaultRole - handled in mount and update
@@ -66,6 +72,13 @@ class Edit extends Component
             $this->user->syncRoles([$this->selectedRole]);
         } else {
             $this->user->syncRoles([]);
+        }
+
+        // Handle empty bay notification permission
+        if ($this->receiveEmptyBayNotifications) {
+            $this->user->givePermissionTo('receive empty bay notifications');
+        } else {
+            $this->user->revokePermissionTo('receive empty bay notifications');
         }
 
         $this->dispatch('user-updated');

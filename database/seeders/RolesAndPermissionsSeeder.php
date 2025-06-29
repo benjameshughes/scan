@@ -51,8 +51,13 @@ class RolesAndPermissionsSeeder extends Seeder
             'delete invites',
         ];
 
+        // Notification-related permissions
+        $notificationPermissions = [
+            'receive empty bay notifications',
+        ];
+
         // Create all permissions
-        foreach (array_merge($userPermissions, $scanPermissions, $productPermissions, $invitePermissions) as $permission) {
+        foreach (array_merge($userPermissions, $scanPermissions, $productPermissions, $invitePermissions, $notificationPermissions) as $permission) {
             Permission::findOrCreate($permission);
         }
 
