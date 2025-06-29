@@ -31,16 +31,17 @@ class AppServiceProvider extends ServiceProvider
         Builder::macro('search', function ($fields, $string) {
             if ($string) {
                 foreach ((array) $fields as $field) {
-                    $this->orWhere($field, 'like', '%' . $string . '%');
+                    $this->orWhere($field, 'like', '%'.$string.'%');
                 }
             }
+
             return $this;
         });
 
         /**
          * Filter query to where column is true.
          *
-         * @param string $column
+         * @param  string  $column
          * @return \Illuminate\Database\Eloquent\Builder
          */
         Builder::macro('whereTrue', function ($column) {
@@ -50,7 +51,7 @@ class AppServiceProvider extends ServiceProvider
         /**
          * Filter query to where column is false.
          *
-         * @param string $column
+         * @param  string  $column
          * @return \Illuminate\Database\Eloquent\Builder
          */
         Builder::macro('whereFalse', function ($column) {
@@ -64,11 +65,11 @@ class AppServiceProvider extends ServiceProvider
             return $this->where($column, false);
         });
 
-//        // Barcode relationship macro
-//        Relation::macro('orWhere', function ($column, $value) {
-//            $this->query->orWhere($column, $value);
-//            return $this;
-//        });
+        //        // Barcode relationship macro
+        //        Relation::macro('orWhere', function ($column, $value) {
+        //            $this->query->orWhere($column, $value);
+        //            return $this;
+        //        });
 
         // Table Component
         Livewire::component('table', TableComponent::class);
@@ -79,7 +80,7 @@ class AppServiceProvider extends ServiceProvider
                 'Authorization' => Cache::get('linnworks.session_token'),
                 'accept' => 'application/json',
                 'content-type' => 'application/json',
-            ])->post(config('linnworks.base_url') . $url);
+            ])->post(config('linnworks.base_url').$url);
 
             return $response->body();
         });

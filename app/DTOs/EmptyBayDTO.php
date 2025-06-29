@@ -17,5 +17,4 @@ readonly class EmptyBayDTO
             'barcode' => $this->barcode,
         ];
     }
-
 }

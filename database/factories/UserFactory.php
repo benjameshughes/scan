@@ -23,12 +23,22 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
+        $isVerified = fake()->boolean(0.85); // 85% chance of being verified
+        $isActive = fake()->boolean(0.95); // 95% chance of being active
+
         return [
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
+            'email_verified_at' => $isVerified ? fake()->dateTimeBetween('-1 year', 'now') : null,
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'status' => $isActive ? 'active' : 'inactive',
+            'settings' => json_encode([
+                'notifications' => fake()->boolean(),
+                'dark_mode' => fake()->boolean(),
+                'auto_submit' => fake()->boolean(),
+                'scan_sound' => fake()->boolean(),
+            ]),
         ];
     }
 

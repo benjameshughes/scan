@@ -6,7 +6,6 @@ use App\Actions\Dashboard\MarkNotificationAsRead;
 use App\Actions\MarkScanAsSubmitted;
 use App\Jobs\SyncBarcode;
 use App\Models\Scan;
-use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -16,6 +15,7 @@ class Dashboard extends Component
     use WithPagination;
 
     public Collection $notifications;
+
     public int $retryCount = 0;
 
     // Mark notification as read
@@ -66,7 +66,6 @@ class Dashboard extends Component
         return $this->retryCount;
     }
 
-
     public function markAsSubmitted(int $id)
     {
         $scan = Scan::findOrFail($id);
@@ -82,8 +81,42 @@ class Dashboard extends Component
 
     public function render()
     {
+        $user = auth()->user();
+
+        // Get scan statistics
+        $totalScans = Scan::count();
+        $pendingScans = Scan::where('submitted', false)->count();
+        $completedScans = Scan::where('submitted', true)->count();
+        $failedScans = Scan::where('sync_status', 'failed')->count();
+
+        // Recent activity
+        $recentScans = Scan::with(['user', 'product'])
+            ->latest()
+            ->limit(10)
+            ->get();
+
+        // This week's activity
+        $weeklyScans = Scan::whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count();
+        $todayScans = Scan::whereDate('created_at', today())->count();
+
+        // User's personal stats
+        $userScans = Scan::where('user_id', $user->id);
+        $userTotalScans = $userScans->count();
+        $userWeeklyScans = $userScans->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count();
+
         return view('livewire.dashboard', [
-            'scans' => Scan::query()->whereNot('sync_status','completed')->paginate(5),
+            'scans' => Scan::query()->whereNot('sync_status', 'completed')->paginate(5),
+            'stats' => [
+                'total_scans' => $totalScans,
+                'pending_scans' => $pendingScans,
+                'completed_scans' => $completedScans,
+                'failed_scans' => $failedScans,
+                'weekly_scans' => $weeklyScans,
+                'today_scans' => $todayScans,
+                'user_total_scans' => $userTotalScans,
+                'user_weekly_scans' => $userWeeklyScans,
+            ],
+            'recent_scans' => $recentScans,
         ]);
     }
 }

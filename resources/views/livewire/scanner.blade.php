@@ -1,10 +1,10 @@
 <div class="dark:bg-zinc-800">
     <!-- Camera Loading State -->
     @if($loadingCamera)
-        <div class="flex justify-center items-center h-80 bg-gray-100 dark:bg-zinc-700 rounded-t">
+        <div class="flex justify-center items-center h-80 bg-zinc-100 dark:bg-zinc-700 rounded-t">
             <div class="text-center">
-                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-                <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">Loading camera...</p>
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">Loading camera...</p>
             </div>
         </div>
     @else
@@ -74,16 +74,16 @@
     @endif
 
     <!-- Camera Status Info -->
-    <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">
+    <div class="text-xs text-zinc-500 dark:text-zinc-400 mb-2">
         <div class="flex justify-between items-center">
             <span>
-                Status: <span class="font-medium {{ $isScanning ? 'text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-300' }}">
+                Status: <span class="font-medium {{ $isScanning ? 'text-green-600 dark:text-green-400' : 'text-zinc-600 dark:text-zinc-300' }}">
                     {{ $isScanning ? 'Scanning' : 'Stopped' }}
                 </span>
             </span>
             @if($torchSupported)
                 <span>
-                    Torch: <span class="font-medium {{ $isTorchOn ? 'text-orange-600 dark:text-orange-400' : 'text-gray-600 dark:text-gray-300' }}">
+                    Torch: <span class="font-medium {{ $isTorchOn ? 'text-orange-600 dark:text-orange-400' : 'text-zinc-600 dark:text-zinc-300' }}">
                         {{ $isTorchOn ? 'On' : 'Off' }}
                     </span>
                 </span>

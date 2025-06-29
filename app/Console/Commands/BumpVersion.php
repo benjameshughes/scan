@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+
 use function Laravel\Prompts\select;
 
 class BumpVersion extends Command
@@ -58,7 +59,8 @@ class BumpVersion extends Command
         $newVersion = $this->getNewVersion($currentVersion, $type);
 
         if ($this->option('dry')) {
-            $this->info('New version (dry-run): ' . $newVersion);
+            $this->info('New version (dry-run): '.$newVersion);
+
             return 0;
         }
 
@@ -85,7 +87,7 @@ class BumpVersion extends Command
         exec("git checkout master && git reset --hard $version");
 
         // Push the reset branch to GitHub
-        exec("git push origin master --force");
+        exec('git push origin master --force');
 
         $this->info("Rollback complete. Master is now at version: $version");
 
@@ -104,7 +106,7 @@ class BumpVersion extends Command
         exec("git checkout -b $branchName");
 
         $this->info("Branch created: $branchName");
-        $this->info("You can now work on fixing the issue in this branch.");
+        $this->info('You can now work on fixing the issue in this branch.');
 
         return 0;
     }
@@ -116,9 +118,9 @@ class BumpVersion extends Command
     {
         $type = $this->argument('type');
 
-        if (!$type || !in_array($type, $this->types)) {
+        if (! $type || ! in_array($type, $this->types)) {
             $this->error('Invalid type.');
-            $this->info('Valid types are: ' . implode(', ', $this->types));
+            $this->info('Valid types are: '.implode(', ', $this->types));
             $type = select(
                 label: 'Select a type',
                 options: $this->types,
@@ -138,7 +140,7 @@ class BumpVersion extends Command
         $composerPath = base_path('composer.json');
         $composerJson = json_decode(file_get_contents($composerPath), true);
 
-        if (!isset($composerJson['version'])) {
+        if (! isset($composerJson['version'])) {
             $this->error('No version found. Please check your composer.json.');
             exit(1);
         }
@@ -200,11 +202,11 @@ class BumpVersion extends Command
      */
     private function commitAndTag(string $newVersion): void
     {
-        exec("git add .");
+        exec('git add .');
         exec("git commit -m 'Bump version to $newVersion'");
         exec("git tag -a $newVersion -m 'Release version $newVersion'");
-        exec("git push origin master");
-        exec("git push origin --tags");
+        exec('git push origin master');
+        exec('git push origin --tags');
 
         $this->info("Version $newVersion committed and tagged.");
     }

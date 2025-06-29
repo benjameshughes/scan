@@ -7,23 +7,20 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rules\In;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-
-    use Notifiable, HasRoles;
-
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
+
+    use HasRoles, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -45,6 +42,14 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $hidden = [
         'password',
         'remember_token',
+    ];
+
+    /**
+     * Casts
+     */
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'settings' => 'array',
     ];
 
     protected static function booted(): void
@@ -86,6 +91,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
         return Cache::remember($cacheKey, now()->addWeek(), function () {
             $name = urlencode($this->name);
+
             return "https://ui-avatars.com/api/?name={$name}&background=random";
         });
     }
@@ -94,7 +100,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return Str::of($this->name)
             ->explode(' ')
-            ->map(fn(string $name) => Str::of($name)->substr(0, 1))
+            ->map(fn (string $name) => Str::of($name)->substr(0, 1))
             ->implode('');
     }
 
@@ -108,17 +114,18 @@ class User extends Authenticatable implements MustVerifyEmail
             'notification_database' => true,
         ];
 
-        if (!$value) {
+        if (! $value) {
             return $defaults;
         }
 
         $settings = json_decode($value, true);
+
         return array_merge($defaults, $settings);
     }
 
-    public function invite(): BelongsTo
+    public function invite(): HasOne
     {
-        return $this->belongsTo( Invite::class, 'user_id', 'id');
+        return $this->hasOne(Invite::class, 'user_id');
     }
 
     public function status(): bool

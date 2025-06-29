@@ -4,33 +4,27 @@ namespace App\Actions;
 
 use App\Models\Scan;
 
-class LinnworksStockAction {
-
-    private int $quantity;
+class LinnworksStockAction
+{
+    private int $currentStockLevel;
 
     private Scan $scan;
 
-    public function __construct(Scan $scan, int $quantity)
+    public function __construct(Scan $scan, int $currentStockLevel)
     {
         $this->scan = $scan;
-        $this->quantity = $quantity;
+        $this->currentStockLevel = $currentStockLevel;
     }
 
-    public function handle(Scan $scan)
+    public function handle(): int
     {
-        $this->quantity = $scan->quantity;
-        $action = $scan->action;
-        if($action === 'increase')
-        {
-            $this->quantity + $this->scan->quantity;
+        $action = $this->scan->action;
+
+        if ($action === 'increase') {
+            return $this->currentStockLevel + $this->scan->quantity;
         }
 
-        if($action === 'decrease')
-        {
-            max(0,$this->quantity - $this->scan->quantity);
-        }
-
-        return $this->quantity;
+        // Default to decrease for 'decrease' or null action
+        return max(0, $this->currentStockLevel - $this->scan->quantity);
     }
-
 }

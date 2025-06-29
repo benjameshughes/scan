@@ -20,14 +20,14 @@
     @auth
         <livewire:welcome.navigation />
     @endauth
-        <div class="min-h-screen flex flex-col justify-center items-center bg-gray-100 dark:bg-gray-900">
+        <div class="min-h-screen flex flex-col justify-center items-center bg-zinc-50 dark:bg-zinc-900">
 {{--            <div>--}}
 {{--                <a href="/" wire:navigate>--}}
 {{--                    <x-application-logo class="w-20 h-20 fill-current text-gray-500" />--}}
 {{--                </a>--}}
 {{--            </div>--}}
 
-            <div class="w-full sm:max-w-md bg-white dark:bg-gray-800 shadow-md overflow-hidden sm:rounded-lg">
+            <div class="w-full sm:max-w-md bg-white dark:bg-zinc-800 shadow-sm border border-zinc-200 dark:border-zinc-700 overflow-hidden sm:rounded-lg">
                 {{ $slot }}
             </div>
         </div>

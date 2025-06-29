@@ -13,10 +13,12 @@ class ProductController extends Controller
      */
     public function index()
     {
+        $this->authorize('viewAny', Product::class);
+
         // Get all products
-//        $products = Product::query()
-//            ->orderBy('sku')
-//            ->paginate(10);
+        //        $products = Product::query()
+        //            ->orderBy('sku')
+        //            ->paginate(10);
         // Return index view
         return view('products.index');
     }
@@ -26,6 +28,8 @@ class ProductController extends Controller
      */
     public function create()
     {
+        $this->authorize('create', Product::class);
+
         //
     }
 
@@ -34,6 +38,8 @@ class ProductController extends Controller
      */
     public function store(StoreProductRequest $request)
     {
+        $this->authorize('create', Product::class);
+
         //
     }
 
@@ -42,6 +48,8 @@ class ProductController extends Controller
      */
     public function show(Product $product)
     {
+        $this->authorize('view', $product);
+
         //
     }
 
@@ -50,6 +58,8 @@ class ProductController extends Controller
      */
     public function edit(Product $product)
     {
+        $this->authorize('update', $product);
+
         //
     }
 
@@ -58,6 +68,8 @@ class ProductController extends Controller
      */
     public function update(UpdateProductRequest $request, Product $product)
     {
+        $this->authorize('update', $product);
+
         //
     }
 
@@ -66,6 +78,8 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
+        $this->authorize('delete', $product);
+
         //
     }
 }

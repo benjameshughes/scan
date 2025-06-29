@@ -18,6 +18,7 @@ class LinnworksController extends Controller
         $token = Cache::get('linnworks.session_token');
         // Get profile view
         $products = Product::all();
+
         return view('linnworks.inventory', compact('products'));
     }
 
@@ -77,8 +78,8 @@ class LinnworksController extends Controller
      */
     public function fetchInventory(LinnworksApiService $linnworks)
     {
-        (int)$entriesPerPage = 200;
-        (int)$totalItems = $linnworks->getInventoryCount();
+        (int) $entriesPerPage = 200;
+        (int) $totalItems = $linnworks->getInventoryCount();
         $totalPages = ceil($totalItems / $entriesPerPage);
 
         // Dispatch a job for each page to fetch the inventory

@@ -15,6 +15,12 @@ class Scan extends Model
         'created_at',
     ];
 
+    protected $casts = [
+        'submitted_at' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -24,9 +30,9 @@ class Scan extends Model
     {
         // This creates a custom relationship that checks all barcode columns
         return $this->belongsTo(Product::class, 'barcode', 'barcode')
-            ->orWhere(function($query) {
+            ->orWhere(function ($query) {
                 $query->where('barcode_2', $this->barcode)
-                      ->orWhere('barcode_3', $this->barcode);
+                    ->orWhere('barcode_3', $this->barcode);
             });
     }
 

@@ -4,13 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreScanRequest;
 use App\Http\Requests\UpdateScanRequest;
-use App\Jobs\SyncBarcode;
-use App\Models\Product;
 use App\Models\Scan;
-use App\Services\LinnworksApiService;
-use Illuminate\Queue\Jobs\Job;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class ScanController extends Controller
@@ -20,6 +14,8 @@ class ScanController extends Controller
      */
     public function index(): View
     {
+        $this->authorize('viewAny', Scan::class);
+
         // Render the view
         return view('scan.list');
     }
@@ -29,6 +25,8 @@ class ScanController extends Controller
      */
     public function create(): View
     {
+        //        $this->authorize('create', Scan::class);
+
         // Render the view
         return view('scan.index');
     }
@@ -38,6 +36,8 @@ class ScanController extends Controller
      */
     public function store(StoreScanRequest $request)
     {
+        $this->authorize('create', Scan::class);
+
         //
     }
 
@@ -46,6 +46,8 @@ class ScanController extends Controller
      */
     public function show(Scan $scan)
     {
+        $this->authorize('view', $scan);
+
         // Render the view
         return view('scan.view', compact('scan'));
     }
@@ -55,6 +57,8 @@ class ScanController extends Controller
      */
     public function edit(Scan $scan)
     {
+        $this->authorize('update', $scan);
+
         //
     }
 
@@ -63,6 +67,8 @@ class ScanController extends Controller
      */
     public function update(UpdateScanRequest $request, Scan $scan)
     {
+        $this->authorize('update', $scan);
+
         //
     }
 
@@ -71,16 +77,18 @@ class ScanController extends Controller
      */
     public function destroy(Scan $scan)
     {
+        $this->authorize('delete', $scan);
+
         //
     }
 
     /**
      * Show the scan form publicly
      */
-
     public function scan()
     {
         $layout = auth()->check() ? 'app' : 'guest';
-        return view('scan.index')->layout('layouts.' . $layout);
+
+        return view('scan.index')->layout('layouts.'.$layout);
     }
 }

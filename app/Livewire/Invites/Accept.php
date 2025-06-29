@@ -3,21 +3,24 @@
 namespace App\Livewire\Invites;
 
 use App\Models\Invite;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Livewire\Component;
 
 class Accept extends Component
 {
     public Invite $invite;
+
     public string $token;
+
     public string $name = '';
+
     public string $email = '';
+
     public string $password = '';
+
     public string $password_confirmation = '';
 
     public function mount($token, Request $request)
@@ -37,7 +40,7 @@ class Accept extends Component
     public function acceptInvite()
     {
         $validated = $this->validate([
-            'password' => ['required', 'string', 'confirmed', Rules\Password::min(6)->max(255)->letters()->mixedCase()]
+            'password' => ['required', 'string', 'confirmed', Rules\Password::min(6)->max(255)->letters()->mixedCase()],
         ]);
 
         // Same thing as users, bypass the guard for accepted_at

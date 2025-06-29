@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\Scan;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class ScanPolicy
 {
@@ -13,7 +12,7 @@ class ScanPolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return $user->can('view scans');
     }
 
     /**
@@ -21,7 +20,8 @@ class ScanPolicy
      */
     public function view(User $user, Scan $scan): bool
     {
-        return false;
+        // Users can view their own scans, or if they have view scans permission
+        return $user->can('view scans') || $scan->user_id === $user->id;
     }
 
     /**
@@ -29,7 +29,7 @@ class ScanPolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return $user->can('create scans');
     }
 
     /**
@@ -37,7 +37,12 @@ class ScanPolicy
      */
     public function update(User $user, Scan $scan): bool
     {
-        return false;
+        // Users can edit their own scans if not submitted, or if they have edit permission
+        if ($user->can('edit scans')) {
+            return true;
+        }
+
+        return $scan->user_id === $user->id && ! $scan->submitted;
     }
 
     /**
@@ -45,7 +50,20 @@ class ScanPolicy
      */
     public function delete(User $user, Scan $scan): bool
     {
-        return true;
+        // Users can delete their own unsubmitted scans, or if they have delete permission
+        if ($user->can('delete scans')) {
+            return true;
+        }
+
+        return $scan->user_id === $user->id && ! $scan->submitted;
+    }
+
+    /**
+     * Determine whether the user can sync scans.
+     */
+    public function sync(User $user): bool
+    {
+        return $user->can('sync scans');
     }
 
     /**
@@ -53,7 +71,7 @@ class ScanPolicy
      */
     public function restore(User $user, Scan $scan): bool
     {
-        return false;
+        return $user->can('delete scans');
     }
 
     /**
@@ -61,6 +79,6 @@ class ScanPolicy
      */
     public function forceDelete(User $user, Scan $scan): bool
     {
-        return false;
+        return $user->can('delete scans');
     }
 }

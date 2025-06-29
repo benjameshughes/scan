@@ -18,26 +18,26 @@ class SyncsTable extends Table
     {
         return [
             TextColumn::make('id')
-            ->label('ID'),
+                ->label('ID'),
             TextColumn::make('barcode')
-            ->label('Barcode'),
+                ->label('Barcode'),
             TextColumn::make('sync_status')
                 ->label('Sync Status'),
             TextColumn::make('submitted_at')
                 ->label('Submitted At')
-            ->dateForHumans(),
+                ->dateForHumans(),
             TextColumn::make('created_at')
                 ->label('Scanned')
-            ->dateForHumans(),
+                ->dateForHumans(),
             TextColumn::make('submitted')
                 ->label('Status')
-            ->value(function (Scan $scan) {
-                if ($scan->submitted) {
-                    return 'Submitted';
-                } else {
-                    return 'Pending';
-                }
-            }),
+                ->value(function (Scan $scan) {
+                    if ($scan->submitted) {
+                        return 'Submitted';
+                    } else {
+                        return 'Pending';
+                    }
+                }),
         ];
     }
 }

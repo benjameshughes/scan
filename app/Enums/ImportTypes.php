@@ -2,7 +2,8 @@
 
 namespace App\Enums;
 
-enum ImportTypes {
+enum ImportTypes
+{
     case CREATE;
     case UPDATE;
     case DELETE;
@@ -18,7 +19,7 @@ enum ImportTypes {
 
     public static function toArray(): array
     {
-        return array_map(fn(self $case) => [
+        return array_map(fn (self $case) => [
             'name' => $case->name,
             'label' => $case->getLabel(),
         ], self::cases());

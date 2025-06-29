@@ -6,7 +6,6 @@ use App\Actions\GetProductFromScannedBarcode;
 use App\DTOs\EmptyBayDTO;
 use App\Jobs\EmptyBayJob;
 use App\Jobs\SyncBarcode;
-use App\Models\Product;
 use App\Models\Scan;
 use App\Rules\BarcodePrefixCheck;
 use Illuminate\Support\Facades\Log;
@@ -20,10 +19,14 @@ class ScanForm extends Component
 
     #[Validate(['required', new BarcodePrefixCheck('505903')])]
     public ?int $barcode = null;
+
     #[Validate('required|min:1')]
     public int $quantity = 1;
+
     public bool $barcodeScanned = false;
+
     public bool $showSuccessMessage = false;
+
     public string $successMessage;
 
     public bool $scanAction = false;
@@ -45,10 +48,9 @@ class ScanForm extends Component
         $this->barcode = $barcode;
         $this->barcodeScanned = true;
 
-        if($this->validate())
-        {
+        if ($this->validate()) {
             $product = (new GetProductFromScannedBarcode($this->barcode))->handle();
-            $this->successMessage = $product ? $product->name : "No Product Found With That Barcode";
+            $this->successMessage = $product ? $product->name : 'No Product Found With That Barcode';
             $this->showSuccessMessage = true;
         }
 

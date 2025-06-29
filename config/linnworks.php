@@ -25,5 +25,5 @@ return [
      */
 
     'auth_url' => env('LINNWORKS_AUTH_URL', 'https://api.linnworks.net/api/'),
-    'base_url' => env('LINNWORKS_BASE_URL', 'https://eu-ext.linnworks.net/api/')
+    'base_url' => env('LINNWORKS_BASE_URL', 'https://eu-ext.linnworks.net/api/'),
 ];

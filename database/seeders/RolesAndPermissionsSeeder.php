@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -52,6 +51,11 @@ class RolesAndPermissionsSeeder extends Seeder
             'delete invites',
         ];
 
+        // Create all permissions
+        foreach (array_merge($userPermissions, $scanPermissions, $productPermissions, $invitePermissions) as $permission) {
+            Permission::findOrCreate($permission);
+        }
+
         // Create Roles
         $adminRole = Role::findOrCreate('admin');
         $adminRole->givePermissionTo(Permission::all());
@@ -59,14 +63,23 @@ class RolesAndPermissionsSeeder extends Seeder
         // Create User Role
         $userRole = Role::findOrCreate('user');
         $userRole->givePermissionTo([
-            
+            'view scanner',
+            'create scans',
+            'view scans',
+            'view products',
         ]);
 
-        // Assign admin role to user
-        $user = User::find(1);
-        if($user)
-        {
-            $user->assignRole('admin');
+        // Assign admin role to specific user if exists
+        $adminUser = User::where('email', 'ben@app.com')->first();
+        if ($adminUser) {
+            $adminUser->assignRole('admin');
+        }
+
+        // Assign random roles to other users
+        $users = User::where('email', '!=', 'ben@app.com')->get();
+        foreach ($users as $user) {
+            $role = fake()->randomElement(['admin', 'user', 'user', 'user']); // 75% chance user, 25% admin
+            $user->assignRole($role);
         }
 
     }

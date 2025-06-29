@@ -2,25 +2,31 @@
 
 namespace App\Services;
 
+use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
-use Exception;
+use Illuminate\Support\Facades\Log;
 
 class LinnworksApiService
 {
     protected readonly string $appId;
+
     protected readonly string $appSecret;
+
     protected readonly string $appToken;
+
     protected readonly string $baseUrl;
+
     protected readonly string $authUrl;
+
     protected Client $client;
+
     protected string $cacheKey = 'linnworks.session_token';
 
     public function __construct()
     {
-        $this->client = new Client();
+        $this->client = new Client;
         $this->appId = config('linnworks.app_id');
         $this->appSecret = config('linnworks.app_secret');
         $this->appToken = config('linnworks.app_token');
@@ -42,6 +48,7 @@ class LinnworksApiService
 
         // If no token in cache, get a new one
         Log::channel('lw_auth')->info('No token in cache, authorizing with Linnworks');
+
         return $this->authorizeByApplication();
     }
 
@@ -56,9 +63,10 @@ class LinnworksApiService
         // Get the cached token
         $cachedToken = Cache::get($this->cacheKey);
 
-        if (!$cachedToken) {
+        if (! $cachedToken) {
             Log::channel('lw_auth')->warning('No cached token found during validation');
             $this->authorizeByApplication();
+
             return false;
         }
 
@@ -69,14 +77,17 @@ class LinnworksApiService
             // Compare the tokens
             if ($freshToken === $cachedToken) {
                 Log::channel('lw_auth')->info('Token validation successful - tokens match');
+
                 return true;
             } else {
                 Log::channel('lw_auth')->warning('Token mismatch detected, updating cached token');
                 Cache::put($this->cacheKey, $freshToken);
+
                 return false;
             }
         } catch (Exception $e) {
-            Log::channel('lw_auth')->error('Token validation failed: ' . $e->getMessage());
+            Log::channel('lw_auth')->error('Token validation failed: '.$e->getMessage());
+
             return false;
         }
     }
@@ -87,12 +98,12 @@ class LinnworksApiService
     private function getTokenFromApi(): string
     {
         $body = [
-            "ApplicationId" => $this->appId,
-            "ApplicationSecret" => $this->appSecret,
-            "Token" => $this->appToken,
+            'ApplicationId' => $this->appId,
+            'ApplicationSecret' => $this->appSecret,
+            'Token' => $this->appToken,
         ];
 
-        $response = $this->makeRequest('POST', $this->authUrl . 'Auth/AuthorizeByApplication', [
+        $response = $this->makeRequest('POST', $this->authUrl.'Auth/AuthorizeByApplication', [
             'body' => json_encode($body),
             'headers' => [
                 'accept' => 'application/json',
@@ -117,8 +128,8 @@ class LinnworksApiService
 
             return $token;
         } catch (Exception $e) {
-            Log::channel('lw_auth')->error('Authorization failed: ' . $e->getMessage());
-            throw new Exception('Unable to authorize by application: ' . $e->getMessage());
+            Log::channel('lw_auth')->error('Authorization failed: '.$e->getMessage());
+            throw new Exception('Unable to authorize by application: '.$e->getMessage());
         }
     }
 
@@ -137,7 +148,7 @@ class LinnworksApiService
         ]);
 
         try {
-            return $this->makeRequest($method, $this->baseUrl . $endpoint, $options);
+            return $this->makeRequest($method, $this->baseUrl.$endpoint, $options);
         } catch (Exception $e) {
             // If we get a 401, try to refresh the token and retry once
             if (str_contains($e->getMessage(), '401')) {
@@ -146,7 +157,8 @@ class LinnworksApiService
                 $token = $this->authorizeByApplication();
 
                 $options['headers']['Authorization'] = $token;
-                return $this->makeRequest($method, $this->baseUrl . $endpoint, $options);
+
+                return $this->makeRequest($method, $this->baseUrl.$endpoint, $options);
             }
 
             throw $e;
@@ -160,9 +172,10 @@ class LinnworksApiService
     {
         try {
             $response = $this->client->request($method, $url, $options);
+
             return json_decode($response->getBody()->getContents(), true);
         } catch (GuzzleException $e) {
-            Log::channel('lw_auth')->error("API request failed: {$method} {$url} - " . $e->getMessage());
+            Log::channel('lw_auth')->error("API request failed: {$method} {$url} - ".$e->getMessage());
             throw new Exception("API request failed: {$e->getMessage()}");
         }
     }
@@ -174,6 +187,7 @@ class LinnworksApiService
     {
         Log::channel('lw_auth')->info('Manually refreshing token');
         Cache::forget($this->cacheKey);
+
         return $this->authorizeByApplication();
     }
 
@@ -188,8 +202,8 @@ class LinnworksApiService
                     'SKU' => $sku,
                     'LocationId' => '00000000-0000-0000-0000-000000000000',
                     'Level' => $quantity,
-                ]
-            ]
+                ],
+            ],
         ];
 
         return $this->makeAuthenticatedRequest(
@@ -205,6 +219,7 @@ class LinnworksApiService
     public function getStockLevel(string $sku): int
     {
         $data = $this->searchStockItems($sku, 1, ['StockLevels']);
+
         return $data[0]['StockLevels'][0]['StockLevel'];
     }
 
@@ -214,11 +229,11 @@ class LinnworksApiService
     public function getInventory(int $pageNumber = 1, int $entriesPerPage = 200): array
     {
         $body = [
-            "loadCompositeParents" => false,
-            "loadVariationParents" => false,
-            "entriesPerPage" => $entriesPerPage,
-            "pageNumber" => $pageNumber,
-            "dataRequirements" => ["StockLevels"],
+            'loadCompositeParents' => false,
+            'loadVariationParents' => false,
+            'entriesPerPage' => $entriesPerPage,
+            'pageNumber' => $pageNumber,
+            'dataRequirements' => ['StockLevels'],
         ];
 
         return $this->makeAuthenticatedRequest(
@@ -234,7 +249,8 @@ class LinnworksApiService
     public function getInventoryCount(): int
     {
         $response = $this->makeAuthenticatedRequest('GET', 'Inventory/GetInventoryItemsCount');
-        return (int)$response;
+
+        return (int) $response;
     }
 
     /**
@@ -244,8 +260,9 @@ class LinnworksApiService
     {
         $data = $this->searchStockItems($sku, 1, ['StockLevels']);
 
-        if (!empty($data)) {
-            Log::channel('inventory')->info("Stock Details: " . ($data[0]['ItemTitle'] ?? 'Not found'));
+        if (! empty($data)) {
+            Log::channel('inventory')->info('Stock Details: '.($data[0]['ItemTitle'] ?? 'Not found'));
+
             return $data[0];
         }
 
@@ -259,7 +276,7 @@ class LinnworksApiService
         string $keyword,
         int $entriesPerPage = 1,
         array $dataRequirements = ['StockLevels'],
-        array $searchTypes = ["SKU", "Title", "Barcode"]
+        array $searchTypes = ['SKU', 'Title', 'Barcode']
     ): array {
         $body = [
             'keyword' => trim($keyword),
@@ -267,8 +284,8 @@ class LinnworksApiService
             'loadVariationParents' => false,
             'entriesPerPage' => $entriesPerPage,
             'pageNumber' => 1,
-            "dataRequirements" => $dataRequirements,
-            "searchTypes" => $searchTypes,
+            'dataRequirements' => $dataRequirements,
+            'searchTypes' => $searchTypes,
         ];
 
         return $this->makeAuthenticatedRequest(
@@ -287,6 +304,7 @@ class LinnworksApiService
 
         if (empty($itemDetail)) {
             Log::channel('inventory')->warning("SKU not found: {$sku}");
+
             return [];
         }
 
@@ -296,7 +314,7 @@ class LinnworksApiService
         $endpoint = "Stock/GetItemChangesHistory?stockItemId={$itemId}&locationId=00000000-0000-0000-0000-000000000000&entriesPerPage=0&pageNumber=0";
 
         $response = $this->makeAuthenticatedRequest('GET', $endpoint);
-        Log::channel('lw_auth')->info('getStockItemHistory: ' . json_encode($response));
+        Log::channel('lw_auth')->info('getStockItemHistory: '.json_encode($response));
 
         return $response;
     }

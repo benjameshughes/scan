@@ -89,7 +89,7 @@
             @endforeach
 
             {{-- Actions Section --}}
-            @role('admin')
+            @can('delete', $scan)
                 <div class="{{ $classes['section'] }} {{ $classes['border'] }}">
                     <dt class="{{ $classes['dt'] }}">
                         <flux:button variant="danger" wire:click="delete('{{ $scan->id }}')">

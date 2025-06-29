@@ -6,7 +6,7 @@
     'noDataMessage' => 'No records? That doesn\'t seem right...' // Message to display when there are no items.
 ])
 
-<ul role="list" class="divide-y divide-gray-200 dark:divide-gray-700 w-full max-sm:w-full">
+<ul role="list" class="divide-y divide-zinc-200 dark:divide-zinc-700 w-full max-sm:w-full">
     @forelse($items as $item)
         <li class="flex items-center justify-between gap-x-6 py-5">
             <div class="flex min-w-0 flex-grow space-x-4">
@@ -15,7 +15,7 @@
                          Display the barcode along with its associated SKU. 
                          Change these property names as needed for your data.
                     -->
-                    <div class="text-sm font-medium text-gray-900 truncate dark:text-white">
+                    <div class="text-sm font-medium text-gray-900 truncate dark:text-gray-100">
                         {{$item->id}} - {{ $item->product->sku ?? 'No SKU' }}
                     </div>
                     <div class="text-sm text-gray-500 truncate dark:text-gray-400">

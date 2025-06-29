@@ -4,8 +4,8 @@ namespace App\Tables\Concerns;
 
 use App\Tables\Columns\Column;
 
-trait HasColumns {
-
+trait HasColumns
+{
     protected function getColumns(): array
     {
         return $this->columns();
@@ -15,9 +15,8 @@ trait HasColumns {
     {
         $columns = $this->getColumns();
 
-        return collect($columns)->map(function($column) {
+        return collect($columns)->map(function ($column) {
             return $column instanceof Column ? $column : Column::make($column);
         })->toArray();
     }
-
 }

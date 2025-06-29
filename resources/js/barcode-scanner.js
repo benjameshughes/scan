@@ -56,9 +56,23 @@ class BarcodeScanner {
     }
 
     setupLivewireListeners() {
-        // Camera toggle
+        // Legacy camera toggle (for compatibility)
         Livewire.on("camera", () => {
             this.stopScanning();
+        });
+
+        // New camera state management
+        Livewire.on("camera-state-changed", (isScanning) => {
+            if (isScanning) {
+                this.startScanning();
+            } else {
+                this.stopScanning();
+            }
+        });
+
+        // Resume scanning event
+        Livewire.on("resume-scanning", () => {
+            this.startScanning();
         });
 
         // Stop scan event  
@@ -66,9 +80,13 @@ class BarcodeScanner {
             this.stopScanning();
         });
 
-        // Torch toggle
+        // Torch toggle events
         Livewire.on("torch", () => {
             this.toggleTorch();
+        });
+
+        Livewire.on("torch-state-changed", (enabled) => {
+            this.setTorchState(enabled);
         });
     }
 
@@ -146,7 +164,13 @@ class BarcodeScanner {
     }
 
     async startScanning() {
-        if (this.cameraIsActive || !this.selectedDeviceId) return;
+        if (this.cameraIsActive) return;
+        
+        // If no device selected yet, initialize camera first
+        if (!this.selectedDeviceId) {
+            await this.initializeCamera();
+            return;
+        }
         
         try {
             // Get optimized camera stream
@@ -262,6 +286,33 @@ class BarcodeScanner {
         } catch (error) {
             console.error("Error toggling torch:", error);
             Livewire.dispatch("torchStatus", [false]);
+        }
+    }
+
+    async setTorchState(enabled) {
+        if (!this.currentStream) {
+            console.warn('No camera stream available for torch control');
+            return;
+        }
+
+        const videoTrack = this.currentStream.getVideoTracks()[0];
+        if (!videoTrack) return;
+
+        const capabilities = videoTrack.getCapabilities();
+        if (!(capabilities && capabilities.torch)) {
+            console.warn("Torch not supported on this device/browser.");
+            return;
+        }
+
+        try {
+            await videoTrack.applyConstraints({
+                advanced: [{ torch: enabled }]
+            });
+            
+            console.log('Torch set to:', enabled ? 'enabled' : 'disabled');
+            
+        } catch (error) {
+            console.error("Error setting torch state:", error);
         }
     }
 

@@ -8,8 +8,8 @@ use Illuminate\View\Component;
 
 class FlashMessage extends Component
 {
-
     public string $message;
+
     public string $type;
 
     /**

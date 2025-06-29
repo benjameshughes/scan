@@ -14,6 +14,7 @@ class Widgets extends Component
     {
         $this->scans = Scan::all();
     }
+
     public function render()
     {
         return view('livewire.dashboard.widgets');

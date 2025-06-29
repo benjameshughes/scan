@@ -2,15 +2,14 @@
 
 namespace App\Actions;
 
-use App\Models\Scan;
 use App\Actions\Contracts\Action;
+use App\Models\Scan;
 
 /**
  * Gives users the ability to mark a scan as submitted.
  */
 final class MarkScanAsSubmitted implements Action
 {
-
     public Scan $scan;
 
     public function __construct(Scan $scan)
@@ -27,5 +26,4 @@ final class MarkScanAsSubmitted implements Action
             'sync_status' => 'synced',
         ]);
     }
-
 }

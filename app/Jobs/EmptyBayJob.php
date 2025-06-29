@@ -2,13 +2,11 @@
 
 namespace App\Jobs;
 
-use App\Models\ExternalEmail;
 use App\Models\Scan;
 use App\Models\User;
 use App\Notifications\EmptyBayNotification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Support\Facades\Log;
 
 class EmptyBayJob implements ShouldQueue
 {
@@ -38,19 +36,13 @@ class EmptyBayJob implements ShouldQueue
         }
 
         // Get admin users
-        $users = User::with('roles')
+        $admins = User::with('roles')
             ->get()
             ->filter(fn ($user) => $user->roles->contains('name', 'admin'));
 
-        // Get external emails
-        $externalEmails = ExternalEmail::all();
-
-        // Merge collections
-        $recipients = $users->merge($externalEmails);
-
-        // Notify each recipient
-        $recipients->each(function ($recipient) use ($product) {
-            $recipient->notify(new EmptyBayNotification($product));
+        // Notify each admin
+        $admins->each(function ($admin) use ($product) {
+            $admin->notify(new EmptyBayNotification($product));
         });
     }
 }

@@ -11,6 +11,7 @@ class Index extends Component
     use WithPagination;
 
     public int $perPage = 10;
+
     public string $search = '';
 
     public string $sortField = 'sku';
@@ -25,8 +26,7 @@ class Index extends Component
 
     public function sortBy($field)
     {
-        if ($this->sortField = $field)
-        {
+        if ($this->sortField = $field) {
             $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
 
         } else {
@@ -57,16 +57,13 @@ class Index extends Component
         ];
     }
 
-
-
     private function getActions()
     {
         return [
             ['url' => route('products.show', '1'), 'label' => 'View', 'button-colour' => 'blue'],
-            ['url' => route('products.edit', '1' ), 'label' => 'Edit', 'button-colour' => 'orange'],
+            ['url' => route('products.edit', '1'), 'label' => 'Edit', 'button-colour' => 'orange'],
         ];
     }
-
 
     private function getColumns()
     {

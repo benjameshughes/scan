@@ -4,8 +4,8 @@ namespace App\Actions\Concerns;
 
 use App\Models\Scan;
 
-trait UpdateScanStatus {
-
+trait UpdateScanStatus
+{
     protected function updateScanStatus(Scan $scan, string $status): Scan
     {
         $scan->update([
@@ -43,5 +43,4 @@ trait UpdateScanStatus {
 
         return $scan;
     }
-
 }

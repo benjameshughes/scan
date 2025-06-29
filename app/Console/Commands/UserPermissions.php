@@ -30,21 +30,23 @@ class UserPermissions extends Command
         // Get email from argument or env
         $email = $this->argument('email');
 
-        if (!$email) {
+        if (! $email) {
             $this->error('No admin email provided. Use --email=your@email.com or set ADMIN_EMAIL in .env');
+
             return 1;
         }
 
         // Find the user
         $user = User::where('email', $email)->first();
-        if (!$user) {
+        if (! $user) {
             $this->error("User with email {$email} not found!");
+
             return 1;
         }
 
         // Make sure admin role exists
         $adminRole = Role::where('name', 'admin')->first();
-        if (!$adminRole) {
+        if (! $adminRole) {
             $adminRole = Role::create(['name' => 'admin']);
             $this->info('Created admin role');
         }

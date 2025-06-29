@@ -5,7 +5,6 @@ namespace App\Actions;
 use App\Actions\Concerns\SendNotifications;
 use App\Actions\Concerns\UpdateScanStatus;
 use App\Actions\Contracts\Action;
-use App\Actions\LinnworksStockAction;
 use App\Exceptions\NoSkuFoundException;
 use App\Models\Scan;
 use App\Notifications\NoSkuFound;
@@ -47,25 +46,27 @@ final class SyncBarcodeAction implements Action
             // Notify users of no SKU found for a barcode
             $this->notifyAllUsers(new NoSkuFound($this->scan));
             $this->markScanAsFailed($this->scan);
-            Log::channel('inventory')->info('No product found for ' . $this->scan->barcode);
+            Log::channel('inventory')->info('No product found for '.$this->scan->barcode);
 
-            throw new NoSkuFoundException('No SKU found for ' . $this->scan->barcode);
+            throw new NoSkuFoundException('No SKU found for '.$this->scan->barcode, 0, null, $this->scan);
         }
 
         // Get the SKU of the product
         $sku = $product->sku;
-        Log::channel('sku_lookup')->info($sku . ' ' . now());
+        Log::channel('sku_lookup')->info($sku.' '.now());
 
         // Get the stock level from Linnworks using the SKU
         $lwStockLevel = $this->linnworks->getStockLevel($sku);
         Log::channel('sku_lookup')->info('Found Linnworks stock level '.$lwStockLevel.' for SKU '.$sku.' Scan quantity '.$this->scan->quantity);
 
-        $quantity = new LinnworksStockAction($this->scan, $lwStockLevel);
+        // Calculate the new stock level based on the action
+        $stockAction = new LinnworksStockAction($this->scan, $lwStockLevel);
+        $newStockLevel = $stockAction->handle();
 
-        Log::channel('sku_lookup')->info("Updated Linnworks stock level {$quantity} for SKU {$sku} Scan quantity {$this->scan->quantity}");
+        Log::channel('sku_lookup')->info("Updated Linnworks stock level {$newStockLevel} for SKU {$sku} Scan quantity {$this->scan->quantity}");
 
         // Update the stock level
-        $this->linnworks->updateStockLevel($sku, $quantity);
+        $this->linnworks->updateStockLevel($sku, $newStockLevel);
 
         // Update scan as synced
         $this->markScanAsSuccessful($this->scan);

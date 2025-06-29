@@ -2,13 +2,12 @@
 
 namespace App\Tables\Concerns;
 
-trait HasFilters {
-
+trait HasFilters
+{
     public array $filters = [];
 
     public function getFilters(): array
     {
         return $this->filters;
     }
-
 }

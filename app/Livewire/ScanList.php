@@ -9,17 +9,24 @@ use Livewire\WithPagination;
 class ScanList extends Component
 {
     use WithPagination;
+
     public int $perPage = 10;
+
     public $search = '';
+
     public $sortField = 'barcode';
+
     public $sortDirection = 'asc';
+
     public $filter = '0';
+
     protected $queryString = ['search', 'sortField', 'sortDirection'];
+
     public array $perPageOptions = [10, 25, 50, 100];
+
     public function sortBy($field)
     {
-        if ($this->sortField = $field)
-        {
+        if ($this->sortField = $field) {
             $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
 
         } else {
@@ -35,7 +42,7 @@ class ScanList extends Component
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate($this->perPage);
 
-        return view('livewire.scan-list',[
+        return view('livewire.scan-list', [
             'scans' => $scans,
             'actions' => $this->getActions(),
             'columns' => $this->getColumns(),
@@ -48,8 +55,8 @@ class ScanList extends Component
     private function getFilters()
     {
         return [
-            ['key' => '1', 'label' => 'Submitted',],
-            ['key' => '0', 'label' => 'Not Submitted',],
+            ['key' => '1', 'label' => 'Submitted'],
+            ['key' => '0', 'label' => 'Not Submitted'],
         ];
     }
 
@@ -57,7 +64,7 @@ class ScanList extends Component
     {
         return [
             ['url' => route('scan.show', ''), 'label' => 'View', 'button-colour' => 'blue'],
-            ['url' => route('scan.edit', '' ), 'label' => 'Edit', 'button-colour' => 'orange'],
+            ['url' => route('scan.edit', ''), 'label' => 'Edit', 'button-colour' => 'orange'],
         ];
     }
 

@@ -4,8 +4,9 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Process;
-use function Laravel\Prompts\select;
+
 use function Laravel\Prompts\confirm;
+use function Laravel\Prompts\select;
 use function Laravel\Prompts\text;
 
 class BumpVersionImproved extends Command
@@ -32,7 +33,7 @@ class BumpVersionImproved extends Command
     {
         try {
             // Pre-flight safety checks
-            if (!$this->preflightChecks()) {
+            if (! $this->preflightChecks()) {
                 return 1;
             }
 
@@ -53,7 +54,8 @@ class BumpVersionImproved extends Command
             return $this->handleBump();
 
         } catch (\Exception $e) {
-            $this->error('Error: ' . $e->getMessage());
+            $this->error('Error: '.$e->getMessage());
+
             return 1;
         }
     }
@@ -64,22 +66,25 @@ class BumpVersionImproved extends Command
     private function preflightChecks(): bool
     {
         // Check if we're in a git repository
-        if (!$this->isGitRepository()) {
+        if (! $this->isGitRepository()) {
             $this->error('Not in a git repository');
+
             return false;
         }
 
         // Check working directory is clean (unless forced)
-        if (!$this->option('force') && !$this->isWorkingDirectoryClean()) {
+        if (! $this->option('force') && ! $this->isWorkingDirectoryClean()) {
             $this->error('Working directory is not clean. Commit or stash changes first, or use --force');
             $this->showGitStatus();
+
             return false;
         }
 
         // Check if we're on master/main branch
         $currentBranch = trim($this->execSafe('git branch --show-current'));
-        if (!in_array($currentBranch, ['master', 'main']) && !$this->option('force')) {
+        if (! in_array($currentBranch, ['master', 'main']) && ! $this->option('force')) {
             $this->error("Not on master/main branch (currently on: $currentBranch). Use --force to override");
+
             return false;
         }
 
@@ -99,17 +104,19 @@ class BumpVersionImproved extends Command
         $newVersion = $this->getNewVersion($currentVersion, $type);
 
         if ($this->option('dry')) {
-            $this->info('New version (dry-run): ' . $newVersion);
+            $this->info('New version (dry-run): '.$newVersion);
+
             return 0;
         }
 
         // Create backup before proceeding
-        $backupBranch = "backup/pre-version-$newVersion-" . date('Y-m-d-H-i-s');
+        $backupBranch = "backup/pre-version-$newVersion-".date('Y-m-d-H-i-s');
         $this->createBackupBranch($backupBranch);
 
         // Confirm the operation
-        if (!confirm("Bump version from $currentVersion to $newVersion?", true)) {
+        if (! confirm("Bump version from $currentVersion to $newVersion?", true)) {
             $this->info('Version bump cancelled');
+
             return 0;
         }
 
@@ -131,18 +138,20 @@ class BumpVersionImproved extends Command
     private function handleRollback(string $version): int
     {
         // Verify the tag exists
-        if (!$this->tagExists($version)) {
+        if (! $this->tagExists($version)) {
             $this->error("Tag $version does not exist");
             $this->showAvailableTags();
+
             return 1;
         }
 
         // Create backup before rollback
-        $backupBranch = "backup/pre-rollback-" . date('Y-m-d-H-i-s');
+        $backupBranch = 'backup/pre-rollback-'.date('Y-m-d-H-i-s');
         $this->createBackupBranch($backupBranch);
 
-        if (!confirm("Rollback to version $version? This will reset the current branch.", false)) {
+        if (! confirm("Rollback to version $version? This will reset the current branch.", false)) {
             $this->info('Rollback cancelled');
+
             return 0;
         }
 
@@ -150,13 +159,14 @@ class BumpVersionImproved extends Command
 
         // Safe rollback without force push
         $this->execSafe("git reset --hard $version");
-        
+
         // Only push if user confirms
         if (confirm('Push rollback to remote? (This will require force push)', false)) {
             $this->execSafe('git push origin HEAD --force-with-lease');
         }
 
         $this->info("Rollback complete. Backup created at: $backupBranch");
+
         return 0;
     }
 
@@ -166,30 +176,34 @@ class BumpVersionImproved extends Command
     private function handleDowngrade(string $targetVersion): int
     {
         $currentVersion = $this->getCurrentVersion();
-        
-        if (!$this->isValidVersionFormat($targetVersion)) {
+
+        if (! $this->isValidVersionFormat($targetVersion)) {
             $this->error('Invalid version format. Use semantic versioning (e.g., 1.2.3)');
+
             return 1;
         }
 
         if (version_compare($targetVersion, $currentVersion, '>=')) {
             $this->error('Target version must be lower than current version');
+
             return 1;
         }
 
         $this->info("Downgrading from $currentVersion to $targetVersion");
 
         if ($this->option('dry')) {
-            $this->info('Downgrade version (dry-run): ' . $targetVersion);
+            $this->info('Downgrade version (dry-run): '.$targetVersion);
+
             return 0;
         }
 
         // Create backup
-        $backupBranch = "backup/pre-downgrade-" . date('Y-m-d-H-i-s');
+        $backupBranch = 'backup/pre-downgrade-'.date('Y-m-d-H-i-s');
         $this->createBackupBranch($backupBranch);
 
-        if (!confirm("Downgrade version from $currentVersion to $targetVersion?", false)) {
+        if (! confirm("Downgrade version from $currentVersion to $targetVersion?", false)) {
             $this->info('Downgrade cancelled');
+
             return 0;
         }
 
@@ -211,9 +225,9 @@ class BumpVersionImproved extends Command
         $this->execSafe('git add composer.json README.md');
 
         $commitMessage = $this->generateCommitMessage($newVersion, $operation);
-        
-        $this->execSafe("git commit -m " . escapeshellarg($commitMessage));
-        $this->execSafe("git tag -a $newVersion -m " . escapeshellarg("Release version $newVersion"));
+
+        $this->execSafe('git commit -m '.escapeshellarg($commitMessage));
+        $this->execSafe("git tag -a $newVersion -m ".escapeshellarg("Release version $newVersion"));
 
         if (confirm('Push to remote?', true)) {
             $this->execSafe('git push origin HEAD');
@@ -229,17 +243,17 @@ class BumpVersionImproved extends Command
      */
     private function generateCommitMessage(string $version, string $operation): string
     {
-        $baseMessage = ucfirst($operation) . " version to $version";
+        $baseMessage = ucfirst($operation)." version to $version";
 
         if ($this->option('claude')) {
             $this->info('Generating enhanced commit message with Claude...');
-            
+
             // Get recent changes
             $changes = $this->execSafe('git diff --cached --name-only');
             $changelog = text('Describe the changes in this version (optional):');
-            
+
             $enhancedMessage = $this->generateClaudeCommitMessage($version, $operation, $changes, $changelog);
-            
+
             if ($enhancedMessage) {
                 return $enhancedMessage;
             }
@@ -253,12 +267,12 @@ class BumpVersionImproved extends Command
      */
     private function generateClaudeCommitMessage(string $version, string $operation, string $changes, ?string $changelog): string
     {
-        $message = ucfirst($operation) . " version to $version\n\n";
-        
+        $message = ucfirst($operation)." version to $version\n\n";
+
         if ($changelog) {
             $message .= "## Changes\n$changelog\n\n";
         }
-        
+
         if ($changes) {
             $message .= "## Files Modified\n";
             $files = explode("\n", trim($changes));
@@ -267,10 +281,10 @@ class BumpVersionImproved extends Command
             }
             $message .= "\n";
         }
-        
+
         $message .= "🤖 Generated with [Claude Code](https://claude.ai/code)\n\n";
-        $message .= "Co-Authored-By: Claude <noreply@anthropic.com>";
-        
+        $message .= 'Co-Authored-By: Claude <noreply@anthropic.com>';
+
         return $message;
     }
 
@@ -289,7 +303,8 @@ class BumpVersionImproved extends Command
     private function tagExists(string $tag): bool
     {
         $result = Process::run("git tag -l $tag");
-        return !empty(trim($result->output()));
+
+        return ! empty(trim($result->output()));
     }
 
     /**
@@ -308,6 +323,7 @@ class BumpVersionImproved extends Command
     private function isWorkingDirectoryClean(): bool
     {
         $status = $this->execSafe('git status --porcelain');
+
         return empty(trim($status));
     }
 
@@ -326,6 +342,7 @@ class BumpVersionImproved extends Command
     private function isGitRepository(): bool
     {
         $result = Process::run('git rev-parse --git-dir');
+
         return $result->successful();
     }
 
@@ -343,11 +360,11 @@ class BumpVersionImproved extends Command
     private function execSafe(string $command): string
     {
         $result = Process::run($command);
-        
-        if (!$result->successful()) {
-            throw new \Exception("Command failed: $command\nError: " . $result->errorOutput());
+
+        if (! $result->successful()) {
+            throw new \Exception("Command failed: $command\nError: ".$result->errorOutput());
         }
-        
+
         return $result->output();
     }
 
@@ -358,12 +375,12 @@ class BumpVersionImproved extends Command
     {
         $type = $this->argument('type');
 
-        if (!$type || !in_array($type, $this->types)) {
+        if (! $type || ! in_array($type, $this->types)) {
             if ($type) {
                 $this->error('Invalid type.');
-                $this->info('Valid types are: ' . implode(', ', $this->types));
+                $this->info('Valid types are: '.implode(', ', $this->types));
             }
-            
+
             $type = select(
                 label: 'Select a type',
                 options: $this->types,
@@ -381,14 +398,14 @@ class BumpVersionImproved extends Command
     private function getCurrentVersion(): string
     {
         $composerPath = base_path('composer.json');
-        
-        if (!file_exists($composerPath)) {
+
+        if (! file_exists($composerPath)) {
             throw new \Exception('composer.json not found');
         }
-        
+
         $composerJson = json_decode(file_get_contents($composerPath), true);
 
-        if (!isset($composerJson['version'])) {
+        if (! isset($composerJson['version'])) {
             throw new \Exception('No version found in composer.json');
         }
 
@@ -400,7 +417,7 @@ class BumpVersionImproved extends Command
      */
     private function getNewVersion(string $currentVersion, string $type): string
     {
-        if (!$this->isValidVersionFormat($currentVersion)) {
+        if (! $this->isValidVersionFormat($currentVersion)) {
             throw new \Exception('Current version format is invalid');
         }
 
@@ -433,12 +450,12 @@ class BumpVersionImproved extends Command
         $composerJson = json_decode(file_get_contents($composerPath), true);
 
         $composerJson['version'] = $newVersion;
-        
+
         $encoded = json_encode($composerJson, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
         if ($encoded === false) {
             throw new \Exception('Failed to encode composer.json');
         }
-        
+
         file_put_contents($composerPath, $encoded);
     }
 
@@ -448,12 +465,13 @@ class BumpVersionImproved extends Command
     private function updateReadMeVersion(string $newVersion, string $currentVersion): void
     {
         $readMePath = base_path('README.md');
-        
-        if (!file_exists($readMePath)) {
+
+        if (! file_exists($readMePath)) {
             $this->warn('README.md not found, skipping version update');
+
             return;
         }
-        
+
         $readMeContent = file_get_contents($readMePath);
         $updatedContent = str_replace($currentVersion, $newVersion, $readMeContent);
 

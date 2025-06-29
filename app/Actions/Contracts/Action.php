@@ -2,8 +2,7 @@
 
 namespace App\Actions\Contracts;
 
-interface Action {
-
+interface Action
+{
     public function handle();
-
 }

@@ -14,12 +14,14 @@ use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithUpserts;
 
-class ProductsImport implements ToModel, WithHeadingRow, ShouldQueue, WithBatchInserts, WithUpserts, WithChunkReading
+class ProductsImport implements ShouldQueue, ToModel, WithBatchInserts, WithChunkReading, WithHeadingRow, WithUpserts
 {
     use Importable, RemembersRowNumber;
 
     private int $size = 50;
+
     public int $totalRows = 0;
+
     public int $importedRows = 0;
 
     public function model(array $row)
@@ -32,14 +34,13 @@ class ProductsImport implements ToModel, WithHeadingRow, ShouldQueue, WithBatchI
 
         $columns = ['sku', 'name', 'barcode', 'barcode_2', 'barcode_3', 'quantity'];
 
-        foreach ($columns as $column)
-        {
+        foreach ($columns as $column) {
             if (array_key_exists($column, $row)) {
                 $attributes[$column] = $row[$column];
             }
         }
         foreach ($row as $key => $value) {
-            Log::info($key . ': ' . $value);
+            Log::info($key.': '.$value);
         }
 
         // Pass array of attributes to the model

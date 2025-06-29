@@ -14,9 +14,10 @@ use Illuminate\Support\Facades\Log;
 
 class FetchLinnworksInvetory implements ShouldQueue
 {
-    use Queueable, InteractsWithQueue, Dispatchable, SerializesModels;
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected int $pageNumber;
+
     protected int $entriesPerPage;
 
     /**
@@ -30,6 +31,7 @@ class FetchLinnworksInvetory implements ShouldQueue
 
     /**
      * Execute the job.
+     *
      * @throws \Exception
      * @throws GuzzleException
      */
@@ -37,8 +39,7 @@ class FetchLinnworksInvetory implements ShouldQueue
     {
         $inventoryPage = $linnworks->getInventory($this->pageNumber, $this->entriesPerPage);
 
-        if($inventoryPage)
-        {
+        if ($inventoryPage) {
             $this->storeInventory($inventoryPage);
         } else {
             throw new \Exception('Unable to fetch inventory');
@@ -47,12 +48,10 @@ class FetchLinnworksInvetory implements ShouldQueue
 
     /**
      * Store the inventory in the database. Either creating a new record or updating an existing one based on SKU
-     * @param array $inventory
      */
-
     protected function storeInventory(array $inventory): void
     {
-        foreach($inventory as $inventoryItem) {
+        foreach ($inventory as $inventoryItem) {
             Product::updateOrCreate(
                 [
                     'sku' => $inventoryItem['ItemNumber'],
@@ -63,7 +62,7 @@ class FetchLinnworksInvetory implements ShouldQueue
                     'quantity' => $inventoryItem['StockLevels'][0]['StockLevel'] ?? 0,
                 ]
             );
-            Log::channel('inventory')->info('Updated product ' . $inventoryItem['ItemNumber']);
+            Log::channel('inventory')->info('Updated product '.$inventoryItem['ItemNumber']);
         }
     }
 }

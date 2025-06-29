@@ -12,8 +12,9 @@ class NotificationBadge extends Component
     #[On(['notification.markAsRead', 'notification.markAllAsRead'])]
     public function mount()
     {
-//        $this->notificationCount = auth()->user()->unreadNotifications()->count() ?? 0;
+        //        $this->notificationCount = auth()->user()->unreadNotifications()->count() ?? 0;
     }
+
     public function render()
     {
         return view('livewire.notification-badge');

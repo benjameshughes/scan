@@ -7,11 +7,12 @@ use Exception;
 
 class NoSkuFoundException extends Exception
 {
-    protected Scan $scan;
+    protected ?Scan $scan;
+
     /**
      * Pass in the scan data
      */
-    public function __construct($message = "", $code = 0, Exception $previous = null, Scan $scan = null)
+    public function __construct($message = '', $code = 0, ?Exception $previous = null, ?Scan $scan = null)
     {
         $this->scan = $scan;
         parent::__construct($message, $code, $previous);
@@ -24,7 +25,7 @@ class NoSkuFoundException extends Exception
      */
     public function context(): array
     {
-        return ['scan_id' => $this->scan->id];
+        return ['scan_id' => $this->scan?->id];
     }
 
     /**

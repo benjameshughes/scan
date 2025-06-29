@@ -8,11 +8,17 @@ use Livewire\Component;
 class Scanner extends Component
 {
     public array $result = [];
+
     public bool $isScanning = false;
+
     public bool $isTorchOn = false;
+
     public bool $torchSupported = false;
+
     public bool $loadingCamera = false;
+
     public string $cameraError = '';
+
     public string $barcode = '';
 
     #[On('loadingCamera')]
@@ -27,7 +33,7 @@ class Scanner extends Component
         if ($isScanning !== null) {
             $this->isScanning = $isScanning;
         } else {
-            $this->isScanning = !$this->isScanning;
+            $this->isScanning = ! $this->isScanning;
         }
     }
 
@@ -49,8 +55,8 @@ class Scanner extends Component
     {
         $this->isTorchOn = $enabled;
         $this->torchSupported = $supported;
-        
-        if (!$supported) {
+
+        if (! $supported) {
             $this->cameraError = 'Torch not supported on this device';
         }
     }

@@ -5,35 +5,26 @@
         </h2>
     </x-slot>
 
-    @role('admin')
-    <div class="p-4 mb-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
-        <div class="max-w-xl">
-            <livewire:profile.linnworks />
-        </div>
-    </div>
-    @endrole
-
-    <div class="p-4 mb-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
-        <div class="max-w-xl">
-            <livewire:profile.update-profile-information-form />
-        </div>
-    </div>
-
-    <div class="p-4 mb-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
-        <div class="max-w-xl">
-            <livewire:profile.update-password-form />
-        </div>
-    </div>
-
-    <div class="p-4 mb-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
-        <div class="max-w-xl">
-            <livewire:profile.user-settings />
-        </div>
-    </div>
-
-    <div class="p-4 mb-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
-        <div class="max-w-xl">
-            <livewire:profile.delete-user-form />
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <livewire:user-profile />
+            
+            @can('view users')
+            <!-- Admin Section -->
+            <div class="mt-8 bg-white dark:bg-zinc-800 shadow-sm rounded-lg">
+                <div class="px-6 py-4 border-b border-gray-200 dark:border-zinc-700">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+                        Administrator Settings
+                    </h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                        Additional settings available to administrators.
+                    </p>
+                </div>
+                <div class="p-6">
+                    <livewire:profile.linnworks />
+                </div>
+            </div>
+            @endcan
         </div>
     </div>
 </x-app-layout>

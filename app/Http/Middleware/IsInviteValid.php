@@ -23,8 +23,7 @@ class IsInviteValid
         $invite = Invite::where('token', $request->route('token'))->first();
 
         // Is the token a valid token?
-        if($invite === null || $invite->expires_at->isPast() || $invite->isAccepted())
-        {
+        if ($invite === null || $invite->expires_at->isPast() || $invite->isAccepted()) {
             return redirect('login');
         }
 

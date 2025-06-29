@@ -11,8 +11,10 @@ use Spatie\Permission\Models\Role;
 class Edit extends Component
 {
     public User $user;
+
     // Store all available role names
     public Collection $roles;
+
     // Store the name of the role currently selected in the form
     public string $selectedRole = ''; // Initialize as empty string
 
@@ -49,14 +51,13 @@ class Edit extends Component
             'password' => 'optional',
         ]);
 
-
         $this->user->update([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
         ]);
 
-        if (!empty($this->selectedRole)) {
+        if (! empty($this->selectedRole)) {
             $this->user->syncRoles([$this->selectedRole]);
         } else {
             $this->user->syncRoles([]);

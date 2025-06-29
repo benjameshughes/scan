@@ -49,38 +49,63 @@ new class extends Component
         </p>
     </header>
 
-    <form wire:submit="updatePassword" class="mt-6 space-y-6">
+    <form wire:submit="updatePassword" class="mt-6 space-y-4">
         <div>
-{{--            <x-input-label for="update_password_current_password" :value="__('Current Password')" />--}}
-{{--            <x-text-input wire:model="current_password" id="update_password_current_password" name="current_password" type="password" class="mt-1 block w-full" autocomplete="current-password" />--}}
-{{--            <x-input-error :messages="$errors->get('current_password')" class="mt-2" />--}}
-            <flux:input wire:model="current_password" label="{{__('Current Password')}}" id="update_password_current_password" name="current_password" type="password" autocomplete="current_password" />
-            <flex:error name="current_password"/>
+            <flux:input 
+                wire:model="current_password" 
+                label="{{ __('Current Password') }}" 
+                id="update_password_current_password" 
+                name="current_password" 
+                type="password" 
+                placeholder="{{ __('Enter your current password') }}"
+                autocomplete="current-password" 
+                required
+                class="w-full"
+            />
+            <flux:error name="current_password"/>
         </div>
 
         <div>
-{{--            <x-input-label for="update_password_password" :value="__('New Password')" />--}}
-{{--            <x-text-input wire:model="password" id="update_password_password" name="password" type="password" class="mt-1 block w-full" autocomplete="new-password" />--}}
-{{--            <x-input-error :messages="$errors->get('password')" class="mt-2" />--}}
-
-            <flux:input wire:model="password" id="update_password_password" name="password" type="password" label="New Password" autocomplete="new-password"/>
+            <flux:input 
+                wire:model="password" 
+                id="update_password_password" 
+                name="password" 
+                type="password" 
+                label="{{ __('New Password') }}" 
+                placeholder="{{ __('Create a new strong password') }}"
+                autocomplete="new-password"
+                required
+                class="w-full"
+            />
             <flux:error name="password"/>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {{ __('Must be at least 6 characters with mixed case letters') }}
+            </p>
         </div>
 
         <div>
-{{--            <x-input-label for="update_password_password_confirmation" :value="__('Confirm Password')" />--}}
-{{--            <x-text-input wire:model="password_confirmation" id="update_password_password_confirmation" name="password_confirmation" type="password" class="mt-1 block w-full" autocomplete="new-password" />--}}
-{{--            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />--}}
-
-            <flux:input wire:model="password_confirmation" id="update_password_password_confirmation" name="password_confirmation" type="password" label="Confirm New Password" autocomplete="new-password" />
+            <flux:input 
+                wire:model="password_confirmation" 
+                id="update_password_password_confirmation" 
+                name="password_confirmation" 
+                type="password" 
+                label="{{ __('Confirm New Password') }}" 
+                placeholder="{{ __('Confirm your new password') }}"
+                autocomplete="new-password" 
+                required
+                class="w-full"
+            />
+            <flux:error name="password_confirmation"/>
         </div>
 
-        <div class="flex items-center gap-4">
-{{--            <x-primary-button>{{ __('Save') }}</x-primary-button>--}}
-            <flux:button variant="primary" type="submit">Update Password</flux:button>
-            <x-action-message class="me-3" on="password-updated">
-                {{ __('Your password has been updated') }}
+        <div class="flex items-center justify-between pt-4 border-t border-zinc-200 dark:border-zinc-700">
+            <x-action-message class="text-sm text-green-600 dark:text-green-400" on="password-updated">
+                {{ __('Password updated successfully') }}
             </x-action-message>
+            
+            <flux:button variant="primary" type="submit">
+                {{ __('Update Password') }}
+            </flux:button>
         </div>
     </form>
 </section>

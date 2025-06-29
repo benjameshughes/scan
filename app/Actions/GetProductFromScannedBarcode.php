@@ -4,8 +4,8 @@ namespace App\Actions;
 
 use App\Models\Scan;
 
-class GetProductFromScannedBarcode {
-
+class GetProductFromScannedBarcode
+{
     protected int $barcode;
 
     public function __construct($barcode)
@@ -18,11 +18,10 @@ class GetProductFromScannedBarcode {
         $tempScan = new Scan(['barcode' => $this->barcode]);
         $product = $tempScan->product;
 
-        if (!$product) {
+        if (! $product) {
             return null;
         }
 
         return $product;
     }
-
 }

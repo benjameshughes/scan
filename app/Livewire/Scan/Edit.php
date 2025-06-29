@@ -7,8 +7,8 @@ use Livewire\Component;
 
 class Edit extends Component
 {
-
     public Scan $scan;
+
     public array $scanData = [];
 
     /**
@@ -28,7 +28,7 @@ class Edit extends Component
             'sku',
             'status',
             'sync_status',
-            'quantity'
+            'quantity',
         ]);
     }
 

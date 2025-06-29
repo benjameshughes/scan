@@ -30,16 +30,16 @@ class NoSkuFound extends Notification
     {
         return ['database'];
         // Respect the users settings for notifications
-//        $channels = [];
-//
-//        if($notifiable->notification_emails) {
-//            $channels[] = 'mail';
-//        }
-//        if($notifiable->notification_database) {
-//            $channels[] = 'database';
-//        }
-//
-//        return $channels;
+        //        $channels = [];
+        //
+        //        if($notifiable->notification_emails) {
+        //            $channels[] = 'mail';
+        //        }
+        //        if($notifiable->notification_database) {
+        //            $channels[] = 'database';
+        //        }
+        //
+        //        return $channels;
     }
 
     /**
@@ -81,8 +81,6 @@ class NoSkuFound extends Notification
 
     /**
      * Get the notification type.
-     *
-     * @return string
      */
     public function databaseType(): string
     {

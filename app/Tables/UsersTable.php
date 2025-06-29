@@ -3,15 +3,13 @@
 namespace App\Tables;
 
 use App\Models\User;
-use App\Tables\Table;
-use App\Tables\TableComponent;
 
 class UsersTable extends TableComponent
 {
     protected function table(): Table
     {
         return (new Table)
-            ->query(fn() => User::query())
+            ->query(fn () => User::query())
             ->schema([
                 [
                     'key' => 'id',
@@ -32,7 +30,7 @@ class UsersTable extends TableComponent
                     'key' => 'created_at',
                     'label' => 'Created At',
                     'sortable' => true,
-                    'format' => fn($value) => $value->format('Y-m-d H:i'),
+                    'format' => fn ($value) => $value->format('Y-m-d H:i'),
                 ],
             ])
             ->searchable(['name', 'email'])
@@ -49,7 +47,7 @@ class UsersTable extends TableComponent
                     'default' => '',
                     'apply' => function ($query, $value) {
                         return $query->where('role', $value);
-                    }
+                    },
                 ],
                 [
                     'key' => 'created_after',
@@ -58,7 +56,7 @@ class UsersTable extends TableComponent
                     'default' => null,
                     'apply' => function ($query, $value) {
                         return $query->whereDate('created_at', '>=', $value);
-                    }
+                    },
                 ],
             ])
             ->actions([
@@ -66,13 +64,13 @@ class UsersTable extends TableComponent
                     'name' => 'edit',
                     'label' => 'Edit',
                     'icon' => 'pencil',
-                    'url' => fn($row) => route('users.edit', $row),
+                    'url' => fn ($row) => route('users.edit', $row),
                 ],
                 [
                     'name' => 'delete',
                     'label' => 'Delete',
                     'icon' => 'trash',
-                    'action' => fn($row) => $this->deleteUser($row->id),
+                    'action' => fn ($row) => $this->deleteUser($row->id),
                 ],
             ])
             ->bulkActions([
@@ -81,16 +79,16 @@ class UsersTable extends TableComponent
                     'label' => 'Delete Selected',
                     'handle' => function (array $ids) {
                         User::whereIn('id', $ids)->delete();
-                        session()->flash('message', count($ids) . ' users deleted.');
-                    }
+                        session()->flash('message', count($ids).' users deleted.');
+                    },
                 ],
                 [
                     'name' => 'verify',
                     'label' => 'Verify Selected',
                     'handle' => function (array $ids) {
                         User::whereIn('id', $ids)->update(['email_verified_at' => now()]);
-                        session()->flash('message', count($ids) . ' users verified.');
-                    }
+                        session()->flash('message', count($ids).' users verified.');
+                    },
                 ],
             ])
             ->defaultSort('created_at', 'desc');

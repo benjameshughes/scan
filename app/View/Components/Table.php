@@ -4,13 +4,14 @@ namespace App\View\Components;
 
 use Livewire\Component;
 
-class Table extends Component {
-
+class Table extends Component
+{
     public function __construct(
         public string $table
     ) {}
 
-    public function render() {
+    public function render()
+    {
         return view('components.tables.table');
     }
 }

@@ -26,6 +26,16 @@ class Product extends Model
 
     public function scans()
     {
-        return $this->belongsToMany(Scan::class, 'scans', 'barcode', 'id');
+        // This is a bit complex because we need to match scans where the scan's barcode
+        // matches any of this product's three barcode fields
+        return Scan::where(function ($query) {
+            $query->where('barcode', $this->barcode)
+                ->when($this->barcode_2, function ($q) {
+                    $q->orWhere('barcode', $this->barcode_2);
+                })
+                ->when($this->barcode_3, function ($q) {
+                    $q->orWhere('barcode', $this->barcode_3);
+                });
+        });
     }
 }

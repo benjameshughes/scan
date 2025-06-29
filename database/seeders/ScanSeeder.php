@@ -3,8 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Scan;
-use Database\Factories\ScanFactory;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class ScanSeeder extends Seeder

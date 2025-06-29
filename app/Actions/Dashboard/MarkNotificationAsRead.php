@@ -4,9 +4,10 @@ namespace App\Actions\Dashboard;
 
 use App\Actions\Contracts\Action;
 
-class MarkNotificationAsRead implements Action {
-
+class MarkNotificationAsRead implements Action
+{
     private string $id;
+
     public function __construct($id)
     {
         $this->id = $id;

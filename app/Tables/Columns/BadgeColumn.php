@@ -2,43 +2,62 @@
 
 namespace App\Tables\Columns;
 
-use App\Tables\Columns\Column;
-
-class BadgeColumn extends Column
+class BadgeColumn extends TextColumn
 {
+    protected string $defaultColor = 'gray';
 
-    protected string $color = 'bg-green-100 text-green-800';
-    protected array $colors = [
-        'bg-green-100 text-green-800',
-        'bg-red-100 text-red-800',
-        'bg-yellow-100 text-yellow-800',
-        'bg-blue-100 text-blue-800',
-        'bg-indigo-100 text-indigo-800',
-        'bg-purple-100 text-purple-800',
-        'bg-pink-100 text-pink-800',
+    protected array $colorMap = [];
+
+    protected array $predefinedColors = [
+        'green' => 'bg-green-100 text-green-800',
+        'red' => 'bg-red-100 text-red-800',
+        'yellow' => 'bg-yellow-100 text-yellow-800',
+        'blue' => 'bg-blue-100 text-blue-800',
+        'indigo' => 'bg-indigo-100 text-indigo-800',
+        'purple' => 'bg-purple-100 text-purple-800',
+        'pink' => 'bg-pink-100 text-pink-800',
+        'gray' => 'bg-gray-100 text-gray-800',
     ];
 
-    public function color(string $color): static
+    public function __construct(string $name)
     {
-        $this->color = $color;
+        parent::__construct($name);
+        $this->searchable = false; // Badges usually aren't searchable
+    }
+
+    public function color(string $color): self
+    {
+        $this->defaultColor = $color;
+
         return $this;
     }
 
-    public function colors(array $colors): static
+    public function colors(array $colorMap): self
     {
-        $this->colors = $colors;
+        $this->colorMap = $colorMap;
+
         return $this;
     }
 
-    public function render($row)
+    public function getValue($record)
     {
-        $value = $row->$this->name;
+        $value = parent::getValue($record);
+
         if ($value) {
+            $color = $this->getColorForValue($value);
+            $colorClass = $this->predefinedColors[$color] ?? $color;
+
             return view('components.tables.table-badge', [
                 'value' => $value,
-                'color' => $this->color,
-                'colors' => $this->colors,
-            ]);
+                'color' => $colorClass,
+            ])->render();
         }
+
+        return $value;
+    }
+
+    protected function getColorForValue($value): string
+    {
+        return $this->colorMap[$value] ?? $this->defaultColor;
     }
 }

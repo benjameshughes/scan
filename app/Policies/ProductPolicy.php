@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\Product;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class ProductPolicy
 {
@@ -13,7 +12,7 @@ class ProductPolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return $user->can('view products');
     }
 
     /**
@@ -21,7 +20,7 @@ class ProductPolicy
      */
     public function view(User $user, Product $product): bool
     {
-        return false;
+        return $user->can('view products');
     }
 
     /**
@@ -29,7 +28,7 @@ class ProductPolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return $user->can('create products');
     }
 
     /**
@@ -37,7 +36,7 @@ class ProductPolicy
      */
     public function update(User $user, Product $product): bool
     {
-        return false;
+        return $user->can('edit products');
     }
 
     /**
@@ -45,7 +44,15 @@ class ProductPolicy
      */
     public function delete(User $user, Product $product): bool
     {
-        return false;
+        return $user->can('delete products');
+    }
+
+    /**
+     * Determine whether the user can import products.
+     */
+    public function import(User $user): bool
+    {
+        return $user->can('import products');
     }
 
     /**
@@ -53,7 +60,7 @@ class ProductPolicy
      */
     public function restore(User $user, Product $product): bool
     {
-        return false;
+        return $user->can('delete products');
     }
 
     /**
@@ -61,6 +68,6 @@ class ProductPolicy
      */
     public function forceDelete(User $user, Product $product): bool
     {
-        return false;
+        return $user->can('delete products');
     }
 }

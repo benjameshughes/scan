@@ -18,20 +18,30 @@ class ProductScanner extends Component
 {
     // Camera state
     public bool $isScanning = false;
+
     public bool $isTorchOn = false;
+
     public bool $torchSupported = false;
+
     public bool $loadingCamera = true;
+
     public string $cameraError = '';
-    
+
     // Scan state
-    #[Validate(['required', new BarcodePrefixCheck('505903')])]
+    #[Validate([new BarcodePrefixCheck('505903')])]
     public ?int $barcode = null;
-    #[Validate('required|min:1')]
+
+    #[Validate('required|integer|min:1')]
     public int $quantity = 1;
+
     public bool $barcodeScanned = false;
+
     public bool $showSuccessMessage = false;
+
     public string $successMessage = '';
+
     public bool $scanAction = false;
+
     public ?Product $product = null;
 
     public function mount()
@@ -43,24 +53,50 @@ class ProductScanner extends Component
     public function updatedBarcode()
     {
         if ($this->barcode) {
-            $this->barcodeScanned = true;
             $this->cameraError = '';
 
-            if ($this->validate()) {
+            // Validate just the barcode field with prefix check (no required rule needed here)
+            try {
+                $this->validateOnly('barcode');
                 $this->product = (new GetProductFromScannedBarcode($this->barcode))->handle();
-                $this->successMessage = $this->product ? ($this->product->name ?? 'Product Found') : "No Product Found With That Barcode";
-                $this->showSuccessMessage = true;
+
+                if ($this->product) {
+                    // Product found - stop camera and switch to product view
+                    $this->barcodeScanned = true;
+                    $this->isScanning = false;
+                    $this->dispatch('camera-state-changed', false); // Stop camera
+                    $this->successMessage = $this->product->name ?? 'Product Found';
+                    $this->showSuccessMessage = true;
+                } else {
+                    // Valid barcode but no product found - keep scanning
+                    $this->barcodeScanned = false;
+                    $this->successMessage = 'No Product Found With That Barcode';
+                    $this->showSuccessMessage = true;
+                }
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                // Invalid barcode - keep scanning, don't switch view
+                $this->barcodeScanned = false;
+                $this->product = null;
+                $this->showSuccessMessage = false;
+                $this->successMessage = '';
             }
+        } else {
+            // Barcode was cleared - reset the scan state
+            $this->barcodeScanned = false;
+            $this->product = null;
+            $this->showSuccessMessage = false;
+            $this->successMessage = '';
+            $this->resetValidation('barcode');
         }
     }
 
     // Camera controls - Livewire handles state, dispatches to JS
     public function toggleCamera()
     {
-        $this->isScanning = !$this->isScanning;
+        $this->isScanning = ! $this->isScanning;
         $this->dispatch('camera-state-changed', $this->isScanning);
-        
-        if (!$this->isScanning) {
+
+        if (! $this->isScanning) {
             $this->cameraError = '';
             $this->isTorchOn = false; // Turn off torch when camera stops
         }
@@ -68,12 +104,13 @@ class ProductScanner extends Component
 
     public function toggleTorch()
     {
-        if (!$this->torchSupported) {
+        if (! $this->torchSupported) {
             $this->cameraError = 'Torch not supported on this device';
+
             return;
         }
-        
-        $this->isTorchOn = !$this->isTorchOn;
+
+        $this->isTorchOn = ! $this->isTorchOn;
         $this->dispatch('torch-state-changed', $this->isTorchOn);
     }
 
@@ -98,8 +135,8 @@ class ProductScanner extends Component
     public function onTorchSupportDetected($supported)
     {
         $this->torchSupported = $supported;
-        
-        if (!$supported) {
+
+        if (! $supported) {
             $this->isTorchOn = false;
         }
     }
@@ -122,8 +159,8 @@ class ProductScanner extends Component
         $this->isScanning = false;
 
         if ($this->validate()) {
-            $this->product = (new GetProductFromScannedBarcode($this->barcode))->handle();
-            $this->successMessage = $this->product ? ($this->product->name ?? 'Product Found') : "No Product Found With That Barcode";
+            $this->product = new GetProductFromScannedBarcode($this->barcode)->handle();
+            $this->successMessage = $this->product ? ($this->product->name ?? 'Product Found') : 'No Product Found With That Barcode';
             $this->showSuccessMessage = true;
         }
     }
@@ -157,7 +194,7 @@ class ProductScanner extends Component
     {
         $this->resetScan();
         $this->isScanning = true;
-        $this->dispatch('resume-scanning');
+        $this->dispatch('camera-state-changed', true); // Start camera
     }
 
     public function emptyBayNotification()
@@ -171,13 +208,16 @@ class ProductScanner extends Component
 
     public function save()
     {
-        $this->validate();
+        $this->validate([
+            'barcode' => ['required', new BarcodePrefixCheck('505903')],
+            'quantity' => 'required|integer|min:1',
+        ]);
 
         $scan = Scan::create([
             'barcode' => $this->barcode,
             'quantity' => $this->quantity,
             'submitted' => false,
-            'scanAction' => $this->scanAction,
+            'action' => $this->scanAction ? 'increase' : 'decrease',
             'sync_status' => 'pending',
             'user_id' => auth()->check() ? auth()->user()->id : '1',
         ]);
@@ -185,16 +225,16 @@ class ProductScanner extends Component
         SyncBarcode::dispatch($scan);
         Log::channel('barcode')->info("{$this->barcode} Scanned");
 
-        // Show success message and reset for next scan
-        $this->successMessage = "Scan saved successfully! Ready for next item.";
-        $this->showSuccessMessage = true;
-        
-        // Reset form but keep success message briefly
+        // Reset form first
         $this->resetScan();
-        
+
+        // Then show success message for next scan
+        $this->successMessage = 'Scan saved successfully! Ready for next item.';
+        $this->showSuccessMessage = true;
+
         // Auto-resume scanning for next item
         $this->isScanning = true;
-        $this->dispatch('resume-scanning');
+        $this->dispatch('camera-state-changed', true); // Start camera
     }
 
     public function clearError()

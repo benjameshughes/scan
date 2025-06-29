@@ -5,8 +5,8 @@ namespace App\DTOs;
 /*
  * Data Transfer Object for Scan once a user has scanned and submitted a barcode
  */
-class ScanDTO {
-
+class ScanDTO
+{
     public function __construct(
         public string $barcode,
         public int $quantity,
@@ -14,7 +14,8 @@ class ScanDTO {
         //
     }
 
-    public function toArray(): array {
+    public function toArray(): array
+    {
         return [
             'barcode' => $this->barcode,
             'quantity' => $this->quantity,

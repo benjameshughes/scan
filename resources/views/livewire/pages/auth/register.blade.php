@@ -22,7 +22,7 @@ new #[Layout('layouts.guest')] class extends Component {
     {
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class, new RegisterAllowedDomains(['blindsoutlet.co.uk'])],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class, new RegisterAllowedDomains()],
             'password' => ['required', 'string', 'confirmed', Rules\Password::min(6)->max(255)->letters()->mixedCase()],
         ]);
 
@@ -36,56 +36,98 @@ new #[Layout('layouts.guest')] class extends Component {
     }
 }; ?>
 
-<div class="p-6">
-    <form wire:submit="register">
-        <!-- Name -->
-        <div>
-            <x-input-label for="name" :value="__('Name')"/>
-            <x-text-input wire:model="name" id="name" class="block mt-1 w-full" type="text" name="name" required
-                          autofocus autocomplete="name"/>
-            <x-input-error :messages="$errors->get('name')" class="mt-2"/>
+<div class="max-w-md mx-auto">
+    <div class="bg-white dark:bg-zinc-800 shadow-sm rounded-lg border border-zinc-200 dark:border-zinc-700">
+        <div class="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700">
+            <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">{{ __('Create Account') }}</h2>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ __('Join our platform to get started with inventory management.') }}</p>
         </div>
+        
+        <div class="p-6">
+            <form wire:submit="register" class="space-y-4">
+                <!-- Name -->
+                <div>
+                    <flux:input 
+                        wire:model="name" 
+                        id="name" 
+                        label="{{ __('Full Name') }}"
+                        type="text" 
+                        name="name" 
+                        placeholder="{{ __('Enter your full name') }}"
+                        required
+                        autofocus 
+                        autocomplete="name"
+                        class="w-full"
+                    />
+                    <flux:error name="name"/>
+                </div>
 
-        <!-- Email Address -->
-        <div class="mt-4">
-            <x-input-label for="email" :value="__('Email')"/>
-            <x-text-input wire:model="email" id="email" class="block mt-1 w-full" type="email" name="email" required
-                          autocomplete="username"/>
-            <x-input-error :messages="$errors->get('email')" class="mt-2"/>
+                <!-- Email Address -->
+                <div>
+                    <flux:input 
+                        wire:model="email" 
+                        id="email" 
+                        label="{{ __('Email Address') }}"
+                        type="email" 
+                        name="email" 
+                        placeholder="{{ __('Enter your email address') }}"
+                        required
+                        autocomplete="username"
+                        class="w-full"
+                    />
+                    <flux:error name="email"/>
+                </div>
+
+                <!-- Password -->
+                <div>
+                    <flux:input 
+                        wire:model="password" 
+                        id="password" 
+                        label="{{ __('Password') }}"
+                        type="password"
+                        name="password"
+                        placeholder="{{ __('Create a strong password') }}"
+                        required 
+                        autocomplete="new-password"
+                        class="w-full"
+                    />
+                    <flux:error name="password"/>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        {{ __('Must be at least 6 characters with mixed case letters') }}
+                    </p>
+                </div>
+
+                <!-- Confirm Password -->
+                <div>
+                    <flux:input 
+                        wire:model="password_confirmation" 
+                        id="password_confirmation" 
+                        label="{{ __('Confirm Password') }}"
+                        type="password"
+                        name="password_confirmation" 
+                        placeholder="{{ __('Confirm your password') }}"
+                        required 
+                        autocomplete="new-password"
+                        class="w-full"
+                    />
+                    <flux:error name="password_confirmation"/>
+                </div>
+
+                <div class="flex items-center justify-between pt-4">
+                    <a class="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-800 rounded"
+                       href="{{ route('login') }}" wire:navigate>
+                        {{ __('Already registered?') }}
+                    </a>
+
+                    <flux:button 
+                        variant="primary" 
+                        type="submit"
+                        class="ml-4"
+                    >
+                        {{ __('Create Account') }}
+                    </flux:button>
+                </div>
+            </form>
         </div>
-
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')"/>
-
-            <x-text-input wire:model="password" id="password" class="block mt-1 w-full"
-                          type="password"
-                          name="password"
-                          required autocomplete="new-password"/>
-
-            <x-input-error :messages="$errors->get('password')" class="mt-2"/>
-        </div>
-
-        <!-- Confirm Password -->
-        <div class="mt-4">
-            <x-input-label for="password_confirmation" :value="__('Confirm Password')"/>
-
-            <x-text-input wire:model="password_confirmation" id="password_confirmation" class="block mt-1 w-full"
-                          type="password"
-                          name="password_confirmation" required autocomplete="new-password"/>
-
-            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2"/>
-        </div>
-
-        <div class="flex items-center justify-end mt-4">
-            <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800"
-               href="{{ route('login') }}" wire:navigate>
-                {{ __('Already registered?') }}
-            </a>
-
-            <x-primary-button class="ms-4">
-                {{ __('Register') }}
-            </x-primary-button>
-        </div>
-    </form>
+    </div>
 </div>

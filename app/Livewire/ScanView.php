@@ -5,7 +5,6 @@ namespace App\Livewire;
 use App\Jobs\SyncBarcode;
 use App\Models\Scan;
 use App\Services\LinnworksApiService;
-use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -13,9 +12,13 @@ use Livewire\Component;
 class ScanView extends Component
 {
     public $scan;
+
     public $jobStatus;
+
     public $stockHistory = null;
+
     public $isLoadingHistory = false;
+
     public $errorMessage = null;
 
     protected $linnworksService;
@@ -33,6 +36,7 @@ class ScanView extends Component
 
     /**
      * Initiates barcode synchronization with a 1-minute delay to allow for potential batching
+     *
      * @throws \Exception If status update fails
      */
     public function sync()
@@ -44,7 +48,7 @@ class ScanView extends Component
     /**
      * Get stock item history for a SKU
      *
-     * @param string $sku The product SKU
+     * @param  string  $sku  The product SKU
      */
     public function getStockItemHistory(string $sku)
     {
@@ -63,8 +67,8 @@ class ScanView extends Component
 
             Log::info("Retrieved stock history for SKU: $sku");
         } catch (\Exception $e) {
-            Log::error("Failed to get stock history for SKU: $sku - " . $e->getMessage());
-            $this->errorMessage = "Failed to load stock history: " . $e->getMessage();
+            Log::error("Failed to get stock history for SKU: $sku - ".$e->getMessage());
+            $this->errorMessage = 'Failed to load stock history: '.$e->getMessage();
         } finally {
             $this->isLoadingHistory = false;
         }
@@ -80,8 +84,9 @@ class ScanView extends Component
             $scan = Scan::findOrFail($id);
 
             // Check authorization
-            if(auth()->user()->cannot('delete', $scan)) {
+            if (auth()->user()->cannot('delete', $scan)) {
                 $this->addError('delete', 'You are not authorized to delete this scan.');
+
                 return;
             }
 
@@ -91,8 +96,8 @@ class ScanView extends Component
             // Redirect to dashboard
             return redirect()->route('dashboard');
         } catch (\Exception $e) {
-            Log::error("Failed to delete scan ID: $id - " . $e->getMessage());
-            $this->addError('delete', 'Failed to delete scan: ' . $e->getMessage());
+            Log::error("Failed to delete scan ID: $id - ".$e->getMessage());
+            $this->addError('delete', 'Failed to delete scan: '.$e->getMessage());
         }
     }
 

@@ -5,10 +5,10 @@ namespace App\DTOs;
 readonly class ProductDTO
 {
     public function __construct(
-        public string  $sku,
+        public string $sku,
         public ?string $name = null,
         public ?string $barcode = null,
-        public ?int    $quantity = null,
+        public ?int $quantity = null,
     ) {}
 
     public static function fromArray(array $data): self
@@ -28,6 +28,6 @@ readonly class ProductDTO
             'name' => $this->name,
             'barcode' => $this->barcode,
             'quantity' => $this->quantity,
-        ], fn($value) => !is_null($value));
+        ], fn ($value) => ! is_null($value));
     }
 }

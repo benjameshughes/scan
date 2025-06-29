@@ -40,11 +40,13 @@ class LinnworksRefreshToken extends Command
                     $this->warn('Token was updated during validation');
                 }
 
-                $this->info('Current token: ' . Cache::get('linnworks.session_token'));
+                $this->info('Current token: '.Cache::get('linnworks.session_token'));
+
                 return 0;
             } catch (\Exception $exception) {
                 Log::channel('lw_auth')->error($exception->getMessage());
-                $this->error('Validation failed: ' . $exception->getMessage());
+                $this->error('Validation failed: '.$exception->getMessage());
+
                 return 1;
             }
         } else {
@@ -53,11 +55,13 @@ class LinnworksRefreshToken extends Command
             try {
                 $token = $linnworks->refreshToken();
                 $this->info('✓ Token refreshed successfully');
-                $this->info('New token: ' . $token);
+                $this->info('New token: '.$token);
+
                 return 0;
             } catch (\Exception $exception) {
                 Log::channel('lw_auth')->error($exception->getMessage());
-                $this->error('Refresh failed: ' . $exception->getMessage());
+                $this->error('Refresh failed: '.$exception->getMessage());
+
                 return 1;
             }
         }

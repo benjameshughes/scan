@@ -9,15 +9,17 @@ class RegisterAllowedDomains implements ValidationRule
 {
     protected $allowedDomains;
 
-    public function __construct(array $allowedDomains)
+    public function __construct(?array $allowedDomains = null)
     {
-        $this->allowedDomains = config('allowedDomains.domains');
+        $this->allowedDomains = $allowedDomains ?? config('allowedDomains.domains');
     }
 
     public function validate(string $attribute, $value, Closure $fail): void
     {
-        $domain = substr(strrchr($value, '@'), 1);
-        if (!in_array($domain, $this->allowedDomains)) {
+        $domain = strtolower(substr(strrchr($value, '@'), 1));
+        $allowedDomainsLower = array_map('strtolower', $this->allowedDomains);
+
+        if (! in_array($domain, $allowedDomainsLower)) {
             $fail('The domain is not allowed');
         }
     }
