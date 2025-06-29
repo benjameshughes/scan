@@ -46,16 +46,21 @@ class Edit extends Component
     {
 
         $validated = $this->validate([
-            'name' => 'required',
-            'email' => 'required|email',
-            'password' => 'optional',
+            'form.name' => 'required',
+            'form.email' => 'required|email',
+            'form.password' => 'nullable',
         ]);
 
-        $this->user->update([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-        ]);
+        $updateData = [
+            'name' => $validated['form']['name'],
+            'email' => $validated['form']['email'],
+        ];
+        
+        if (!empty($validated['form']['password'])) {
+            $updateData['password'] = Hash::make($validated['form']['password']);
+        }
+        
+        $this->user->update($updateData);
 
         if (! empty($this->selectedRole)) {
             $this->user->syncRoles([$this->selectedRole]);
