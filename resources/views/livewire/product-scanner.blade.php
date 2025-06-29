@@ -275,10 +275,10 @@
                         <div class="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-700 rounded-md border border-zinc-200 dark:border-zinc-600">
                             <div>
                                 <label for="scanAction" class="text-sm font-medium text-gray-700 dark:text-gray-200 cursor-pointer">
-                                    Special Action Mode
+                                    Increase stock amount
                                 </label>
                                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                    Enable for special warehouse operations
+                                    Enable this toggle to increase the stock amount
                                 </p>
                             </div>
                             <flux:switch 
