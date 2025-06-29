@@ -62,7 +62,7 @@
                 <div class="flex items-center justify-between pt-6 mt-6 border-t border-zinc-200 dark:border-zinc-700">
                     <flux:button 
                         variant="ghost" 
-                        href="{{ route('admin.users.index') }}"
+                        href="{{ route('users.index') }}"
                         type="button"
                     >
                         Cancel

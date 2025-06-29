@@ -70,7 +70,7 @@ class Add extends Component
             $message = 'User created successfully (no invitation sent).';
         }
 
-        return redirect()->route('admin.users.index')->with('message', $message);
+        return redirect()->route('users.index')->with('message', $message);
     }
 
     public function render()

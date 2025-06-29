@@ -37,47 +37,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
     Route::view('profile', 'profile')->name('profile');
 
-    /*
-|--------------------------------------------------------------------------
-| Admin Routes
-|--------------------------------------------------------------------------
-*/
-    Route::prefix('admin')->name('admin.')->group(function () {
-
-        Route::prefix('users')->name('users.')->middleware('permission:view users')->group(function () {
-            Route::get('/', function () {
-                return view('admin.users.index');
-            })->name('index');
-
-            Route::get('/{user}/edit', function (User $user) {
-                return view('admin.users.edit', compact('user'));
-            })->name('edit')->middleware('permission:edit users');
-
-            Route::get('create', function () {
-                return view('admin.users.add');
-            })->name('add')->middleware('permission:create users');
-        });
-
-        Route::prefix('invites')->name('invites.')->middleware('permission:create invites')->group(function () {
-            Route::get('/', function () {
-                return view('admin.invites.index');
-            })->name('index');
-            Route::get('create', function () {
-                return view('admin.users.invite.create');
-            })->name('create');
-            Route::get('bulk', function () {
-                return view('admin.invites.bulk');
-            })->name('bulk');
-            // Accept route needs to be public, it's up top
-        });
-
-        // Keep the old route for backward compatibility
-        Route::get('invite/create', function () {
-            return view('admin.users.invite.create');
-        })->name('invite.create')->middleware('permission:create invites');
-
-    });
-});
 
 /*
 |--------------------------------------------------------------------------
@@ -164,12 +123,14 @@ Route::prefix('users')->name('users.')->middleware('permission:view users')->gro
     Route::get('create', function () {
         return view('users.create');
     })->name('create')->middleware('permission:create users');
-    Route::get('{user}', function ($user) {
+    Route::get('{user}', function (User $user) {
         return view('users.show', compact('user'));
     })->name('show');
     Route::get('{user}/edit', function (User $user) {
         return view('users.edit', compact('user'));
     })->name('edit')->middleware('permission:edit users');
+});
+
 });
 
 /*

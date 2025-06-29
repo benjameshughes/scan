@@ -81,32 +81,47 @@
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-3">
-                    Notification Permissions
+                    User Permissions
                 </label>
-                <div class="space-y-3">
-                    <div class="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-700 rounded-md border border-zinc-200 dark:border-zinc-600">
-                        <div>
-                            <label for="emptyBayNotifications" class="text-sm font-medium text-gray-700 dark:text-gray-200 cursor-pointer">
-                                Receive Empty Bay Notifications
-                            </label>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                User will receive email alerts when empty bay notifications are submitted
-                            </p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">
+                    @if($selectedRole === 'admin')
+                        Administrators automatically have all permissions. Role-based permissions will override individual settings.
+                    @else
+                        Grant specific permissions to this user. Role-based permissions may also apply.
+                    @endif
+                </p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    @foreach($allPermissions as $category => $permissions)
+                        <div class="space-y-2">
+                            <h4 class="text-sm font-semibold text-gray-800 dark:text-gray-200 capitalize border-b border-zinc-200 dark:border-zinc-600 pb-1">
+                                {{ str_replace('_', ' ', $category) }}
+                            </h4>
+                            @foreach($permissions as $permission)
+                                <div class="flex items-center justify-between p-2 bg-zinc-50 dark:bg-zinc-700 rounded border border-zinc-200 dark:border-zinc-600 @if($selectedRole === 'admin') opacity-75 @endif">
+                                    <div class="flex-1">
+                                        <label for="permission_{{ $permission }}" class="text-xs font-medium text-gray-700 dark:text-gray-200 cursor-pointer">
+                                            {{ ucwords(str_replace(['_', 'users', 'scans', 'products', 'invites'], [' ', 'user', 'scan', 'product', 'invite'], $permission)) }}
+                                        </label>
+                                    </div>
+                                    <flux:checkbox 
+                                        wire:model="userPermissions.{{ $permission }}"
+                                        id="permission_{{ $permission }}"
+                                        name="permission_{{ $permission }}"
+                                        :disabled="$selectedRole === 'admin'"
+                                    />
+                                </div>
+                            @endforeach
                         </div>
-                        <flux:checkbox 
-                            wire:model="receiveEmptyBayNotifications"
-                            id="emptyBayNotifications"
-                            name="emptyBayNotifications"
-                        />
-                    </div>
+                    @endforeach
                 </div>
-                <flux:error name="receiveEmptyBayNotifications"/>
+                <flux:error name="userPermissions"/>
             </div>
 
             <div class="flex items-center justify-between pt-4 border-t border-zinc-200 dark:border-zinc-700">
                 <flux:button 
                     variant="ghost" 
-                    href="{{ route('admin.users.index') }}"
+                    href="{{ route('users.index') }}"
                     type="button"
                 >
                     Cancel

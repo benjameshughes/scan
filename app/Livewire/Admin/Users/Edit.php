@@ -18,8 +18,11 @@ class Edit extends Component
     // Store the name of the role currently selected in the form
     public string $selectedRole = ''; // Initialize as empty string
 
-    // Notification permissions
-    public bool $receiveEmptyBayNotifications = false;
+    // User permissions - array of permission => boolean
+    public array $userPermissions = [];
+
+    // All available permissions grouped by category
+    public array $allPermissions = [];
 
     // User data
     public array $form = [
@@ -42,8 +45,22 @@ class Edit extends Component
             $this->selectedRole = $currentRoleName;
         }
 
-        // Load notification permissions
-        $this->receiveEmptyBayNotifications = $user->can('receive empty bay notifications');
+        // Load all available permissions grouped by category
+        $this->allPermissions = [
+            'users' => ['view users', 'create users', 'edit users', 'delete users'],
+            'scans' => ['view scans', 'view scanner', 'create scans', 'edit scans', 'delete scans', 'sync scans'],
+            'products' => ['view products', 'create products', 'edit products', 'delete products', 'import products'],
+            'invites' => ['view invites', 'create invites', 'edit invites', 'delete invites'],
+            'notifications' => ['receive empty bay notifications'],
+        ];
+
+        // Load user's current permissions
+        $this->userPermissions = [];
+        foreach ($this->allPermissions as $category => $permissions) {
+            foreach ($permissions as $permission) {
+                $this->userPermissions[$permission] = $user->can($permission);
+            }
+        }
     }
 
     // Removed ensureDefaultRole - handled in mount and update
@@ -74,17 +91,32 @@ class Edit extends Component
             $this->user->syncRoles([]);
         }
 
-        // Handle empty bay notification permission
-        if ($this->receiveEmptyBayNotifications) {
-            $this->user->givePermissionTo('receive empty bay notifications');
-        } else {
-            $this->user->revokePermissionTo('receive empty bay notifications');
+        // Handle individual permissions (only for non-admin users)
+        if ($this->selectedRole !== 'admin') {
+            foreach ($this->userPermissions as $permission => $hasPermission) {
+                if ($hasPermission && !$this->user->can($permission)) {
+                    $this->user->givePermissionTo($permission);
+                } elseif (!$hasPermission && $this->user->can($permission)) {
+                    // Only revoke if permission was granted directly, not via role
+                    $this->user->revokePermissionTo($permission);
+                }
+            }
         }
 
         $this->dispatch('user-updated');
 
         // Redirect after update
-        return redirect()->route('admin.users.index');
+        return redirect()->route('users.index');
+    }
+
+    public function updatedSelectedRole($value)
+    {
+        // If admin role is selected, check all permissions but disable them in UI
+        if ($value === 'admin') {
+            foreach ($this->userPermissions as $permission => $currentValue) {
+                $this->userPermissions[$permission] = true;
+            }
+        }
     }
 
     public function render()

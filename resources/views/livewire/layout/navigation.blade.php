@@ -49,12 +49,6 @@ new class extends Component {
                             {{ __('Users') }}
                         </x-nav-link>
                     @endcan
-                    @can('create invites')
-                        <x-nav-link :href="route('admin.invites.index')" :active="request()->routeIs('admin.invites.*')"
-                                    wire:navigate>
-                            {{ __('Invitations') }}
-                        </x-nav-link>
-                    @endcan
                 </div>
             </div>
 
@@ -118,12 +112,6 @@ new class extends Component {
                 <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.index')"
                                        wire:navigate>
                     {{ __('Users') }}
-                </x-responsive-nav-link>
-            @endcan
-            @can('create invites')
-                <x-responsive-nav-link :href="route('admin.invites.index')" :active="request()->routeIs('admin.invites.*')"
-                                       wire:navigate>
-                    {{ __('Invitations') }}
                 </x-responsive-nav-link>
             @endcan
         </div>
