@@ -75,9 +75,9 @@ class UsersTable extends TableComponent
                         $inviteDate = $invite->created_at->diffForHumans();
                         $expiresAt = $invite->expires_at->diffForHumans();
 
-                        if ($invite->used_at) {
+                        if ($record->accepted_at) {
                             $statusBadge = '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Accepted</span>';
-                            $details = 'Accepted '.$invite->used_at->diffForHumans();
+                            $details = 'Accepted '.$record->accepted_at->diffForHumans();
                         } elseif ($invite->expires_at < now()) {
                             $statusBadge = '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">Expired</span>';
                             $details = 'Expired '.$expiresAt;
@@ -282,16 +282,14 @@ class UsersTable extends TableComponent
                     'apply' => function ($query, $value) {
                         switch ($value) {
                             case 'accepted':
-                                return $query->whereHas('invite', function ($q) {
-                                    $q->whereNotNull('used_at');
-                                });
+                                return $query->whereNotNull('accepted_at');
                             case 'pending':
-                                return $query->whereHas('invite', function ($q) {
-                                    $q->whereNull('used_at')->where('expires_at', '>', now());
+                                return $query->whereNull('accepted_at')->whereHas('invite', function ($q) {
+                                    $q->where('expires_at', '>', now());
                                 });
                             case 'expired':
-                                return $query->whereHas('invite', function ($q) {
-                                    $q->whereNull('used_at')->where('expires_at', '<', now());
+                                return $query->whereNull('accepted_at')->whereHas('invite', function ($q) {
+                                    $q->where('expires_at', '<', now());
                                 });
                             case 'none':
                                 return $query->whereDoesntHave('invite');
