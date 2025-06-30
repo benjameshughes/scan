@@ -48,11 +48,11 @@ class UsersTable extends TableComponent
                     'handle' => function (array $ids) {
                         $users = User::whereIn('id', $ids)->get();
                         $invitesSent = 0;
-                        
+
                         foreach ($users as $user) {
                             // Create invitation for users who don't have one
                             $existingInvite = \App\Models\Invite::where('user_id', $user->id)->first();
-                            if (!$existingInvite) {
+                            if (! $existingInvite) {
                                 $invitation = \App\Models\Invite::create([
                                     'name' => $user->name,
                                     'email' => $user->email,
@@ -61,12 +61,12 @@ class UsersTable extends TableComponent
                                     'invited_by' => auth()->id(),
                                     'expires_at' => now()->addHours(24),
                                 ]);
-                                
+
                                 $invitation->notify(new \App\Notifications\InviteNotification($invitation));
                                 $invitesSent++;
                             }
                         }
-                        
+
                         session()->flash('message', $invitesSent.' invitations sent.');
                     },
                 ],

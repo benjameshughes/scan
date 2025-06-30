@@ -252,6 +252,8 @@ LINNWORKS_SERVER=
 - **Caption**: `text-xs font-medium` (12px) - Small labels, badges
 
 ### Layout & Spacing System
+- Forms are always full width
+- Container class is max-w-7xl with no y padding
 
 #### Border Radius Standards
 - **Small**: `rounded-md` (6px) - Buttons, form inputs, small cards
@@ -308,6 +310,7 @@ LINNWORKS_SERVER=
 - **Badge Info**: `bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-full px-2 py-1 text-xs font-medium`
 
 ### Dark Mode Standards
+- Always use light and dark tailwind classes
 
 #### Background Hierarchy
 - **Page Background**: `bg-zinc-900` - Main page background
@@ -417,6 +420,7 @@ Key tables:
 - Unit tests for actions and services
 - Use Pest's Laravel helpers for cleaner tests
 - Database refreshed between tests automatically
+- For new features create a corresponding test
 
 ## UI Development Guidelines
 
@@ -535,8 +539,9 @@ Key tables:
 **Flux UI Integration:**
 - Prefer Flux UI components when available (buttons, inputs, dropdowns, etc.)
 - Ensure Flux components follow the established color scheme
-- Use Flux icons consistently throughout the application
+- Use Flux icons consistently throughout the application - Most Flux UI components have an icon prop to utilise
 - Leverage Flux's dark mode support for seamless theme switching
+- Use basic/free fluxui components. Design the premium/licensed in according to the design spec and create a reusable component if not available
 
 ### Migration Priorities
 
@@ -546,6 +551,8 @@ Key tables:
 3. Update table components to use modern TableComponent system
 4. Ensure all cards follow standard styling patterns
 5. Implement consistent status badge styling across all components
+6. UI elements follow the design guidelines
+7. For new features write tests
 
 **Quality Assurance:**
 - Test all UI changes in both light and dark modes

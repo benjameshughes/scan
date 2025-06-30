@@ -54,10 +54,10 @@ class Invite extends Model
         if (empty($this->email)) {
             \Log::error('Invite routeNotificationForMail: email is empty', [
                 'invite_id' => $this->id,
-                'invite_data' => $this->toArray()
+                'invite_data' => $this->toArray(),
             ]);
         }
-        
+
         return $this->email;
     }
 }

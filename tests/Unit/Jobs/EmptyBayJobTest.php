@@ -3,10 +3,12 @@
 use App\DTOs\EmptyBayDTO;
 use App\Jobs\EmptyBayJob;
 use App\Models\Product;
+use App\Models\Scan;
 use App\Models\User;
 use App\Notifications\EmptyBayNotification;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 describe('EmptyBayJob', function () {
@@ -15,6 +17,9 @@ describe('EmptyBayJob', function () {
         // Create roles
         Role::create(['name' => 'admin']);
         Role::create(['name' => 'user']);
+
+        // Create permissions
+        Permission::create(['name' => 'receive empty bay notifications']);
 
         $this->product = Product::factory()->create([
             'name' => 'Test Product',
@@ -55,30 +60,30 @@ describe('EmptyBayJob', function () {
         expect($property->getValue($job))->toBe(9876543210987);
     });
 
-    test('it notifies admin users when product exists', function () {
+    test('it notifies users with permission when product exists', function () {
         Notification::fake();
 
-        // Create admin user
-        $adminUser = User::factory()->create();
-        $adminUser->assignRole('admin');
+        // Create user with permission
+        $userWithPermission = User::factory()->create();
+        $userWithPermission->givePermissionTo('receive empty bay notifications');
 
-        // Create regular user (should not be notified)
+        // Create regular user without permission (should not be notified)
         $regularUser = User::factory()->create();
         $regularUser->assignRole('user');
 
         $job = new EmptyBayJob($this->emptyBayDTO);
         $job->handle();
 
-        Notification::assertSentTo($adminUser, EmptyBayNotification::class);
+        Notification::assertSentTo($userWithPermission, EmptyBayNotification::class);
         Notification::assertNotSentTo($regularUser, EmptyBayNotification::class);
     });
 
     test('it does not send notifications when product does not exist', function () {
         Notification::fake();
 
-        // Create admin user
-        $adminUser = User::factory()->create();
-        $adminUser->assignRole('admin');
+        // Create user with permission
+        $userWithPermission = User::factory()->create();
+        $userWithPermission->givePermissionTo('receive empty bay notifications');
 
         // Use barcode that doesn't match any product
         $nonExistentBarcodeDTO = new EmptyBayDTO(9999999999999);
@@ -91,13 +96,17 @@ describe('EmptyBayJob', function () {
     test('it passes correct product to notification', function () {
         Notification::fake();
 
-        $adminUser = User::factory()->create();
-        $adminUser->assignRole('admin');
+        $userWithPermission = User::factory()->create();
+        $userWithPermission->givePermissionTo('receive empty bay notifications');
 
         $job = new EmptyBayJob($this->emptyBayDTO);
         $job->handle();
 
-        Notification::assertSentTo($adminUser, EmptyBayNotification::class, function ($notification) {
+        // First, ensure notification was sent
+        Notification::assertSentTo($userWithPermission, EmptyBayNotification::class);
+
+        // Then check the notification details
+        Notification::assertSentTo($userWithPermission, EmptyBayNotification::class, function ($notification) {
             // Access the product property of the notification
             $reflection = new ReflectionClass($notification);
             if ($reflection->hasProperty('product')) {
@@ -105,7 +114,8 @@ describe('EmptyBayJob', function () {
                 $property->setAccessible(true);
                 $product = $property->getValue($notification);
 
-                return $product->barcode === '1234567890123' &&
+                // Barcode is stored as integer in database
+                return $product->barcode == 1234567890123 &&
                        $product->name === 'Test Product';
             }
 
@@ -123,14 +133,14 @@ describe('EmptyBayJob', function () {
             'barcode_2' => '2222222222222',
         ]);
 
-        $adminUser = User::factory()->create();
-        $adminUser->assignRole('admin');
+        $userWithPermission = User::factory()->create();
+        $userWithPermission->givePermissionTo('receive empty bay notifications');
 
         $dto = new EmptyBayDTO(2222222222222);
         $job = new EmptyBayJob($dto);
         $job->handle();
 
-        Notification::assertSentTo($adminUser, EmptyBayNotification::class);
+        Notification::assertSentTo($userWithPermission, EmptyBayNotification::class);
     });
 
     test('it works with tertiary barcode match', function () {
@@ -144,14 +154,14 @@ describe('EmptyBayJob', function () {
             'barcode_3' => '3333333333333',
         ]);
 
-        $adminUser = User::factory()->create();
-        $adminUser->assignRole('admin');
+        $userWithPermission = User::factory()->create();
+        $userWithPermission->givePermissionTo('receive empty bay notifications');
 
         $dto = new EmptyBayDTO(3333333333333);
         $job = new EmptyBayJob($dto);
         $job->handle();
 
-        Notification::assertSentTo($adminUser, EmptyBayNotification::class);
+        Notification::assertSentTo($userWithPermission, EmptyBayNotification::class);
     });
 
     test('it handles multiple users with permission', function () {
@@ -222,10 +232,10 @@ describe('EmptyBayJob', function () {
         Queue::assertPushedOn('notifications', EmptyBayJob::class);
     });
 
-    test('it handles no admin users gracefully', function () {
+    test('it handles no users with permission gracefully', function () {
         Notification::fake();
 
-        // No admin users exist
+        // No users with permission exist
 
         $job = new EmptyBayJob($this->emptyBayDTO);
         $job->handle();
@@ -237,7 +247,7 @@ describe('EmptyBayJob', function () {
     test('it handles no recipients gracefully', function () {
         Notification::fake();
 
-        // No admin users
+        // Only users without the permission
         $regularUser = User::factory()->create();
         $regularUser->assignRole('user');
 
@@ -254,4 +264,5 @@ describe('EmptyBayJob', function () {
         // that the job completes successfully when a product exists
         expect(fn () => $job->handle())->not->toThrow(\Exception::class);
     });
+
 });

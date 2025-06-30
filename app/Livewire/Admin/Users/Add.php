@@ -45,7 +45,7 @@ class Add extends Component
                 'email' => $this->email,
                 'user_id' => $user->id,
             ]);
-            
+
             // Create invitation
             $invitation = Invite::create([
                 'name' => $this->name,
@@ -59,7 +59,7 @@ class Add extends Component
             \Log::info('Created invite', [
                 'invite_id' => $invitation->id,
                 'invite_email' => $invitation->email,
-                'invite_data' => $invitation->toArray()
+                'invite_data' => $invitation->toArray(),
             ]);
 
             // Send invite notification

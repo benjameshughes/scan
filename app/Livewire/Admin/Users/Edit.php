@@ -78,11 +78,11 @@ class Edit extends Component
             'name' => $validated['form']['name'],
             'email' => $validated['form']['email'],
         ];
-        
-        if (!empty($validated['form']['password'])) {
+
+        if (! empty($validated['form']['password'])) {
             $updateData['password'] = Hash::make($validated['form']['password']);
         }
-        
+
         $this->user->update($updateData);
 
         if (! empty($this->selectedRole)) {
@@ -94,9 +94,9 @@ class Edit extends Component
         // Handle individual permissions (only for non-admin users)
         if ($this->selectedRole !== 'admin') {
             foreach ($this->userPermissions as $permission => $hasPermission) {
-                if ($hasPermission && !$this->user->can($permission)) {
+                if ($hasPermission && ! $this->user->can($permission)) {
                     $this->user->givePermissionTo($permission);
-                } elseif (!$hasPermission && $this->user->can($permission)) {
+                } elseif (! $hasPermission && $this->user->can($permission)) {
                     // Only revoke if permission was granted directly, not via role
                     $this->user->revokePermissionTo($permission);
                 }

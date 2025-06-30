@@ -367,6 +367,33 @@ describe('ProductScanner Component', function () {
                 ->assertSet('isTorchOn', true);
         });
 
+        test('torch state changed event handles various input types with boolean casting', function () {
+            // Test with string "1"
+            Livewire::test(ProductScanner::class)
+                ->dispatch('onTorchStateChanged', '1')
+                ->assertSet('isTorchOn', true);
+
+            // Test with string "0"
+            Livewire::test(ProductScanner::class)
+                ->dispatch('onTorchStateChanged', '0')
+                ->assertSet('isTorchOn', false);
+
+            // Test with integer 1
+            Livewire::test(ProductScanner::class)
+                ->dispatch('onTorchStateChanged', 1)
+                ->assertSet('isTorchOn', true);
+
+            // Test with integer 0
+            Livewire::test(ProductScanner::class)
+                ->dispatch('onTorchStateChanged', 0)
+                ->assertSet('isTorchOn', false);
+
+            // Test with null
+            Livewire::test(ProductScanner::class)
+                ->dispatch('onTorchStateChanged', null)
+                ->assertSet('isTorchOn', false);
+        });
+
         test('barcode detected event processes barcode', function () {
             $product = Product::factory()->create([
                 'name' => 'Detected Product',
