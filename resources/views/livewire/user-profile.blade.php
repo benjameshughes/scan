@@ -1,4 +1,4 @@
-<div class="max-w-4xl mx-auto space-y-6">
+<div class="w-full space-y-6">
     <!-- Profile Information -->
     <div class="bg-white dark:bg-zinc-800 shadow-sm rounded-lg border border-zinc-200 dark:border-zinc-700">
         <div class="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700">

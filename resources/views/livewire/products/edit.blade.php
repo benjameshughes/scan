@@ -1,4 +1,4 @@
-<div class="max-w-4xl mx-auto">
+<div class="w-full">
     <!-- Card Container -->
     <div class="bg-white dark:bg-zinc-800 shadow-sm rounded-lg border border-zinc-200 dark:border-zinc-700">
         <!-- Card Header -->

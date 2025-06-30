@@ -252,8 +252,9 @@ LINNWORKS_SERVER=
 - **Caption**: `text-xs font-medium` (12px) - Small labels, badges
 
 ### Layout & Spacing System
-- Forms are always full width
-- Container class is max-w-7xl with no y padding
+- Application layout uses `max-w-7xl` container with horizontal padding
+- Forms within the layout should be full width (`w-full`) to utilize available space
+- Exception: Authentication forms may use centered narrow containers (`max-w-md mx-auto`) for UX
 
 #### Border Radius Standards
 - **Small**: `rounded-md` (6px) - Buttons, form inputs, small cards
@@ -445,11 +446,13 @@ Key tables:
 **Form Design Standards:**
 
 #### Form Layout & Structure
-- **Container**: Use cards with consistent padding: `bg-white dark:bg-zinc-800 shadow-sm rounded-lg border border-zinc-200 dark:border-zinc-700`
+- **Container Width**: Use `w-full` for all forms (app layout provides max-width constraint)
+- **Card Container**: `bg-white dark:bg-zinc-800 shadow-sm rounded-lg border border-zinc-200 dark:border-zinc-700`
 - **Form Header**: Include descriptive title and optional subtitle in header section with border separation
 - **Field Spacing**: Use `space-y-4` for field groups, `space-y-6` for major form sections
 - **Field Groups**: Wrap related fields in logical groupings with subtle visual separation
 - **Form Actions**: Place primary actions on the right, secondary on the left with consistent spacing
+- **Grid Layout**: Use `grid grid-cols-1 md:grid-cols-2 gap-4` for side-by-side fields on larger screens
 
 #### Input Field Standards
 - **Base Styling**: `border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 rounded-md`
@@ -499,11 +502,40 @@ Key tables:
 - **Screen Reader Support**: Use proper ARIA attributes and live regions for dynamic content
 - **Keyboard Navigation**: All interactive elements must be keyboard accessible
 
+#### Form Width & Container Standards
+
+**Application Layout Structure:**
+```html
+<!-- App layout (layout/app.blade.php) -->
+<main class="py-8">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8">
+        {{ $slot }} <!-- Form content goes here -->
+    </div>
+</main>
+```
+
+**Form Container Standards:**
+```html
+<!-- Standard Form Pattern -->
+<div class="w-full">
+    <div class="bg-white dark:bg-zinc-800 shadow-sm rounded-lg border border-zinc-200 dark:border-zinc-700">
+        <!-- Form content -->
+    </div>
+</div>
+```
+
+**Form Width Guidelines:**
+- **Management Forms**: Use `w-full` (utilizes full width within max-w-7xl app container)
+- **Authentication Forms**: Use `max-w-md mx-auto` for centered, narrow presentation
+- **Modal Forms**: Use appropriate width constraints within modal containers
+- **Never use**: `max-w-2xl`, `max-w-4xl` on main form containers (redundant with app layout)
+
 #### Responsive Design
 - **Mobile First**: Design for mobile screens, enhance for larger viewports
 - **Touch Targets**: Minimum 44px touch targets on mobile devices
 - **Input Sizing**: Larger inputs on mobile for better usability
 - **Form Layout**: Single column on mobile, multi-column on larger screens where appropriate
+- **Grid Breakpoints**: Use `md:grid-cols-2` or `lg:grid-cols-3` for larger screens
 
 **Navigation Standards:**
 - Use consistent zinc-based colors for navigation backgrounds
