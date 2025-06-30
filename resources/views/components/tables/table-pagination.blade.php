@@ -11,7 +11,7 @@
 
         {{-- Pagination links --}}
         <div>
-            {{ $data->links() }}
+            {{ $data->links('pagination.custom') }}
         </div>
     </div>
 </div>

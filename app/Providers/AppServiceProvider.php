@@ -6,6 +6,7 @@ use App\Tables\TableComponent;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Http;
@@ -73,6 +74,10 @@ class AppServiceProvider extends ServiceProvider
 
         // Table Component
         Livewire::component('table', TableComponent::class);
+
+        // Set default pagination views
+        Paginator::defaultView('pagination.custom');
+        Paginator::defaultSimpleView('pagination.simple');
 
         // HTTP Linnworks API Macro
         Http::macro('linnworks', function ($url, $data = []) {

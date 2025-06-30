@@ -61,6 +61,6 @@
 
     {{-- Pagination --}}
     <div class="mt-4">
-        {{ $data->links() }}
+        {{ $data->links('pagination.custom') }}
     </div>
 </div>

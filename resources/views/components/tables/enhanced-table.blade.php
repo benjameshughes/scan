@@ -187,7 +187,7 @@
     {{-- Pagination --}}
     @if($data->hasPages())
         <div class="px-6 py-3 border-t border-zinc-200 dark:border-zinc-700">
-            {{ $data->links() }}
+            {{ $data->links('pagination.custom') }}
         </div>
     @endif
 

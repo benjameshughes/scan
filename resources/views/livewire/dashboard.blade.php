@@ -324,7 +324,7 @@
                             </div>
                             
                             <div class="mt-6">
-                                {{ $scans->links() }}
+                                {{ $scans->links('pagination.simple') }}
                             </div>
                         @else
                             <div class="text-center py-8">

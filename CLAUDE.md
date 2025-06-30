@@ -143,6 +143,22 @@ php artisan version:bump-improved --downgrade=1.9.0
 - Use the modern table system for all new tables
 - Tables should follow the design language system (see below)
 
+**Pagination System:**
+- **Full Pagination** (`pagination.custom`): Complete page navigation with page numbers
+  - Use for: Full-width tables, main content areas, product lists, user management
+  - Features: Page numbers, first/last links, "Showing X to Y of Z results"
+  - Layout: Responsive with mobile-optimized Previous/Next only view
+- **Simple Pagination** (`pagination.simple`): Compact Previous/Next navigation
+  - Use for: Dashboard cards, sidebar lists, narrow columns, modal content
+  - Features: Previous/Next buttons with "Page X of Y" indicator
+  - Layout: Always compact, 60% smaller than full pagination
+- Set as defaults in `AppServiceProvider` for consistency across application
+- Both pagination views follow design system standards with proper dark mode and accessibility
+- Manual pagination calls:
+  - Full: `{{ $data->links('pagination.custom') }}`
+  - Simple: `{{ $data->links('pagination.simple') }}`
+  - Automatic: `{{ $data->links() }}` (uses defaults based on pagination type)
+
 **Legacy System:**
 - Custom table system in `app/Tables/` (legacy, avoid for new tables)
 - Used for products, users, and syncs tables (being migrated)
@@ -417,11 +433,66 @@ Key tables:
 
 ## Testing Guidelines
 
-- Feature tests for Livewire components
-- Unit tests for actions and services
-- Use Pest's Laravel helpers for cleaner tests
+### **MANDATORY: Create Pest Tests for All New Features**
+
+**When to Create Tests:**
+- Every new feature implementation
+- Every new component or service
+- Every bug fix that could regress
+- Every API endpoint or integration
+
+**Test Types Required:**
+- **Feature Tests** for Livewire components (`tests/Feature/`)
+- **Unit Tests** for actions, services, and models (`tests/Unit/`)
+- **Integration Tests** for API interactions and external services
+
+**Test File Naming:**
+- Livewire components: `tests/Feature/ComponentNameTest.php`
+- Actions/Services: `tests/Unit/Actions/ActionNameTest.php`
+- Models: `tests/Unit/Models/ModelNameTest.php`
+
+**IMPORTANT: Use Pest Framework (NOT PHPUnit or custom PHP files)**
+- All tests must use Pest syntax and helpers
+- Use `./vendor/bin/pest` to run tests
 - Database refreshed between tests automatically
-- For new features create a corresponding test
+- Leverage Pest's Laravel helpers for cleaner test code
+
+**Test Examples:**
+```php
+// Feature test for Livewire component
+it('can paginate through failed scans', function () {
+    $scans = Scan::factory()->count(15)->create(['submitted_at' => null]);
+    
+    Livewire::test(FailedScanList::class)
+        ->assertSee($scans->first()->barcode)
+        ->call('nextPage')
+        ->assertSee($scans->get(10)->barcode);
+});
+
+// Unit test for pagination view
+it('renders simple pagination correctly', function () {
+    $scans = Scan::factory()->count(20)->create();
+    $paginated = $scans->paginate(5);
+    
+    $view = view('pagination.simple', ['paginator' => $paginated]);
+    
+    expect($view->render())
+        ->toContain('Previous')
+        ->toContain('Next')
+        ->toContain('Page 1 of 4');
+});
+```
+
+**DO NOT:**
+- Create custom PHP test files (like `test-pagination.php`)
+- Skip tests for "simple" features
+- Use manual testing as a substitute for automated tests
+- Test only happy paths (include edge cases and error scenarios)
+
+**Example Test Files in Codebase:**
+- `tests/Feature/PaginationTest.php` - Comprehensive pagination system tests
+- `tests/Feature/UserManagementTest.php` - User management and invitation tests
+- `tests/Feature/ProductScannerTest.php` - Barcode scanning component tests
 
 ## UI Development Guidelines
 
