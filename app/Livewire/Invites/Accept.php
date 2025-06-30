@@ -62,6 +62,7 @@ class Accept extends Component
                 'name' => $this->name,
                 'password' => Hash::make($this->password),
                 'email_verified_at' => now(),
+                'accepted_at' => now(),
                 'status' => true,
             ]);
 
