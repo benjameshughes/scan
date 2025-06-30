@@ -44,9 +44,16 @@ class Dashboard extends Component
     /**
      * Redispatch all jobs that have not been submitted
      * Only do the scans with a product model
+     * Restricted to admin users only
      */
     public function redispatch()
     {
+        // Check if user has admin permissions
+        if (!auth()->user()->hasRole('admin')) {
+            $this->dispatch('error', 'You do not have permission to perform this action.');
+            return 0;
+        }
+
         $this->retryCount = 0;
 
         // Process in chunks to avoid memory issues
@@ -105,7 +112,10 @@ class Dashboard extends Component
         $userWeeklyScans = $userScans->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count();
 
         return view('livewire.dashboard', [
-            'scans' => Scan::query()->whereNot('sync_status', 'completed')->paginate(5),
+            'scans' => Scan::where(function ($query) {
+                $query->whereNull('submitted_at')
+                      ->orWhere('sync_status', 'failed');
+            })->orderBy('created_at', 'desc')->paginate(5),
             'stats' => [
                 'total_scans' => $totalScans,
                 'pending_scans' => $pendingScans,

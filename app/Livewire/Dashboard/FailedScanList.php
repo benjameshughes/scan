@@ -13,7 +13,10 @@ class FailedScanList extends Component
     public function render()
     {
         return view('livewire.dashboard.failed-scan-list', [
-            'scans' => Scan::where('submitted', false)->paginate(10),
+            'scans' => Scan::where(function ($query) {
+                $query->whereNull('submitted_at')
+                      ->orWhere('sync_status', 'failed');
+            })->orderBy('created_at', 'desc')->paginate(10),
         ]);
     }
 }
