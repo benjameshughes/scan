@@ -27,7 +27,7 @@ class ScanForm extends Component
 
     public bool $showSuccessMessage = false;
 
-    public string $successMessage;
+    public string $successMessage = '';
 
     public bool $scanAction = false;
 

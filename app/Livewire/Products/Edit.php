@@ -25,8 +25,8 @@ class Edit extends Component
     {
         $this->product = $product;
         $this->sku = $product->sku;
-        $this->name = $product->name;
-        $this->barcode = $product->barcode;
+        $this->name = $product->name ?? '';
+        $this->barcode = $product->barcode ?? '';
         $this->barcode_2 = $product->barcode_2 ?? '';
         $this->barcode_3 = $product->barcode_3 ?? '';
         $this->quantity = $product->quantity ?? 0;

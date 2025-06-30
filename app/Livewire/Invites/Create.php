@@ -10,9 +10,9 @@ use Livewire\Component;
 
 class Create extends Component
 {
-    public string $email;
+    public string $email = '';
 
-    public string $name;
+    public string $name = '';
 
     protected $rules = [
         'email' => 'required|email|unique:users,email',

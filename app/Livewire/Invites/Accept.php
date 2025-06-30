@@ -6,6 +6,7 @@ use App\Models\Invite;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Livewire\Component;
 
@@ -13,7 +14,7 @@ class Accept extends Component
 {
     public Invite $invite;
 
-    public string $token;
+    public string $token = '';
 
     public string $name = '';
 
@@ -33,13 +34,15 @@ class Accept extends Component
             ->first();
 
         // Pre-fill the form if needed
-        $this->name = $this->invite->user->name;
-        $this->email = $this->invite->user->email;
+        $this->token = $token;
+        $this->name = $this->invite->user->name ?? '';
+        $this->email = $this->invite->user->email ?? '';
     }
 
     public function acceptInvite()
     {
         $validated = $this->validate([
+            'name' => ['required', 'string', 'max:255'],
             'password' => ['required', 'string', 'confirmed', Rules\Password::min(6)->max(255)->letters()->mixedCase()],
         ]);
 
@@ -56,6 +59,8 @@ class Accept extends Component
         DB::table('users')
             ->where('id', $user->id)
             ->update([
+                'name' => $this->name,
+                'password' => Hash::make($this->password),
                 'email_verified_at' => now(),
                 'status' => true,
             ]);
@@ -70,6 +75,6 @@ class Accept extends Component
 
     public function render()
     {
-        return view('livewire.invites.accept');
+        return view('livewire.invites.accept')->layout('layouts.guest');
     }
 }

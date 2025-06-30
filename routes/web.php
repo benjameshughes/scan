@@ -4,6 +4,7 @@ use App\Http\Controllers\LinnworksController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ScanController;
 use App\Http\Middleware\IsInviteValid;
+use App\Livewire\Invites\Accept;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\LinnworksApiService;
@@ -17,9 +18,7 @@ use Illuminate\Support\Facades\Route;
 // Route::redirect('/', 'dashboard')->name('home');
 Route::redirect('/', 'scanner')->name('home');
 Route::get('scanner', [ScanController::class, 'scan'])->name('scan.scan');
-Route::get('/invite/{token}', function ($token) {
-    return view('admin.users.invite.accept', ['token' => $token]);
-})->name('invite.accept')->middleware(IsInviteValid::class);
+Route::get('/invite/{token}', Accept::class)->name('invite.accept')->middleware(IsInviteValid::class);
 
 // Redirect registration attempts to login with message
 Route::get('/register', function () {
