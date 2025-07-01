@@ -1,4 +1,34 @@
-<div class="space-y-6">
+<div class="space-y-6" 
+     x-data="{ 
+         polling: false,
+         startPolling() {
+             this.polling = true;
+             this.poll();
+         },
+         poll() {
+             if (this.polling) {
+                 $wire.getProgress().then(() => {
+                     // Continue polling if sync is still running
+                     if ($wire.isRunning) {
+                         setTimeout(() => this.poll(), 2000); // Poll every 2 seconds
+                     } else {
+                         this.polling = false;
+                     }
+                 });
+             }
+         }
+     }"
+     x-init="
+         // Auto-start polling if sync is already running
+         if ($wire.isRunning) {
+             startPolling();
+         }
+         
+         // Listen for sync start
+         $wire.on('sync-started', () => {
+             startPolling();
+         });
+     ">
     <!-- Session Flash Messages -->
     @if (session()->has('message'))
         <div class="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-md p-4 border border-green-200 dark:border-green-800">
@@ -102,6 +132,68 @@
             </div>
 
             <!-- Action Buttons -->
+            <!-- Real-time Progress Display -->
+            @if($isRunning && $currentProgress)
+                <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+                    <h4 class="text-sm font-medium text-blue-900 dark:text-blue-200 mb-3">Sync Progress</h4>
+                    
+                    <div class="space-y-3">
+                        <!-- Current Operation -->
+                        <div>
+                            <div class="text-sm text-blue-800 dark:text-blue-300">
+                                {{ $currentProgress['operation'] ?? 'Processing...' }}
+                            </div>
+                        </div>
+                        
+                        <!-- Progress Bar (if percentage available) -->
+                        @if(isset($currentProgress['progress_percentage']) && $currentProgress['progress_percentage'] !== null)
+                            <div>
+                                <div class="flex justify-between text-xs text-blue-700 dark:text-blue-300 mb-1">
+                                    <span>Progress</span>
+                                    <span>{{ $currentProgress['progress_percentage'] }}%</span>
+                                </div>
+                                <div class="w-full bg-blue-200 dark:bg-blue-800 rounded-full h-2">
+                                    <div class="bg-blue-600 dark:bg-blue-400 h-2 rounded-full transition-all duration-300" 
+                                         style="width: {{ $currentProgress['progress_percentage'] }}%"></div>
+                                </div>
+                            </div>
+                        @endif
+                        
+                        <!-- Current Stats -->
+                        @if(isset($currentProgress['stats']))
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                                <div>
+                                    <div class="text-blue-600 dark:text-blue-400 font-medium">Processed</div>
+                                    <div class="text-blue-800 dark:text-blue-200">{{ $currentProgress['stats']['total_processed'] ?? 0 }}</div>
+                                </div>
+                                <div>
+                                    <div class="text-green-600 dark:text-green-400 font-medium">Created</div>
+                                    <div class="text-blue-800 dark:text-blue-200">{{ $currentProgress['stats']['created'] ?? 0 }}</div>
+                                </div>
+                                <div>
+                                    <div class="text-amber-600 dark:text-amber-400 font-medium">Queued</div>
+                                    <div class="text-blue-800 dark:text-blue-200">{{ $currentProgress['stats']['queued'] ?? 0 }}</div>
+                                </div>
+                                <div>
+                                    <div class="text-red-600 dark:text-red-400 font-medium">Errors</div>
+                                    <div class="text-blue-800 dark:text-blue-200">{{ $currentProgress['stats']['errors'] ?? 0 }}</div>
+                                </div>
+                            </div>
+                        @endif
+                        
+                        <!-- Batch Info -->
+                        @if(isset($currentProgress['batch_info']['current_batch']))
+                            <div class="text-xs text-blue-700 dark:text-blue-300">
+                                Processing batch {{ $currentProgress['batch_info']['current_batch'] }}
+                                @if(isset($currentProgress['batch_info']['products_in_batch']))
+                                    ({{ $currentProgress['batch_info']['products_in_batch'] }} products)
+                                @endif
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            @endif
+
             <div class="flex items-center justify-between pt-4 border-t border-zinc-200 dark:border-zinc-700">
                 <div class="text-sm text-gray-500 dark:text-gray-400">
                     @if($isRunning)
