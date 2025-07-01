@@ -23,14 +23,6 @@ class Show extends Component
         $this->product = $product;
     }
 
-    /**
-     * Test method to debug Livewire
-     */
-    public function testLivewire()
-    {
-        Log::info("TEST: Livewire is working for product: {$this->product->sku}");
-        session()->flash('message', 'Livewire is working!');
-    }
 
     /**
      * Show stock history for this product
