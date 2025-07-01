@@ -14,6 +14,7 @@ A modern, full-featured Laravel application for warehouse stock management with 
 - **Mobile-optimized interface** with torch/flashlight control on supported devices
 - **Continuous scanning mode** with vibration feedback and audio alerts
 - **Auto-submit functionality** for streamlined warehouse operations
+- **Auto-accept mode** for rapid stock updates with full audit trail
 
 ### 📊 **Inventory Management**
 - **Real-time stock level tracking** with increase/decrease operations
@@ -21,6 +22,9 @@ A modern, full-featured Laravel application for warehouse stock management with 
 - **Scan history** with comprehensive audit trails and filtering
 - **Empty bay notifications** to alert administrators when restocking is needed
 - **Bulk operations** for efficient inventory management
+- **Stock history viewer** with detailed movement tracking from Linnworks
+- **Manual full sync** capability for administrators to refresh all product data
+- **Real-time progress tracking** during sync operations with accurate inventory counts
 
 ### 🔗 **Linnworks Integration**
 - **Automated stock synchronization** with Linnworks warehouse management system
@@ -28,6 +32,10 @@ A modern, full-featured Laravel application for warehouse stock management with 
 - **Token-based authentication** with automatic refresh handling
 - **Batch scan submissions** to optimize API usage
 - **Product data synchronization** including SKUs and barcodes
+- **Configurable API constants** for optimized performance and page sizes
+- **Stock history API** integration for viewing detailed movement records
+- **Inventory count API** for accurate progress tracking
+- **Update Details button** for instant product information refresh
 
 ### 👥 **User Management**
 - **Role-based access control** using Spatie Laravel Permission
@@ -44,6 +52,9 @@ A modern, full-featured Laravel application for warehouse stock management with 
 - **Real-time updates** using Livewire for dynamic interactions
 - **Modern table system** with auto-discovery, search, and filtering
 - **Professional design language** suitable for enterprise environments
+- **ATM-style UI effects** for visual feedback during operations
+- **Skeleton loading states** for improved perceived performance
+- **Modern modal system** using Flux UI components with proper z-index management
 
 ---
 
