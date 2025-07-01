@@ -75,7 +75,16 @@ abstract class TableComponent extends Component
 
     protected function getTable(): Table
     {
-        return $this->table(Table::make());
+        $table = $this->table(Table::make());
+        
+        // Set component ID for ActionsColumn instances
+        foreach ($table->getColumns() as $column) {
+            if ($column instanceof ActionsColumn) {
+                $column->setComponentId($this->getId());
+            }
+        }
+        
+        return $table;
     }
 
     public function mount(): void

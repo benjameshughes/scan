@@ -2,21 +2,16 @@
 
 namespace App\Tables\Columns;
 
+use App\Tables\Actions\BaseAction;
+use App\Tables\Actions\ViewAction;
+use App\Tables\Actions\EditAction;
+use App\Tables\Actions\DeleteAction;
+use App\Tables\Actions\CustomAction;
+
 class ActionsColumn extends TextColumn
 {
     protected array $actions = [];
-
-    protected bool $showView = false;
-
-    protected bool $showEdit = false;
-
-    protected bool $showDelete = false;
-
-    protected ?string $viewRoute = null;
-
-    protected ?string $editRoute = null;
-
-    protected ?string $deleteAction = null;
+    protected ?string $componentId = null;
 
     public function __construct(string $name = 'actions')
     {
@@ -26,118 +21,117 @@ class ActionsColumn extends TextColumn
         $this->label = 'Actions';
     }
 
+    public function setComponentId(string $componentId): self
+    {
+        $this->componentId = $componentId;
+        return $this;
+    }
+
     public function view(?string $route = null): self
     {
-        $this->showView = true;
-        $this->viewRoute = $route;
-
+        $action = new ViewAction();
+        if ($route) {
+            $action->route($route);
+        }
+        $this->actions[] = $action;
         return $this;
     }
 
     public function edit(?string $route = null): self
     {
-        $this->showEdit = true;
-        $this->editRoute = $route;
-
+        $action = new EditAction();
+        if ($route) {
+            $action->route($route);
+        }
+        $this->actions[] = $action;
         return $this;
     }
 
     public function delete(?string $action = null): self
     {
-        $this->showDelete = true;
-        $this->deleteAction = $action;
-
+        $deleteAction = new DeleteAction();
+        if ($action) {
+            $deleteAction->action($action);
+        }
+        $this->actions[] = $deleteAction;
         return $this;
     }
 
-    public function custom(string $label, \Closure $url, ?string $icon = null, string $color = 'blue'): self
+    public function custom(string $label, $url = null, ?string $icon = null, string $color = 'blue'): self
     {
-        $this->actions[] = [
-            'label' => $label,
-            'url' => $url,
-            'icon' => $icon,
-            'color' => $color,
-            'type' => 'custom',
-        ];
+        $action = new CustomAction($label, $url);
+        if ($icon) {
+            $action->icon($icon);
+        }
+        $action->color($color);
+        $this->actions[] = $action;
+        return $this;
+    }
 
+    public function action(BaseAction $action): self
+    {
+        $this->actions[] = $action;
+        return $this;
+    }
+
+    // Convenience methods for common actions
+    public function email(string $field = 'email', string $label = 'Send Email'): self
+    {
+        $action = new \App\Tables\Actions\EmailAction($label);
+        $action->mailto($field);
+        $this->actions[] = $action;
+        return $this;
+    }
+
+    public function resetPassword(string $label = 'Reset Password'): self
+    {
+        $this->actions[] = new \App\Tables\Actions\ResetPasswordAction($label);
+        return $this;
+    }
+
+    public function export(string $format = null, string $route = null): self
+    {
+        $action = new \App\Tables\Actions\ExportAction();
+        if ($format) {
+            $action->format($format);
+        }
+        if ($route) {
+            $action->route($route);
+        }
+        $this->actions[] = $action;
+        return $this;
+    }
+
+    public function import(string $route = null): self
+    {
+        $action = new \App\Tables\Actions\ImportAction();
+        if ($route) {
+            $action->route($route);
+        }
+        $this->actions[] = $action;
         return $this;
     }
 
     public function getValue($record)
     {
-        $actions = [];
-        $user = auth()->user();
+        $actionData = [];
 
-        if ($this->showView && $user && $user->can('view', $record)) {
-            $actions[] = [
-                'label' => 'View',
-                'url' => $this->getRouteUrl($this->viewRoute, $record, 'view'),
-                'icon' => 'eye',
-                'color' => 'blue',
-                'type' => 'view',
-            ];
-        }
-
-        if ($this->showEdit && $user && $user->can('update', $record)) {
-            $actions[] = [
-                'label' => 'Edit',
-                'url' => $this->getRouteUrl($this->editRoute, $record, 'edit'),
-                'icon' => 'pencil',
-                'color' => 'green',
-                'type' => 'edit',
-            ];
-        }
-
-        if ($this->showDelete && $user && $user->can('delete', $record)) {
-            $actions[] = [
-                'label' => 'Delete',
-                'action' => $this->getDeleteAction($record),
-                'icon' => 'trash',
-                'color' => 'red',
-                'type' => 'delete',
-            ];
-        }
-
-        // Add custom actions
         foreach ($this->actions as $action) {
-            $actions[] = [
-                'label' => $action['label'],
-                'url' => call_user_func($action['url'], $record),
-                'icon' => $action['icon'],
-                'color' => $action['color'],
-                'type' => $action['type'],
-            ];
+            if ($action->canExecute($record)) {
+                $data = $action->toArray($record);
+                
+                // Handle Livewire component ID replacement for JavaScript URLs
+                if (isset($data['url']) && str_contains($data['url'], '{component_id}') && $this->componentId) {
+                    $data['url'] = str_replace('{component_id}', $this->componentId, $data['url']);
+                }
+                
+                $actionData[] = $data;
+            }
         }
 
         return view('components.tables.table-actions', [
-            'actions' => $actions,
+            'actions' => $actionData,
             'record' => $record,
         ])->render();
-    }
-
-    protected function getRouteUrl(?string $route, $record, string $default): ?string
-    {
-        if ($route) {
-            return route($route, $record);
-        }
-
-        // Try to guess the route name
-        $modelName = strtolower(class_basename($record));
-        $routeName = "{$modelName}s.{$default}";
-
-        if (\Route::has($routeName)) {
-            return route($routeName, $record);
-        }
-
-        return null;
-    }
-
-    protected function getDeleteAction($record): string
-    {
-        if ($this->deleteAction) {
-            return $this->deleteAction;
-        }
-
-        return 'delete('.$record->id.')';
     }
 }
