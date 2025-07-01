@@ -3,14 +3,11 @@
 namespace App\Livewire;
 
 use App\Models\Product;
-use App\Services\LinnworksApiService;
 use App\Tables\Columns\ActionsColumn;
-use App\Tables\Actions\CustomAction;
 use App\Tables\Columns\DateColumn;
 use App\Tables\Columns\TextColumn;
 use App\Tables\Table;
 use App\Tables\TableComponent;
-use Illuminate\Support\Facades\Log;
 
 class ProductsTable extends TableComponent
 {
@@ -20,19 +17,6 @@ class ProductsTable extends TableComponent
 
     protected ?string $title = 'Products Management';
 
-    // Stock History Modal Properties
-    public $stockHistory = null;
-    public $isLoadingHistory = false;
-    public $errorMessage = null;
-    public $showHistoryModal = false;
-    public $selectedProduct = null;
-
-    protected $linnworksService;
-
-    public function boot(LinnworksApiService $linnworksService)
-    {
-        $this->linnworksService = $linnworksService;
-    }
 
     public function table(Table $table): Table
     {
@@ -47,13 +31,7 @@ class ProductsTable extends TableComponent
                 ActionsColumn::make('actions')
                     ->edit()
                     ->delete()
-                    ->view()
-                    ->action(
-                        (new CustomAction('Stock History'))
-                            ->icon('chart-bar')
-                            ->color('purple')
-                            ->livewire('showStockHistory')
-                    ),
+                    ->view(),
             ])
             ->exportable(['csv', 'excel'])
             ->crud(
@@ -119,73 +97,4 @@ class ProductsTable extends TableComponent
         $this->redirect(route('products.create'));
     }
 
-    /**
-     * Show stock history for a product
-     */
-    public function showStockHistory($productId)
-    {
-        $this->selectedProduct = Product::find($productId);
-        if (!$this->selectedProduct) {
-            $this->errorMessage = 'Product not found.';
-            return;
-        }
-
-        $this->showHistoryModal = true;
-        $this->getStockItemHistory();
-    }
-
-    /**
-     * Get stock item history for the selected product
-     */
-    public function getStockItemHistory()
-    {
-        if (!$this->selectedProduct) {
-            return;
-        }
-
-        $this->isLoadingHistory = true;
-        $this->errorMessage = null;
-        $this->stockHistory = null;
-
-        try {
-            Log::info("Fetching stock history for SKU: {$this->selectedProduct->sku}");
-
-            // Get the stock history from the Linnworks API
-            $history = $this->linnworksService->getStockItemHistory($this->selectedProduct->sku);
-
-            // Store the history data
-            $this->stockHistory = $history;
-
-            Log::info("Retrieved stock history for SKU: {$this->selectedProduct->sku}");
-        } catch (\Exception $e) {
-            Log::error("Failed to get stock history for SKU: {$this->selectedProduct->sku} - ".$e->getMessage());
-            $this->errorMessage = 'Failed to load stock history: '.$e->getMessage();
-        } finally {
-            $this->isLoadingHistory = false;
-        }
-    }
-
-    /**
-     * Close the stock history modal
-     */
-    public function closeHistoryModal()
-    {
-        $this->showHistoryModal = false;
-        $this->stockHistory = null;
-        $this->errorMessage = null;
-        $this->selectedProduct = null;
-    }
-
-    /**
-     * Override render to include stock history modal
-     */
-    public function render()
-    {
-        $data = $this->getQuery()->paginate($this->perPage);
-
-        return view('livewire.products-table', [
-            'data' => $data,
-            'table' => $this->getTable(),
-        ]);
-    }
 }
