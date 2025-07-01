@@ -42,6 +42,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'delete products',
             'import products',
             'manage products', // For admin product sync features
+            'refill bays', // For warehouse workers to refill empty bays
         ];
 
         // Invite-related permissions

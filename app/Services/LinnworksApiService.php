@@ -398,4 +398,155 @@ class LinnworksApiService
             return [];
         }
     }
+
+    /**
+     * Get all locations from Linnworks
+     */
+    public function getLocations(): array
+    {
+        try {
+            $response = $this->makeAuthenticatedRequest('GET', 'Locations/GetLocation');
+            
+            Log::channel('inventory')->info('Retrieved locations', [
+                'count' => count($response)
+            ]);
+            
+            return $response;
+        } catch (\Exception $e) {
+            Log::channel('inventory')->error('Failed to get locations', [
+                'error' => $e->getMessage()
+            ]);
+            
+            throw new \Exception("Failed to retrieve locations: {$e->getMessage()}");
+        }
+    }
+
+    /**
+     * Get stock levels for a product across all locations
+     */
+    public function getStockLocationsByProduct(string $sku): array
+    {
+        try {
+            $stockItem = $this->getStockDetails($sku);
+            
+            if (empty($stockItem) || !isset($stockItem['StockLevels'])) {
+                return [];
+            }
+
+            // Filter to only locations with stock > 0
+            $locationsWithStock = array_filter($stockItem['StockLevels'], function($location) {
+                return isset($location['StockLevel']) && $location['StockLevel'] > 0;
+            });
+
+            Log::channel('inventory')->info("Found stock locations for SKU: {$sku}", [
+                'locations_with_stock' => count($locationsWithStock),
+                'total_locations' => count($stockItem['StockLevels'])
+            ]);
+
+            return array_values($locationsWithStock);
+        } catch (\Exception $e) {
+            Log::channel('inventory')->error("Failed to get stock locations for SKU: {$sku}", [
+                'error' => $e->getMessage()
+            ]);
+            
+            throw new \Exception("Failed to retrieve stock locations: {$e->getMessage()}");
+        }
+    }
+
+    /**
+     * Adjust stock level at a specific location
+     */
+    public function transferStockToDefaultLocation(string $sku, string $sourceLocationId, int $transferQuantity): array
+    {
+        try {
+            // Get current stock levels for both locations
+            $allLocations = $this->getStockLocationsByProduct($sku);
+            $sourceLocation = null;
+            $defaultLocation = null;
+            $defaultLocationId = config('linnworks.default_location_id');
+            
+            foreach ($allLocations as $location) {
+                $currentLocationId = $location['Location']['StockLocationId'] ?? null;
+                if ($currentLocationId === $sourceLocationId) {
+                    $sourceLocation = $location;
+                } elseif ($currentLocationId === $defaultLocationId) {
+                    $defaultLocation = $location;
+                }
+            }
+            
+            if (!$sourceLocation) {
+                throw new \Exception("Source location not found: {$sourceLocationId}");
+            }
+            
+            if (!$defaultLocation) {
+                throw new \Exception("Default location not found: {$defaultLocationId}");
+            }
+            
+            $sourceCurrentStock = $sourceLocation['StockLevel'] ?? 0;
+            $defaultCurrentStock = $defaultLocation['StockLevel'] ?? 0;
+            
+            // Calculate new stock levels
+            $sourceNewStock = $sourceCurrentStock - $transferQuantity;
+            $defaultNewStock = $defaultCurrentStock + $transferQuantity;
+            
+            // Validate we have enough stock in source
+            if ($sourceNewStock < 0) {
+                throw new \Exception("Insufficient stock in source location. Available: {$sourceCurrentStock}, Requested: {$transferQuantity}");
+            }
+            
+            // Perform both stock updates in one API call
+            $body = [
+                'stockLevels' => [
+                    [
+                        'SKU' => $sku,
+                        'LocationId' => $sourceLocationId,
+                        'Level' => $sourceNewStock,
+                    ],
+                    [
+                        'SKU' => $sku,
+                        'LocationId' => $defaultLocationId,
+                        'Level' => $defaultNewStock,
+                    ],
+                ],
+            ];
+
+            Log::channel('inventory')->info("Transferring stock from source to default location", [
+                'sku' => $sku,
+                'source_location_id' => $sourceLocationId,
+                'default_location_id' => $defaultLocationId,
+                'transfer_quantity' => $transferQuantity,
+                'source_old_stock' => $sourceCurrentStock,
+                'source_new_stock' => $sourceNewStock,
+                'default_old_stock' => $defaultCurrentStock,
+                'default_new_stock' => $defaultNewStock,
+                'request_body' => $body,
+                'json_body' => json_encode($body)
+            ]);
+
+            $response = $this->makeAuthenticatedRequest(
+                'POST',
+                'Stock/SetStockLevel',
+                ['body' => json_encode($body)]
+            );
+
+            Log::channel('inventory')->info("Stock transfer completed", [
+                'sku' => $sku,
+                'source_location_id' => $sourceLocationId,
+                'default_location_id' => $defaultLocationId,
+                'transfer_quantity' => $transferQuantity,
+                'response' => $response
+            ]);
+
+            return $response;
+        } catch (\Exception $e) {
+            Log::channel('inventory')->error("Failed to transfer stock", [
+                'sku' => $sku,
+                'source_location_id' => $sourceLocationId,
+                'transfer_quantity' => $transferQuantity,
+                'error' => $e->getMessage()
+            ]);
+            
+            throw new \Exception("Failed to transfer stock: {$e->getMessage()}");
+        }
+    }
 }

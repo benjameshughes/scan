@@ -49,7 +49,7 @@ class Edit extends Component
         $this->allPermissions = [
             'users' => ['view users', 'create users', 'edit users', 'delete users'],
             'scans' => ['view scans', 'view scanner', 'create scans', 'edit scans', 'delete scans', 'sync scans'],
-            'products' => ['view products', 'create products', 'edit products', 'delete products', 'import products'],
+            'products' => ['view products', 'create products', 'edit products', 'delete products', 'import products', 'manage products', 'refill bays'],
             'invites' => ['view invites', 'create invites', 'edit invites', 'delete invites'],
             'notifications' => ['receive empty bay notifications'],
         ];

@@ -21,8 +21,8 @@
 
     <!-- Main Content -->
     <div class="px-4 py-4 sm:px-6">
-        <!-- Camera Section (only show if no product found) -->
-        @if(!$product)
+        <!-- Camera Section (only show if no product found and not in refill mode) -->
+        @if(!$product && !$showRefillForm)
             <div class="bg-white dark:bg-zinc-800 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-700 overflow-hidden mb-4">
                 <div class="relative">
                     @if($loadingCamera)
@@ -141,7 +141,7 @@
             </div>
         @endif
 
-        @if($showSuccessMessage)
+        @if($showSuccessMessage && !$product)
             <div class="bg-white dark:bg-zinc-800 rounded-lg shadow-sm border border-green-200 dark:border-green-800 mb-4">
                 <div class="p-4 bg-green-50 dark:bg-green-900/20">
                     <div class="flex items-center gap-3">
@@ -191,8 +191,8 @@
             </div>
         @endif
 
-        <!-- Manual Barcode Input (always visible when no product found) -->
-        @if(!$product)
+        <!-- Manual Barcode Input (only show if no product found and not in refill mode) -->
+        @if(!$product && !$showRefillForm)
             <div class="bg-white dark:bg-zinc-800 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-700 mb-4">
                 <div class="px-4 py-3 border-b border-zinc-200 dark:border-zinc-700">
                     <h3 class="text-base font-medium text-gray-900 dark:text-gray-100">
@@ -221,8 +221,8 @@
             </div>
         @endif
 
-        <!-- Form Section -->
-        @if($product)
+        <!-- Product Details Section (only show if product found and not in refill mode) -->
+        @if($product && !$showRefillForm)
             <div class="bg-white dark:bg-zinc-800 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-700 mb-4">
                 <div class="px-4 py-3 border-b border-zinc-200 dark:border-zinc-700">
                     <h3 class="text-base font-medium text-gray-900 dark:text-gray-100">
@@ -242,11 +242,10 @@
                                 variant="ghost"
                                 size="sm"
                                 square
+                                icon="minus"
                                 :disabled="$quantity <= 1"
                                 aria-label="Decrease quantity"
-                            >
-                                <flux:icon.minus class="size-4" />
-                            </flux:button>
+                            />
                             
                             <div class="flex-1 text-center">
                                 <div class="text-2xl font-bold text-gray-900 dark:text-gray-100 bg-zinc-50 dark:bg-zinc-700 rounded-md py-3 border border-zinc-200 dark:border-zinc-600">
@@ -260,10 +259,9 @@
                                 variant="ghost"
                                 size="sm"
                                 square
+                                icon="plus"
                                 aria-label="Increase quantity"
-                            >
-                                <flux:icon.plus class="size-4" />
-                            </flux:button>
+                            />
                         </div>
                         <p class="text-xs text-gray-500 dark:text-gray-400">
                             Use + and - buttons or swipe to adjust quantity
@@ -290,32 +288,212 @@
                     </div>
 
                     <!-- Action Buttons -->
-                    <div class="space-y-3 pt-4 border-t border-zinc-200 dark:border-zinc-700">
-                        <flux:button
-                            type="submit"
-                            variant="primary"
-                            class="w-full"
-                        >
-                            <flux:icon.check class="size-4" />
-                            Save Scan
-                        </flux:button>
-                        
-                        <flux:button
-                            type="button"
-                            wire:click="emptyBayNotification"
-                            variant="ghost"
-                            class="w-full"
-                        >
-                            <flux:icon.exclamation-triangle class="size-4" />
-                            Empty Bay Notification
-                        </flux:button>
+                    <div class="pt-4 border-t border-zinc-200 dark:border-zinc-700">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <flux:button
+                                type="submit"
+                                variant="filled"
+                                icon="check"
+                                class="w-full"
+                            >
+                                <span class="hidden sm:inline">Save Scan</span>
+                                <span class="sm:hidden">Save</span>
+                            </flux:button>
+                            
+                            @can('refill bays')
+                                <flux:button
+                                    type="button"
+                                    wire:click="showRefillBayForm"
+                                    variant="ghost"
+                                    :icon="$isProcessingRefill ? 'arrow-path' : 'arrow-path'"
+                                    class="w-full"
+                                    :disabled="$isProcessingRefill"
+                                >
+                                    @if($isProcessingRefill)
+                                        <span class="hidden sm:inline">Loading...</span>
+                                    @else
+                                        <span class="hidden sm:inline">Refill Bay</span>
+                                        <span class="sm:hidden">Refill</span>
+                                    @endif
+                                </flux:button>
+                            @endcan
+                            
+                            <flux:button
+                                type="button"
+                                wire:click="emptyBayNotification"
+                                variant="ghost"
+                                icon="exclamation-triangle"
+                                class="w-full"
+                            >
+                                <span class="hidden sm:inline">Empty Bay</span>
+                                <span class="sm:hidden">Empty</span>
+                            </flux:button>
+                        </div>
                     </div>
                 </form>
             </div>
         @endif
 
-        <!-- Scan Instructions (only show when no product found) -->
-        @if(!$product)
+        <!-- Refill Bay Form (Full Page View) -->
+        @if($showRefillForm)
+            <div class="bg-white dark:bg-zinc-800 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-700 mb-4">
+                <!-- Form Header -->
+                <div class="px-4 py-3 border-b border-zinc-200 dark:border-zinc-700">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-base font-medium text-gray-900 dark:text-gray-100">
+                            Refill Bay
+                        </h3>
+                        <flux:button
+                            wire:click="cancelRefill"
+                            variant="ghost"
+                            size="sm"
+                            square
+                            icon="x-mark"
+                            aria-label="Back to scanner"
+                        />
+                    </div>
+                    @if($product)
+                        <div class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                            <p class="font-medium">{{ $product->name }}</p>
+                            <p class="font-mono text-xs">{{ $product->sku }}</p>
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Form Body -->
+                <form wire:submit="submitRefill" class="p-4 space-y-4">
+                            <!-- Error Display -->
+                            @if($refillError)
+                                <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3">
+                                    <div class="flex">
+                                        <flux:icon.exclamation-triangle class="size-5 text-red-400 flex-shrink-0" />
+                                        <div class="ml-3">
+                                            <p class="text-sm text-red-800 dark:text-red-200">
+                                                {{ $refillError }}
+                                            </p>
+                                        </div>
+                                        <button
+                                            wire:click="clearRefillError"
+                                            type="button"
+                                            class="ml-auto -mx-1.5 -my-1.5 bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 rounded-lg p-1.5 hover:bg-red-100 dark:hover:bg-red-900/40"
+                                        >
+                                            <flux:icon.x-mark class="size-3" />
+                                        </button>
+                                    </div>
+                                </div>
+                            @endif
+
+                            <!-- Location Selection -->
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                                    Transfer From <span class="text-red-500">*</span>
+                                </label>
+                                <flux:select wire:model.live="selectedLocationId" placeholder="Select location...">
+                                    @foreach($availableLocations as $index => $location)
+                                        @php
+                                            // Handle nested location structure from Linnworks API
+                                            $locationId = $location['Location']['StockLocationId'] ?? $location['LocationId'] ?? $location['locationId'] ?? $location['id'] ?? $index;
+                                            $locationName = $location['Location']['LocationName'] ?? $location['LocationName'] ?? $location['locationName'] ?? $location['name'] ?? "Location {$locationId}";
+                                            $stockLevel = $location['StockLevel'] ?? $location['stockLevel'] ?? $location['stock'] ?? 0;
+                                        @endphp
+                                        <flux:select.option value="{{ $locationId }}">
+                                            {{ $locationName }} ({{ $stockLevel }} units)
+                                        </flux:select.option>
+                                    @endforeach
+                                </flux:select>
+                                <flux:error name="selectedLocationId" />
+                                @if(count($availableLocations) === 0)
+                                    <p class="text-xs text-amber-600 dark:text-amber-400">
+                                        No locations with stock found for this product.
+                                    </p>
+                                @elseif($selectedLocationId && count($availableLocations) === 2)
+                                    <p class="text-xs text-blue-600 dark:text-blue-400">
+                                        Auto-selected - only one transfer location available.
+                                    </p>
+                                @endif
+                            </div>
+
+                            <!-- Quantity Control -->
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                                    Quantity to Transfer <span class="text-red-500">*</span>
+                                </label>
+                                <div class="flex items-center gap-3">
+                                    <flux:button
+                                        type="button"
+                                        wire:click="decrementRefillQuantity"
+                                        variant="ghost"
+                                        size="sm"
+                                        square
+                                        icon="minus"
+                                        :disabled="$refillQuantity <= 1"
+                                        aria-label="Decrease quantity"
+                                    />
+                                    
+                                    <div class="flex-1 text-center">
+                                        <div class="text-xl font-bold text-gray-900 dark:text-gray-100 bg-zinc-50 dark:bg-zinc-700 rounded-md py-2 border border-zinc-200 dark:border-zinc-600">
+                                            {{ $refillQuantity }}
+                                        </div>
+                                    </div>
+                                    
+                                    <flux:button
+                                        type="button"
+                                        wire:click="incrementRefillQuantity"
+                                        variant="ghost"
+                                        size="sm"
+                                        square
+                                        icon="plus"
+                                        aria-label="Increase quantity"
+                                    />
+                                </div>
+                                <flux:error name="refillQuantity" />
+                                @if($selectedLocationId)
+                                    @php
+                                        $selectedLocation = collect($availableLocations)->first(function($location, $index) {
+                                            $locationId = $location['Location']['StockLocationId'] ?? $location['LocationId'] ?? $location['locationId'] ?? $location['id'] ?? $index;
+                                            return $locationId == $this->selectedLocationId;
+                                        });
+                                        $maxStock = 0;
+                                        if ($selectedLocation) {
+                                            $maxStock = $selectedLocation['StockLevel'] ?? $selectedLocation['stockLevel'] ?? $selectedLocation['stock'] ?? 0;
+                                        }
+                                    @endphp
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                                        Maximum available: {{ $maxStock }} units
+                                    </p>
+                                @endif
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="flex gap-3 pt-4 border-t border-zinc-200 dark:border-zinc-700">
+                                <flux:button
+                                    type="button"
+                                    wire:click="cancelRefill"
+                                    variant="ghost"
+                                    class="flex-1"
+                                >
+                                    Cancel
+                                </flux:button>
+                                <flux:button
+                                    type="submit"
+                                    variant="filled"
+                                    :icon="$isProcessingRefill ? 'arrow-path' : 'arrow-right'"
+                                    class="flex-1"
+                                    :disabled="$isProcessingRefill || !$selectedLocationId"
+                                >
+                                    @if($isProcessingRefill)
+                                        Processing...
+                                    @else
+                                        Transfer to Bay
+                                    @endif
+                                </flux:button>
+                            </div>
+                </form>
+            </div>
+        @endif
+
+        <!-- Scan Instructions (only show when no product found and not in refill mode) -->
+        @if(!$product && !$showRefillForm)
             <div class="bg-white dark:bg-zinc-800 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-700 mb-4">
                 <div class="p-6 text-center">
                     <svg class="w-16 h-16 mx-auto text-gray-400 dark:text-gray-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
