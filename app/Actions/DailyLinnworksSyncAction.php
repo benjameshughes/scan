@@ -74,11 +74,20 @@ class DailyLinnworksSyncAction
             $linnworksStockLevel = $linnworksData['StockLevels'][0]['StockLevel'] ?? 0;
         }
         
+        // Normalize values for comparison (handle type differences and null/empty)
+        $localBarcode = $localProduct->barcode ? (string) $localProduct->barcode : null;
+        $localBarcode2 = $localProduct->barcode_2 ?: null;
+        $localBarcode3 = $localProduct->barcode_3 ?: null;
+        
+        $linnworksBarcode = $linnworksBarcode ?: null;
+        $linnworksBarcode2 = $linnworksBarcode2 ?: null;
+        $linnworksBarcode3 = $linnworksBarcode3 ?: null;
+        
         return $localProduct->name !== ($linnworksData['ItemTitle'] ?? '') ||
                $localProduct->quantity !== $linnworksStockLevel ||
-               $localProduct->barcode !== $linnworksBarcode ||
-               $localProduct->barcode_2 !== $linnworksBarcode2 ||
-               $localProduct->barcode_3 !== $linnworksBarcode3;
+               $localBarcode !== $linnworksBarcode ||
+               $localBarcode2 !== $linnworksBarcode2 ||
+               $localBarcode3 !== $linnworksBarcode3;
     }
     
     /**
@@ -157,26 +166,32 @@ class DailyLinnworksSyncAction
             ];
         }
         
-        $linnworksBarcode = $this->extractBarcode($linnworksData);
-        if ($localProduct->barcode !== $linnworksBarcode) {
+        // Normalize values for comparison (same as hasChanges method)
+        $localBarcode = $localProduct->barcode ? (string) $localProduct->barcode : null;
+        $localBarcode2 = $localProduct->barcode_2 ?: null;
+        $localBarcode3 = $localProduct->barcode_3 ?: null;
+        
+        $linnworksBarcode = $this->extractBarcode($linnworksData) ?: null;
+        $linnworksBarcode2 = $this->extractBarcode2($linnworksData) ?: null;
+        $linnworksBarcode3 = $this->extractBarcode3($linnworksData) ?: null;
+        
+        if ($localBarcode !== $linnworksBarcode) {
             $changes['barcode'] = [
-                'local' => $localProduct->barcode,
+                'local' => $localBarcode,
                 'linnworks' => $linnworksBarcode
             ];
         }
         
-        $linnworksBarcode2 = $this->extractBarcode2($linnworksData);
-        if ($localProduct->barcode_2 !== $linnworksBarcode2) {
+        if ($localBarcode2 !== $linnworksBarcode2) {
             $changes['barcode_2'] = [
-                'local' => $localProduct->barcode_2,
+                'local' => $localBarcode2,
                 'linnworks' => $linnworksBarcode2
             ];
         }
         
-        $linnworksBarcode3 = $this->extractBarcode3($linnworksData);
-        if ($localProduct->barcode_3 !== $linnworksBarcode3) {
+        if ($localBarcode3 !== $linnworksBarcode3) {
             $changes['barcode_3'] = [
-                'local' => $localProduct->barcode_3,
+                'local' => $localBarcode3,
                 'linnworks' => $linnworksBarcode3
             ];
         }
