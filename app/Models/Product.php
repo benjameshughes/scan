@@ -22,6 +22,9 @@ class Product extends Model
         'barcode_2',
         'barcode_3',
         'quantity',
+        'linnworks_id',
+        'last_synced_at',
+        'auto_synced',
     ];
 
     public function scans()
@@ -37,5 +40,13 @@ class Product extends Model
                     $q->orWhere('barcode', $this->barcode_3);
                 });
         });
+    }
+    
+    /**
+     * Get the pending updates for this product
+     */
+    public function pendingUpdates()
+    {
+        return $this->hasMany(PendingProductUpdate::class);
     }
 }

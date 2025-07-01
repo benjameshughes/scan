@@ -283,14 +283,15 @@ class LinnworksApiService
         string $keyword,
         int $entriesPerPage = 1,
         array $dataRequirements = ['StockLevels'],
-        array $searchTypes = ['SKU', 'Title', 'Barcode']
+        array $searchTypes = ['SKU', 'Title', 'Barcode'],
+        int $pageNumber = 1
     ): array {
         $body = [
             'keyword' => trim($keyword),
             'loadCompositeParents' => false,
             'loadVariationParents' => false,
             'entriesPerPage' => $entriesPerPage,
-            'pageNumber' => 1,
+            'pageNumber' => $pageNumber,
             'dataRequirements' => $dataRequirements,
             'searchTypes' => $searchTypes,
         ];
@@ -323,5 +324,32 @@ class LinnworksApiService
         Log::channel('lw_auth')->info('getStockItemHistory: '.json_encode($response));
 
         return $response;
+    }
+    
+    /**
+     * Get all products from Linnworks with pagination
+     */
+    public function getAllProducts(int $page = 1, int $entriesPerPage = 100): array
+    {
+        // Use the existing searchStockItems method which already works
+        try {
+            $response = $this->searchStockItems('', $entriesPerPage, ['StockLevels'], ['SKU', 'Title', 'Barcode'], $page);
+            
+            Log::info('getAllProducts response', [
+                'count' => count($response),
+                'page' => $page,
+                'entriesPerPage' => $entriesPerPage,
+                'sample' => array_slice($response, 0, 2)
+            ]);
+            
+            return $response;
+        } catch (\Exception $e) {
+            Log::error('Failed to get all products from Linnworks', [
+                'error' => $e->getMessage(),
+                'page' => $page,
+                'entriesPerPage' => $entriesPerPage
+            ]);
+            return [];
+        }
     }
 }

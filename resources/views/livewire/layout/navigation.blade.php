@@ -49,6 +49,12 @@ new class extends Component {
                             {{ __('Users') }}
                         </x-nav-link>
                     @endcan
+                    @can('manage products')
+                        <x-nav-link :href="route('admin.pending-updates')" :active="request()->routeIs('admin.pending-updates')"
+                                    wire:navigate>
+                            {{ __('Sync Updates') }}
+                        </x-nav-link>
+                    @endcan
                 </div>
             </div>
 
@@ -112,6 +118,12 @@ new class extends Component {
                 <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.index')"
                                        wire:navigate>
                     {{ __('Users') }}
+                </x-responsive-nav-link>
+            @endcan
+            @can('manage products')
+                <x-responsive-nav-link :href="route('admin.pending-updates')" :active="request()->routeIs('admin.pending-updates')"
+                                       wire:navigate>
+                    {{ __('Sync Updates') }}
                 </x-responsive-nav-link>
             @endcan
         </div>

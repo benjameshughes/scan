@@ -41,6 +41,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'edit products',
             'delete products',
             'import products',
+            'manage products', // For admin product sync features
         ];
 
         // Invite-related permissions

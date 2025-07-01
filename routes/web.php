@@ -127,6 +127,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
         })->name('edit')->middleware('permission:edit users');
     });
 
+    /*
+    |--------------------------------------------------------------------------
+    | Admin Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('admin')->name('admin.')->middleware('permission:manage products')->group(function () {
+        Route::get('pending-updates', function () {
+            return view('admin.pending-updates');
+        })->name('pending-updates');
+    });
+
 });
 
 /*

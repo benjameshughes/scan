@@ -13,6 +13,61 @@
                 </div>
             </div>
         @endif
+
+        <!-- Update Details Messages -->
+        @if($updateMessage)
+            @php
+                $messageType = explode(':', $updateMessage)[0];
+                $messageText = explode(':', $updateMessage, 2)[1] ?? $updateMessage;
+            @endphp
+            
+            @if($messageType === 'success')
+                <div class="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-md p-4 border border-green-200 dark:border-green-800">
+                    <div class="flex">
+                        <svg class="h-5 w-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        <div class="ml-3">
+                            <p class="text-sm">{{ $messageText }}</p>
+                        </div>
+                    </div>
+                </div>
+            @elseif($messageType === 'warning')
+                <div class="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200 rounded-md p-4 border border-amber-200 dark:border-amber-800">
+                    <div class="flex">
+                        <svg class="h-5 w-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z"/>
+                        </svg>
+                        <div class="ml-3">
+                            <p class="text-sm">{{ $messageText }}</p>
+                        </div>
+                    </div>
+                </div>
+            @elseif($messageType === 'error')
+                <div class="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 rounded-md p-4 border border-red-200 dark:border-red-800">
+                    <div class="flex">
+                        <svg class="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <div class="ml-3">
+                            <p class="text-sm">{{ $messageText }}</p>
+                        </div>
+                    </div>
+                </div>
+            @else
+                <div class="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-md p-4 border border-blue-200 dark:border-blue-800">
+                    <div class="flex">
+                        <svg class="h-5 w-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <div class="ml-3">
+                            <p class="text-sm">{{ $messageText }}</p>
+                        </div>
+                    </div>
+                </div>
+            @endif
+        @endif
+
         <!-- Product Details Card -->
     <div class="bg-white dark:bg-zinc-800 shadow-sm rounded-lg border border-zinc-200 dark:border-zinc-700">
         <!-- Card Header -->
@@ -24,6 +79,12 @@
                 </div>
                 <div class="flex items-center gap-3">
                     <flux:button wire:click="showStockHistory" variant="ghost" size="sm" icon="chart-bar">Stock History</flux:button>
+                    <flux:button 
+                        wire:click="updateProductDetails" 
+                        variant="ghost" 
+                        size="sm" 
+                        icon="arrow-path" 
+                        :loading="$isUpdatingDetails">Update Details</flux:button>
                     <a href="{{ route('products.edit', $product) }}" 
                        class="text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-zinc-800 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 flex items-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
