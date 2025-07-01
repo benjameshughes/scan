@@ -433,9 +433,60 @@ class LinnworksApiService
                     'error' => $e2->getMessage()
                 ]);
                 
-                throw new \Exception("Failed to retrieve locations: {$e->getMessage()}. Alternative endpoint also failed: {$e2->getMessage()}");
+                // Final fallback: extract locations from inventory data
+                try {
+                    Log::channel('inventory')->info('Trying fallback: extracting locations from inventory data');
+                    return $this->getLocationsFromInventory();
+                } catch (\Exception $e3) {
+                    Log::channel('inventory')->error('All location endpoint attempts failed', [
+                        'primary_error' => $e->getMessage(),
+                        'alternative_error' => $e2->getMessage(),
+                        'fallback_error' => $e3->getMessage()
+                    ]);
+                    
+                    throw new \Exception("Failed to retrieve locations: {$e->getMessage()}. Alternative endpoint also failed: {$e2->getMessage()}. Fallback method failed: {$e3->getMessage()}");
+                }
             }
         }
+    }
+
+    /**
+     * Extract locations from inventory data as a fallback method
+     */
+    private function getLocationsFromInventory(): array
+    {
+        // Get a sample of inventory items to extract location structure
+        $inventoryData = $this->getInventory(1, 10); // Get first 10 items
+        
+        $locations = [];
+        $locationIds = [];
+        
+        foreach ($inventoryData as $item) {
+            if (isset($item['StockLevels']) && is_array($item['StockLevels'])) {
+                foreach ($item['StockLevels'] as $stockLevel) {
+                    if (isset($stockLevel['Location']['StockLocationId'])) {
+                        $locationId = $stockLevel['Location']['StockLocationId'];
+                        
+                        // Avoid duplicates
+                        if (!in_array($locationId, $locationIds)) {
+                            $locationIds[] = $locationId;
+                            $locations[] = [
+                                'StockLocationId' => $locationId,
+                                'LocationName' => $stockLevel['Location']['LocationName'] ?? 'Unknown Location',
+                                'BinRack' => $stockLevel['Location']['BinRack'] ?? '',
+                                'IsWarehouseManaged' => $stockLevel['Location']['IsWarehouseManaged'] ?? false,
+                            ];
+                        }
+                    }
+                }
+            }
+        }
+        
+        Log::channel('inventory')->info('Extracted locations from inventory data', [
+            'count' => count($locations)
+        ]);
+        
+        return $locations;
     }
 
     /**
