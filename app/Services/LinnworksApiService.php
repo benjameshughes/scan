@@ -311,7 +311,7 @@ class LinnworksApiService
         $itemId = $itemDetail['StockItemId'];
         Log::channel('inventory')->info("{$sku} - {$itemId} for stock item history search");
 
-        $endpoint = "Stock/GetItemChangesHistory?stockItemId={$itemId}&locationId=00000000-0000-0000-0000-000000000000&entriesPerPage=0&pageNumber=0";
+        $endpoint = "Stock/GetItemChangesHistory?stockItemId={$itemId}&locationId=00000000-0000-0000-0000-000000000000&entriesPerPage=50&pageNumber=1";
 
         $response = $this->makeAuthenticatedRequest('GET', $endpoint);
         Log::channel('lw_auth')->info('getStockItemHistory: '.json_encode($response));

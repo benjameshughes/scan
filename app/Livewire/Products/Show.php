@@ -55,6 +55,7 @@ class Show extends Component
             $this->stockHistory = $history;
 
             Log::info("Retrieved stock history for SKU: {$this->product->sku}");
+            Log::info("Stock history structure: " . json_encode($history));
         } catch (\Exception $e) {
             Log::error("Failed to get stock history for SKU: {$this->product->sku} - ".$e->getMessage());
             $this->errorMessage = 'Failed to load stock history: '.$e->getMessage();

@@ -226,7 +226,7 @@
                                     </div>
                                 </div>
                             </div>
-                        @elseif($stockHistory && count($stockHistory) > 0)
+                        @elseif($stockHistory && is_array($stockHistory) && count($stockHistory) > 0)
                             <!-- Table following Table Development Standards -->
                             <div class="overflow-x-auto">
                                 <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
@@ -241,18 +241,23 @@
                                     </thead>
                                     <tbody class="bg-white dark:bg-zinc-800 divide-y divide-zinc-200 dark:border-zinc-700">
                                         @foreach($stockHistory as $entry)
+                                            @if(is_array($entry))
                                             <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors duration-200">
                                                 <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
-                                                    {{ \Carbon\Carbon::parse($entry['ChangeDate'])->format('M d, Y H:i') }}
+                                                    {{ isset($entry['ChangeDate']) ? \Carbon\Carbon::parse($entry['ChangeDate'])->format('M d, Y H:i') : 'N/A' }}
                                                 </td>
                                                 <td class="px-6 py-4 text-sm">
                                                     <!-- Status Badge following Status Indicator Standards -->
+                                                    @if(isset($entry['ChangeQuantity']) && is_numeric($entry['ChangeQuantity']))
                                                     <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium {{ $entry['ChangeQuantity'] >= 0 ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' }}">
                                                         {{ $entry['ChangeQuantity'] >= 0 ? '+' : '' }}{{ number_format($entry['ChangeQuantity']) }}
                                                     </span>
+                                                    @else
+                                                    <span class="text-gray-500">N/A</span>
+                                                    @endif
                                                 </td>
                                                 <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
-                                                    {{ number_format($entry['BalanceAfter']) }}
+                                                    {{ isset($entry['BalanceAfter']) && is_numeric($entry['BalanceAfter']) ? number_format($entry['BalanceAfter']) : 'N/A' }}
                                                 </td>
                                                 <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
                                                     {{ $entry['ChangeSource'] ?? 'N/A' }}
@@ -261,6 +266,13 @@
                                                     {{ $entry['Note'] ?? '' }}
                                                 </td>
                                             </tr>
+                                            @else
+                                            <tr>
+                                                <td colspan="5" class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                                                    Invalid data entry: {{ json_encode($entry) }}
+                                                </td>
+                                            </tr>
+                                            @endif
                                         @endforeach
                                     </tbody>
                                 </table>
