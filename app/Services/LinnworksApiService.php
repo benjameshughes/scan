@@ -404,24 +404,33 @@ class LinnworksApiService
      */
     public function getLocations(): array
     {
-        try {
-            // Use the dedicated locations endpoint - this is the correct one
-            $response = $this->makeAuthenticatedRequest('GET', 'Locations');
-            
-            Log::channel('inventory')->info('Retrieved locations from dedicated endpoint', [
-                'count' => count($response),
-                'endpoint' => 'Locations'
-            ]);
-            
-            return $response;
-        } catch (\Exception $e) {
-            Log::channel('inventory')->error('Failed to get locations from dedicated endpoint', [
-                'error' => $e->getMessage(),
-                'endpoint' => 'Locations'
-            ]);
-            
-            throw new \Exception("Failed to retrieve locations from dedicated endpoint: {$e->getMessage()}");
+        // Try the most likely working endpoints in order
+        $endpoints = [
+            'Stock/GetStockLocationFull',
+            'Stock/GetStockLocations',
+            'Inventory/GetStockLocations',
+            'Locations'
+        ];
+        
+        foreach ($endpoints as $endpoint) {
+            try {
+                $response = $this->makeAuthenticatedRequest('GET', $endpoint);
+                
+                Log::channel('inventory')->info('Successfully retrieved locations', [
+                    'count' => count($response),
+                    'endpoint' => $endpoint
+                ]);
+                
+                return $response;
+                
+            } catch (\Exception $e) {
+                Log::channel('inventory')->warning("Endpoint {$endpoint} failed: {$e->getMessage()}");
+                continue;
+            }
         }
+        
+        // If all endpoints failed
+        throw new \Exception("Failed to retrieve locations from any of the tried endpoints: " . implode(', ', $endpoints));
     }
 
     /**
@@ -503,12 +512,13 @@ class LinnworksApiService
     {
         $results = [];
         $endpoints = [
-            'Locations/GetLocations',
-            'Locations/GetLocation', 
-            'Inventory/GetInventoryLocations',
-            'Inventory/GetLocations',
-            'Locations',
             'Stock/GetStockLocationFull',
+            'Stock/GetStockLocations', 
+            'Locations',
+            'Locations/GetLocations',
+            'Locations/GetLocation',
+            'Inventory/GetStockLocations',
+            'Inventory/GetInventoryLocations',
         ];
         
         foreach ($endpoints as $endpoint) {
