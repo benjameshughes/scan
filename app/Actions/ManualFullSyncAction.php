@@ -57,7 +57,9 @@ class ManualFullSyncAction
             'session_id' => $sessionId
         ];
         
-        Log::info('Manual full sync started', ['dry_run' => $dryRun, 'session_id' => $sessionId]);
+        // Generate random ATM effect timing (5-25 seconds total)
+        $targetDuration = rand(5, 25); // seconds
+        Log::info('Manual full sync started', ['dry_run' => $dryRun, 'session_id' => $sessionId, 'target_duration' => $targetDuration]);
         
         try {
             $page = 1;
@@ -71,11 +73,36 @@ class ManualFullSyncAction
             
             Log::info("Manual sync will process approximately {$totalCount} products in {$estimatedBatches} batches");
             
-            // First, update progress with initial operation
-            $this->updateProgress('Starting sync process...', $stats, [
+            // Calculate dynamic delays based on target duration
+            $availableTime = $targetDuration - 1; // Reserve 1 second for final message
+            $initDelay = min(1.5, $availableTime * 0.2); // 20% for initialization
+            $perBatchDelay = max(0.1, ($availableTime * 0.8) / $estimatedBatches); // 80% distributed across batches
+            
+            Log::info("ATM effect timing calculated", [
+                'target_duration' => $targetDuration,
+                'init_delay' => $initDelay, 
+                'per_batch_delay' => $perBatchDelay,
+                'estimated_batches' => $estimatedBatches
+            ]);
+            
+            // First, update progress with initial operation - add dynamic delay for UX confidence
+            $this->updateProgress('Initializing sync process...', $stats, [
                 'estimated_total_products' => $totalCount,
                 'estimated_total_batches' => $estimatedBatches
             ]);
+            usleep($initDelay * 333333); // 1/3 of init delay
+            
+            $this->updateProgress('Connecting to Linnworks API...', $stats, [
+                'estimated_total_products' => $totalCount,
+                'estimated_total_batches' => $estimatedBatches
+            ]);
+            usleep($initDelay * 333333); // 1/3 of init delay
+            
+            $this->updateProgress('Starting product synchronization...', $stats, [
+                'estimated_total_products' => $totalCount,
+                'estimated_total_batches' => $estimatedBatches
+            ]);
+            usleep($initDelay * 333334); // Final 1/3 of init delay
             
             while ($hasMorePages) {
                 $this->updateProgress("Processing batch {$page} (fetching {$batchSize} products)...", $stats, [
@@ -87,19 +114,31 @@ class ManualFullSyncAction
                 
                 Log::info("Processing batch {$page} (page size: {$batchSize})");
                 
+                // Add dynamic delay for UX confidence (ATM effect)
+                usleep($perBatchDelay * 1000000); // Convert to microseconds
+                
                 // Get products from Linnworks
+                $this->updateProgress("Fetching batch {$page} from Linnworks...", $stats, [
+                    'current_batch' => $page,
+                    'batch_size' => $batchSize,
+                    'estimated_total_products' => $totalCount,
+                    'estimated_total_batches' => $estimatedBatches
+                ]);
+                
                 $linnworksProducts = $this->linnworksService->getAllProducts($page, $batchSize);
                 
                 if (empty($linnworksProducts)) {
                     Log::info("No more products found on page {$page}, sync complete");
-                    $this->updateProgress("No more products found. Sync completed.", $stats);
+                    $this->updateProgress("No more products found. Finalizing sync...", $stats);
+                    usleep(500000); // 0.5 seconds - Let users see finalization message
                     $hasMorePages = false;
                     break;
                 }
                 
-                $this->updateProgress("Processing " . count($linnworksProducts) . " products from batch {$page}...", $stats, [
+                $productsInBatch = count($linnworksProducts);
+                $this->updateProgress("Analyzing {$productsInBatch} products from batch {$page}...", $stats, [
                     'current_batch' => $page,
-                    'products_in_batch' => count($linnworksProducts),
+                    'products_in_batch' => $productsInBatch,
                     'estimated_total_products' => $totalCount,
                     'estimated_total_batches' => $estimatedBatches
                 ]);
@@ -142,6 +181,10 @@ class ManualFullSyncAction
                     usleep(config('linnworks.rate_limiting.batch_delay_microseconds'));
                 }
             }
+            
+            // Final completion message with delay
+            $this->updateProgress('Sync completed successfully!', $stats);
+            sleep(1); // Always 1 second for completion message
             
         } catch (Exception $e) {
             Log::error('Manual full sync failed', [

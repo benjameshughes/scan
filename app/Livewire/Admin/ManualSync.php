@@ -61,8 +61,15 @@ class ManualSync extends Component
         $this->currentProgress = null;
         $this->sessionId = Str::uuid()->toString();
         
-        // Dispatch event to start polling
+        // Force Livewire to update the frontend state immediately
+        $this->dispatch('$refresh');
+        
+        // Dispatch event to start polling AFTER setting isRunning to true
+        Log::info('Dispatching sync-started event', ['session_id' => $this->sessionId, 'isRunning' => $this->isRunning]);
         $this->dispatch('sync-started');
+        
+        // Give the frontend a moment to start polling
+        usleep(100000); // 0.1 seconds
         
         try {
             Log::info('Manual sync initiated by user', [
@@ -109,7 +116,13 @@ class ManualSync extends Component
      */
     public function getProgress()
     {
+        Log::info('getProgress called', [
+            'session_id' => $this->sessionId,
+            'is_running' => $this->isRunning
+        ]);
+        
         if (!$this->sessionId) {
+            Log::info('getProgress: No session ID');
             return null;
         }
         

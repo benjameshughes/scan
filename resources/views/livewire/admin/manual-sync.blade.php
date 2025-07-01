@@ -1,32 +1,44 @@
 <div class="space-y-6" 
      x-data="{ 
          polling: false,
+         localRunning: false,
          startPolling() {
              this.polling = true;
+             this.localRunning = true;
              this.poll();
          },
          poll() {
              if (this.polling) {
-                 $wire.getProgress().then(() => {
-                     // Continue polling if sync is still running
-                     if ($wire.isRunning) {
-                         setTimeout(() => this.poll(), 2000); // Poll every 2 seconds
+                 console.log('Polling for progress... localRunning:', this.localRunning, 'wireRunning:', $wire.isRunning);
+                 $wire.getProgress().then((result) => {
+                     console.log('Progress update received:', result);
+                     console.log('Current wire isRunning state:', $wire.isRunning);
+                     // Continue polling if sync is still running (check both local and wire state)
+                     if (this.localRunning && ($wire.isRunning || result?.is_running)) {
+                         console.log('Sync still running, continuing to poll...');
+                         setTimeout(() => this.poll(), 1000); // Poll every 1 second for faster updates
                      } else {
+                         console.log('Sync completed, stopping polling');
                          this.polling = false;
+                         this.localRunning = false;
                      }
+                 }).catch((error) => {
+                     console.error('Error polling progress:', error);
+                     this.polling = false;
+                     this.localRunning = false;
                  });
              }
          }
      }"
      x-init="
-         // Auto-start polling if sync is already running
-         if ($wire.isRunning) {
-             startPolling();
-         }
-         
-         // Listen for sync start
+         $wire.isRunning && startPolling();
          $wire.on('sync-started', () => {
-             startPolling();
+             console.log('Sync started event received, isRunning should now be true');
+             // Give Livewire a moment to update the DOM
+             setTimeout(() => {
+                 console.log('Starting polling, isRunning is now:', $wire.isRunning);
+                 startPolling();
+             }, 100);
          });
      ">
     <!-- Session Flash Messages -->
@@ -136,7 +148,7 @@
             </div>
 
             <!-- Action Buttons -->
-            <!-- Real-time Progress Display -->
+            <!-- Skeleton Loader for Results -->
             @if($isRunning && $currentProgress)
                 <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
                     <h4 class="text-sm font-medium text-blue-900 dark:text-blue-200 mb-3">Sync Progress</h4>
@@ -200,11 +212,8 @@
 
             <div class="flex items-center justify-between pt-4 border-t border-zinc-200 dark:border-zinc-700">
                 <div class="text-sm text-gray-500 dark:text-gray-400">
-                    @if($isRunning)
-                        Sync is running... This may take several minutes.
-                    @else
-                        Click "Start Sync" to begin the synchronization process.
-                    @endif
+                    <span x-show="localRunning || $wire.isRunning">Sync is running... This may take several minutes.</span>
+                    <span x-show="!(localRunning || $wire.isRunning)">Click "Start Sync" to begin the synchronization process.</span>
                 </div>
                 
                 <div class="flex items-center space-x-3">
@@ -218,11 +227,83 @@
                     <flux:button 
                         wire:click="executeSync" 
                         variant="filled" 
-                        :loading="$isRunning"
-                        :disabled="$isRunning"
-                        icon="play">
+                        x-bind:loading="localRunning || $wire.isRunning"
+                        x-bind:disabled="localRunning || $wire.isRunning"
+                        icon="play"
+                        x-on:click="
+                            console.log('Sync button clicked, starting polling immediately');
+                            startPolling();
+                        ">
                         {{ $dryRun ? 'Start Dry Run' : 'Start Sync' }}
                     </flux:button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Skeleton Loader for Sync Results -->
+    <div x-show="localRunning && !$wire.showResults" class="bg-white dark:bg-zinc-800 shadow-sm rounded-lg border border-zinc-200 dark:border-zinc-700">
+        <!-- Card Header Skeleton -->
+        <div class="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700">
+            <div class="animate-pulse">
+                <div class="h-6 bg-zinc-200 dark:bg-zinc-700 rounded w-1/3"></div>
+            </div>
+        </div>
+
+        <!-- Card Content Skeleton -->
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Summary Stats Skeleton -->
+                <div class="space-y-3">
+                    <div class="animate-pulse">
+                        <div class="h-4 bg-zinc-200 dark:bg-zinc-700 rounded w-1/2 mb-3"></div>
+                        <div class="space-y-2">
+                            <div class="flex justify-between">
+                                <div class="h-3 bg-zinc-200 dark:bg-zinc-700 rounded w-2/3"></div>
+                                <div class="h-3 bg-zinc-200 dark:bg-zinc-700 rounded w-1/4"></div>
+                            </div>
+                            <div class="flex justify-between">
+                                <div class="h-3 bg-zinc-200 dark:bg-zinc-700 rounded w-1/2"></div>
+                                <div class="h-3 bg-zinc-200 dark:bg-zinc-700 rounded w-1/3"></div>
+                            </div>
+                            <div class="flex justify-between">
+                                <div class="h-3 bg-zinc-200 dark:bg-zinc-700 rounded w-3/4"></div>
+                                <div class="h-3 bg-zinc-200 dark:bg-zinc-700 rounded w-1/5"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Stats Skeleton -->
+                <div class="space-y-3">
+                    <div class="animate-pulse">
+                        <div class="h-4 bg-zinc-200 dark:bg-zinc-700 rounded w-1/3 mb-3"></div>
+                        <div class="space-y-2">
+                            <div class="flex justify-between">
+                                <div class="h-3 bg-zinc-200 dark:bg-zinc-700 rounded w-3/4"></div>
+                                <div class="h-3 bg-green-200 dark:bg-green-800 rounded w-1/4"></div>
+                            </div>
+                            <div class="flex justify-between">
+                                <div class="h-3 bg-zinc-200 dark:bg-zinc-700 rounded w-2/3"></div>
+                                <div class="h-3 bg-amber-200 dark:bg-amber-800 rounded w-1/4"></div>
+                            </div>
+                            <div class="flex justify-between">
+                                <div class="h-3 bg-zinc-200 dark:bg-zinc-700 rounded w-1/2"></div>
+                                <div class="h-3 bg-red-200 dark:bg-red-800 rounded w-1/5"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Status Indicators Skeleton -->
+                <div class="space-y-3">
+                    <div class="animate-pulse">
+                        <div class="h-4 bg-zinc-200 dark:bg-zinc-700 rounded w-1/4 mb-3"></div>
+                        <div class="space-y-2">
+                            <div class="h-6 bg-blue-200 dark:bg-blue-800 rounded-full w-3/4"></div>
+                            <div class="h-6 bg-zinc-200 dark:bg-zinc-700 rounded-full w-1/2"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
