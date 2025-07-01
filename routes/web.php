@@ -136,6 +136,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('pending-updates', function () {
             return view('admin.pending-updates');
         })->name('pending-updates');
+        
+        Route::get('manual-sync', function () {
+            return view('admin.manual-sync');
+        })->name('manual-sync');
     });
 
 });

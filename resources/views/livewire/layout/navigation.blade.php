@@ -74,6 +74,9 @@ new class extends Component {
                             @can('import products')
                             <flux:navmenu.item href="{{route('products.import')}}" icon="import">Import</flux:navmenu.item>
                             @endcan
+                            @can('manage products')
+                            <flux:navmenu.item href="{{route('admin.manual-sync')}}" icon="arrow-path">Manual Sync</flux:navmenu.item>
+                            @endcan
                         </flux:menu.group>
                         <flux:navmenu.item wire:click="logout" icon="trash" variant="danger">Logout</flux:navmenu.item>
                     </flux:navmenu>
