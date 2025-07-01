@@ -9,7 +9,7 @@ class DeleteAction extends BaseAction
     protected string $color = 'red';
     protected string $type = 'delete';
     protected ?string $action = null;
-    protected string $confirmMessage = 'Are you sure you want to delete this item?';
+    protected ?string $confirmMessage = 'Are you sure you want to delete this item?';
 
     public function action(string $action): self
     {
