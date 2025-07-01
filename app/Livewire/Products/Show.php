@@ -31,6 +31,7 @@ class Show extends Component
     {
         Log::info("showStockHistory method called for product: {$this->product->sku}");
         $this->showHistoryModal = true;
+        Log::info("Modal flag set to: " . ($this->showHistoryModal ? 'true' : 'false'));
         $this->getStockItemHistory();
     }
 

@@ -1,18 +1,19 @@
-<div class="max-w-6xl mx-auto space-y-6">
-    <!-- Session Flash Messages -->
-    @if (session()->has('message'))
-        <div class="bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-800 rounded-md p-4">
-            <div class="flex">
-                <svg class="h-5 w-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                </svg>
-                <div class="ml-3">
-                    <p class="text-sm text-green-800 dark:text-green-200">{{ session('message') }}</p>
+<div>
+    <div class="max-w-6xl mx-auto space-y-6">
+        <!-- Session Flash Messages -->
+        @if (session()->has('message'))
+            <div class="bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-800 rounded-md p-4">
+                <div class="flex">
+                    <svg class="h-5 w-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <div class="ml-3">
+                        <p class="text-sm text-green-800 dark:text-green-200">{{ session('message') }}</p>
+                    </div>
                 </div>
             </div>
-        </div>
-    @endif
-    <!-- Product Details Card -->
+        @endif
+        <!-- Product Details Card -->
     <div class="bg-white dark:bg-zinc-800 shadow-sm rounded-lg border border-zinc-200 dark:border-zinc-700">
         <!-- Card Header -->
         <div class="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700">
@@ -188,11 +189,15 @@
                 </div>
             @endif
         </div>
+        
+        <!-- Debug Modal State -->
+        <div class="mt-4 p-4 bg-yellow-100 dark:bg-yellow-900 rounded">
+            <p class="text-sm">Modal State: {{ $showHistoryModal ? 'SHOWN' : 'HIDDEN' }}</p>
+        </div>
     </div>
-</div>
 
-<!-- Stock History Modal -->
-@if($showHistoryModal)
+    <!-- Stock History Modal -->
+    @if($showHistoryModal)
     <div class="fixed inset-0 z-50 overflow-y-auto" wire:key="stock-history-modal">
         <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
             <!-- Background overlay -->
@@ -291,4 +296,5 @@
             </div>
         </div>
     </div>
-@endif
+    @endif
+</div>
