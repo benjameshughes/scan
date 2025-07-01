@@ -61,7 +61,7 @@ class ManualFullSyncAction
         
         try {
             $page = 1;
-            $batchSize = 100;
+            $batchSize = config('linnworks.pagination.manual_sync_page_size');
             $hasMorePages = true;
             
             // Get total count for progress calculation
@@ -139,7 +139,7 @@ class ManualFullSyncAction
                         'estimated_total_products' => $totalCount,
                         'estimated_total_batches' => $estimatedBatches
                     ]);
-                    usleep(250000); // 250ms delay between batches
+                    usleep(config('linnworks.rate_limiting.batch_delay_microseconds'));
                 }
             }
             
@@ -213,7 +213,7 @@ class ManualFullSyncAction
         try {
             // Get actual total count from Linnworks
             $totalCount = $this->linnworksService->getInventoryCount();
-            $batchSize = 100;
+            $batchSize = config('linnworks.pagination.manual_sync_page_size');
             $estimatedBatches = ceil($totalCount / $batchSize);
             
             return [

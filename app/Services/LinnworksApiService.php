@@ -22,7 +22,7 @@ class LinnworksApiService
 
     protected Client $client;
 
-    protected string $cacheKey = 'linnworks.session_token';
+    protected string $cacheKey;
 
     public function __construct()
     {
@@ -32,6 +32,7 @@ class LinnworksApiService
         $this->appToken = config('linnworks.app_token');
         $this->baseUrl = config('linnworks.base_url');
         $this->authUrl = config('linnworks.auth_url');
+        $this->cacheKey = config('linnworks.cache.session_token_key');
 
         $this->ensureAuthorized();
     }
@@ -207,7 +208,7 @@ class LinnworksApiService
             'stockLevels' => [
                 [
                     'SKU' => $sku,
-                    'LocationId' => '00000000-0000-0000-0000-000000000000',
+                    'LocationId' => config('linnworks.default_location_id'),
                     'Level' => $quantity,
                 ],
             ],
@@ -233,8 +234,10 @@ class LinnworksApiService
     /**
      * Get inventory with pagination
      */
-    public function getInventory(int $pageNumber = 1, int $entriesPerPage = 200): array
+    public function getInventory(int $pageNumber = 1, ?int $entriesPerPage = null): array
     {
+        $entriesPerPage = $entriesPerPage ?? config('linnworks.pagination.inventory_page_size');
+        
         $body = [
             'loadCompositeParents' => false,
             'loadVariationParents' => false,
@@ -318,11 +321,12 @@ class LinnworksApiService
      */
     public function searchStockItems(
         string $keyword,
-        int $entriesPerPage = 1,
+        ?int $entriesPerPage = null,
         array $dataRequirements = ['StockLevels'],
         array $searchTypes = ['SKU', 'Title', 'Barcode'],
         int $pageNumber = 1
     ): array {
+        $entriesPerPage = $entriesPerPage ?? config('linnworks.pagination.search_page_size');
         $body = [
             'keyword' => trim($keyword),
             'loadCompositeParents' => false,
@@ -343,19 +347,22 @@ class LinnworksApiService
     /**
      * Get stock item history for a SKU
      */
-    public function getStockItemHistory(string $sku, int $page = 1, int $entriesPerPage = 20): array
+    public function getStockItemHistory(string $sku, int $page = 1, ?int $entriesPerPage = null): array
     {
+        $entriesPerPage = $entriesPerPage ?? config('linnworks.stock_history.page_size');
+        $locationId = config('linnworks.default_location_id');
+        
         $itemDetail = $this->getStockDetails($sku);
 
         if (empty($itemDetail)) {
-            Log::channel('inventory')->warning("SKU not found: {$sku}");
+            Log::channel(config('linnworks.logging.inventory_channel'))->warning("SKU not found: {$sku}");
             return [];
         }
 
         $itemId = $itemDetail['StockItemId'];
-        Log::channel('inventory')->info("{$sku} - {$itemId} for stock item history search");
+        Log::channel(config('linnworks.logging.inventory_channel'))->info("{$sku} - {$itemId} for stock item history search");
 
-        $endpoint = "Stock/GetItemChangesHistory?stockItemId={$itemId}&locationId=00000000-0000-0000-0000-000000000000&entriesPerPage={$entriesPerPage}&pageNumber={$page}";
+        $endpoint = "Stock/GetItemChangesHistory?stockItemId={$itemId}&locationId={$locationId}&entriesPerPage={$entriesPerPage}&pageNumber={$page}";
 
         $response = $this->makeAuthenticatedRequest('GET', $endpoint);
         Log::channel('lw_auth')->info('getStockItemHistory: '.json_encode($response));
@@ -366,8 +373,10 @@ class LinnworksApiService
     /**
      * Get all products from Linnworks with pagination
      */
-    public function getAllProducts(int $page = 1, int $entriesPerPage = 100): array
+    public function getAllProducts(int $page = 1, ?int $entriesPerPage = null): array
     {
+        $entriesPerPage = $entriesPerPage ?? config('linnworks.pagination.sync_page_size');
+        
         // Use the existing searchStockItems method which already works
         try {
             $response = $this->searchStockItems('', $entriesPerPage, ['StockLevels'], ['SKU', 'Title', 'Barcode'], $page);
