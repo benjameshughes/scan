@@ -490,6 +490,42 @@ class LinnworksApiService
     }
 
     /**
+     * Debug method to test different location endpoints
+     */
+    public function debugLocationEndpoints(): array
+    {
+        $results = [];
+        $endpoints = [
+            'Locations/GetLocations',
+            'Locations/GetLocation', 
+            'Inventory/GetInventoryLocations',
+            'Inventory/GetLocations',
+            'Locations',
+            'Stock/GetStockLocationFull',
+        ];
+        
+        foreach ($endpoints as $endpoint) {
+            try {
+                $response = $this->makeAuthenticatedRequest('GET', $endpoint);
+                $results[$endpoint] = [
+                    'success' => true,
+                    'count' => is_array($response) ? count($response) : 'non-array',
+                    'sample' => is_array($response) ? array_slice($response, 0, 2) : $response
+                ];
+                Log::channel('inventory')->info("Endpoint {$endpoint} succeeded", $results[$endpoint]);
+            } catch (\Exception $e) {
+                $results[$endpoint] = [
+                    'success' => false,
+                    'error' => $e->getMessage()
+                ];
+                Log::channel('inventory')->error("Endpoint {$endpoint} failed", $results[$endpoint]);
+            }
+        }
+        
+        return $results;
+    }
+
+    /**
      * Get stock levels for a product across all locations
      */
     public function getStockLocationsByProduct(string $sku): array

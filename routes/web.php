@@ -142,6 +142,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('manage', function () {
             return view('locations.manage');
         })->name('manage');
+        
+        // Debug route to test location endpoints
+        Route::get('debug-endpoints', function () {
+            $linnworksService = app(\App\Services\LinnworksApiService::class);
+            $results = $linnworksService->debugLocationEndpoints();
+            return response()->json($results, 200, [], JSON_PRETTY_PRINT);
+        })->name('debug');
     });
 
     /*
