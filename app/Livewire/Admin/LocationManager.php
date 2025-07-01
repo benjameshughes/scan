@@ -138,8 +138,16 @@ class LocationManager extends Component
             $updated = 0;
             
             foreach ($locations as $locationData) {
-                $locationId = $locationData['StockLocationId'] ?? $locationData['LocationId'] ?? null;
-                $locationName = $locationData['LocationName'] ?? $locationData['Name'] ?? 'Unknown';
+                // Handle multiple possible field names from different API responses
+                $locationId = $locationData['StockLocationId'] 
+                    ?? $locationData['LocationId'] 
+                    ?? $locationData['Id'] 
+                    ?? null;
+                    
+                $locationName = $locationData['LocationName'] 
+                    ?? $locationData['Name'] 
+                    ?? $locationData['BinRack']
+                    ?? "Location {$locationId}";
                 
                 if ($locationId) {
                     $location = Location::createOrUpdateFromLinnworks($locationId, $locationName);
@@ -149,6 +157,12 @@ class LocationManager extends Component
                     } else {
                         $updated++;
                     }
+                    
+                    \Log::channel('inventory')->info("Processed location", [
+                        'location_id' => $locationId,
+                        'location_name' => $locationName,
+                        'action' => $location->wasRecentlyCreated ? 'created' : 'updated'
+                    ]);
                 }
             }
             

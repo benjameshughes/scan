@@ -543,7 +543,8 @@ class LinnworksApiService
                 $results[$endpoint] = [
                     'success' => true,
                     'count' => is_array($response) ? count($response) : 'non-array',
-                    'sample' => is_array($response) ? array_slice($response, 0, 2) : $response
+                    'sample' => is_array($response) ? array_slice($response, 0, 2) : $response,
+                    'all_keys' => is_array($response) && !empty($response) ? array_keys($response[0] ?? []) : []
                 ];
                 Log::channel('inventory')->info("Endpoint {$endpoint} succeeded", $results[$endpoint]);
             } catch (\Exception $e) {
@@ -553,6 +554,22 @@ class LinnworksApiService
                 ];
                 Log::channel('inventory')->error("Endpoint {$endpoint} failed", $results[$endpoint]);
             }
+        }
+        
+        // Also test the fallback method
+        try {
+            $fallbackLocations = $this->getLocationsFromInventory();
+            $results['FALLBACK_METHOD'] = [
+                'success' => true,
+                'count' => count($fallbackLocations),
+                'sample' => array_slice($fallbackLocations, 0, 3),
+                'all_locations' => $fallbackLocations
+            ];
+        } catch (\Exception $e) {
+            $results['FALLBACK_METHOD'] = [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
         }
         
         return $results;
