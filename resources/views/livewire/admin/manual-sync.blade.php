@@ -92,8 +92,12 @@
                     @else
                         <dl class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                             <div>
-                                <dt class="font-medium text-gray-700 dark:text-gray-300">Estimated Products</dt>
+                                <dt class="font-medium text-gray-700 dark:text-gray-300">Total Products</dt>
                                 <dd class="text-gray-600 dark:text-gray-400">{{ $estimatedInfo['estimated_total'] }}</dd>
+                            </div>
+                            <div>
+                                <dt class="font-medium text-gray-700 dark:text-gray-300">Estimated Batches</dt>
+                                <dd class="text-gray-600 dark:text-gray-400">{{ $estimatedInfo['estimated_batches'] }} batches</dd>
                             </div>
                             <div>
                                 <dt class="font-medium text-gray-700 dark:text-gray-300">Batch Size</dt>

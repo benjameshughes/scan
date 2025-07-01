@@ -255,9 +255,46 @@ class LinnworksApiService
      */
     public function getInventoryCount(): int
     {
-        $response = $this->makeAuthenticatedRequest('GET', 'Inventory/GetInventoryItemsCount');
+        $token = $this->ensureAuthorized();
 
-        return (int) $response;
+        try {
+            $response = $this->client->request('GET', $this->baseUrl . 'Inventory/GetInventoryItemsCount', [
+                'headers' => [
+                    'Authorization' => $token,
+                    'accept' => 'application/json',
+                    'content-type' => 'application/json',
+                ]
+            ]);
+
+            // This endpoint returns a plain number, not JSON
+            $count = (int) $response->getBody()->getContents();
+            
+            Log::info("Retrieved inventory count: {$count}");
+            
+            return $count;
+            
+        } catch (GuzzleException $e) {
+            Log::channel('lw_auth')->error("Failed to get inventory count: " . $e->getMessage());
+            
+            // If we get a 401, try to refresh the token and retry once
+            if (str_contains($e->getMessage(), '401')) {
+                Log::channel('lw_auth')->warning('Received 401 error, refreshing token and retrying inventory count');
+                Cache::forget($this->cacheKey);
+                $token = $this->authorizeByApplication();
+
+                $response = $this->client->request('GET', $this->baseUrl . 'Inventory/GetInventoryItemsCount', [
+                    'headers' => [
+                        'Authorization' => $token,
+                        'accept' => 'application/json',
+                        'content-type' => 'application/json',
+                    ]
+                ]);
+
+                return (int) $response->getBody()->getContents();
+            }
+            
+            throw new Exception("Failed to get inventory count: " . $e->getMessage());
+        }
     }
 
     /**

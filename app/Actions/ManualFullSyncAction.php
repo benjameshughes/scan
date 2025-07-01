@@ -64,13 +64,25 @@ class ManualFullSyncAction
             $batchSize = 100;
             $hasMorePages = true;
             
+            // Get total count for progress calculation
+            $this->updateProgress('Getting total product count from Linnworks...', $stats);
+            $totalCount = $this->linnworksService->getInventoryCount();
+            $estimatedBatches = ceil($totalCount / $batchSize);
+            
+            Log::info("Manual sync will process approximately {$totalCount} products in {$estimatedBatches} batches");
+            
             // First, update progress with initial operation
-            $this->updateProgress('Connecting to Linnworks API...', $stats);
+            $this->updateProgress('Starting sync process...', $stats, [
+                'estimated_total_products' => $totalCount,
+                'estimated_total_batches' => $estimatedBatches
+            ]);
             
             while ($hasMorePages) {
                 $this->updateProgress("Processing batch {$page} (fetching {$batchSize} products)...", $stats, [
                     'current_batch' => $page,
-                    'batch_size' => $batchSize
+                    'batch_size' => $batchSize,
+                    'estimated_total_products' => $totalCount,
+                    'estimated_total_batches' => $estimatedBatches
                 ]);
                 
                 Log::info("Processing batch {$page} (page size: {$batchSize})");
@@ -87,7 +99,9 @@ class ManualFullSyncAction
                 
                 $this->updateProgress("Processing " . count($linnworksProducts) . " products from batch {$page}...", $stats, [
                     'current_batch' => $page,
-                    'products_in_batch' => count($linnworksProducts)
+                    'products_in_batch' => count($linnworksProducts),
+                    'estimated_total_products' => $totalCount,
+                    'estimated_total_batches' => $estimatedBatches
                 ]);
                 
                 // Process this batch
@@ -105,7 +119,11 @@ class ManualFullSyncAction
                     'running_totals' => $stats
                 ]);
                 
-                $this->updateProgress("Batch {$page} completed. Processed: {$batchStats['processed']}, Created: {$batchStats['created']}, Queued: {$batchStats['queued']}", $stats);
+                $this->updateProgress("Batch {$page} completed. Processed: {$batchStats['processed']}, Created: {$batchStats['created']}, Queued: {$batchStats['queued']}", $stats, [
+                    'current_batch' => $page,
+                    'estimated_total_products' => $totalCount,
+                    'estimated_total_batches' => $estimatedBatches
+                ]);
                 
                 // If we got fewer products than batch size, we're done
                 if (count($linnworksProducts) < $batchSize) {
@@ -116,7 +134,11 @@ class ManualFullSyncAction
                 
                 // Add a small delay to avoid overwhelming the API
                 if ($hasMorePages) {
-                    $this->updateProgress("Waiting before next batch to avoid API rate limits...", $stats);
+                    $this->updateProgress("Waiting before next batch to avoid API rate limits...", $stats, [
+                        'current_batch' => $page,
+                        'estimated_total_products' => $totalCount,
+                        'estimated_total_batches' => $estimatedBatches
+                    ]);
                     usleep(250000); // 250ms delay between batches
                 }
             }
@@ -189,14 +211,17 @@ class ManualFullSyncAction
     public function getEstimatedInfo(): array
     {
         try {
-            // Get first page to estimate total
-            $firstBatch = $this->linnworksService->getAllProducts(1, 100);
-            $estimatedTotal = count($firstBatch) > 0 ? 'Unknown (API does not provide total count)' : 0;
+            // Get actual total count from Linnworks
+            $totalCount = $this->linnworksService->getInventoryCount();
+            $batchSize = 100;
+            $estimatedBatches = ceil($totalCount / $batchSize);
             
             return [
-                'estimated_total' => $estimatedTotal,
-                'batch_size' => 100,
-                'estimated_batches' => 'Unknown',
+                'estimated_total' => number_format($totalCount),
+                'total_count_raw' => $totalCount,
+                'batch_size' => $batchSize,
+                'estimated_batches' => number_format($estimatedBatches),
+                'estimated_batches_raw' => $estimatedBatches,
                 'last_sync' => $this->getLastSyncInfo()
             ];
             

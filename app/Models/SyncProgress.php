@@ -73,6 +73,15 @@ class SyncProgress extends Model
             return null;
         }
         
+        $totalProducts = $batch['estimated_total_products'] ?? null;
+        $processedProducts = $stats['total_processed'] ?? 0;
+        
+        // If we have total products, calculate based on products processed
+        if ($totalProducts && $totalProducts > 0) {
+            return min(100, round(($processedProducts / $totalProducts) * 100));
+        }
+        
+        // Fallback to batch-based calculation
         $totalBatches = $batch['estimated_total_batches'] ?? null;
         $currentBatch = $batch['current_batch'] ?? 0;
         
