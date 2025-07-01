@@ -405,7 +405,8 @@ class LinnworksApiService
     public function getLocations(): array
     {
         try {
-            $response = $this->makeAuthenticatedRequest('GET', 'Locations/GetLocation');
+            // Try the correct plural endpoint first
+            $response = $this->makeAuthenticatedRequest('GET', 'Locations/GetLocations');
             
             Log::channel('inventory')->info('Retrieved locations', [
                 'count' => count($response)
@@ -413,11 +414,27 @@ class LinnworksApiService
             
             return $response;
         } catch (\Exception $e) {
-            Log::channel('inventory')->error('Failed to get locations', [
+            Log::channel('inventory')->error('Failed to get locations with GetLocations', [
                 'error' => $e->getMessage()
             ]);
             
-            throw new \Exception("Failed to retrieve locations: {$e->getMessage()}");
+            // Fallback to try other possible endpoints
+            try {
+                Log::channel('inventory')->info('Trying alternative endpoint: Inventory/GetInventoryLocations');
+                $response = $this->makeAuthenticatedRequest('GET', 'Inventory/GetInventoryLocations');
+                
+                Log::channel('inventory')->info('Retrieved locations via alternative endpoint', [
+                    'count' => count($response)
+                ]);
+                
+                return $response;
+            } catch (\Exception $e2) {
+                Log::channel('inventory')->error('Failed to get locations with alternative endpoint', [
+                    'error' => $e2->getMessage()
+                ]);
+                
+                throw new \Exception("Failed to retrieve locations: {$e->getMessage()}. Alternative endpoint also failed: {$e2->getMessage()}");
+            }
         }
     }
 
