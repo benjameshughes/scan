@@ -455,35 +455,68 @@ class LinnworksApiService
      */
     private function getLocationsFromInventory(): array
     {
-        // Get a sample of inventory items to extract location structure
-        $inventoryData = $this->getInventory(1, 10); // Get first 10 items
-        
         $locations = [];
         $locationIds = [];
+        $page = 1;
+        $maxPages = 10; // Limit to prevent infinite loops
+        $itemsPerPage = 50; // Get more items per page
         
-        foreach ($inventoryData as $item) {
-            if (isset($item['StockLevels']) && is_array($item['StockLevels'])) {
-                foreach ($item['StockLevels'] as $stockLevel) {
-                    if (isset($stockLevel['Location']['StockLocationId'])) {
-                        $locationId = $stockLevel['Location']['StockLocationId'];
-                        
-                        // Avoid duplicates
-                        if (!in_array($locationId, $locationIds)) {
-                            $locationIds[] = $locationId;
-                            $locations[] = [
-                                'StockLocationId' => $locationId,
-                                'LocationName' => $stockLevel['Location']['LocationName'] ?? 'Unknown Location',
-                                'BinRack' => $stockLevel['Location']['BinRack'] ?? '',
-                                'IsWarehouseManaged' => $stockLevel['Location']['IsWarehouseManaged'] ?? false,
-                            ];
+        Log::channel('inventory')->info('Starting comprehensive location extraction from inventory');
+        
+        // Scan through multiple pages of inventory to find all locations
+        while ($page <= $maxPages) {
+            try {
+                $inventoryData = $this->getInventory($page, $itemsPerPage);
+                
+                if (empty($inventoryData)) {
+                    Log::channel('inventory')->info("No more inventory data on page {$page}, stopping");
+                    break;
+                }
+                
+                $newLocationsFound = 0;
+                
+                foreach ($inventoryData as $item) {
+                    if (isset($item['StockLevels']) && is_array($item['StockLevels'])) {
+                        foreach ($item['StockLevels'] as $stockLevel) {
+                            if (isset($stockLevel['Location']['StockLocationId'])) {
+                                $locationId = $stockLevel['Location']['StockLocationId'];
+                                
+                                // Avoid duplicates
+                                if (!in_array($locationId, $locationIds)) {
+                                    $locationIds[] = $locationId;
+                                    $locations[] = [
+                                        'StockLocationId' => $locationId,
+                                        'LocationName' => $stockLevel['Location']['LocationName'] ?? 'Unknown Location',
+                                        'BinRack' => $stockLevel['Location']['BinRack'] ?? '',
+                                        'IsWarehouseManaged' => $stockLevel['Location']['IsWarehouseManaged'] ?? false,
+                                    ];
+                                    $newLocationsFound++;
+                                }
+                            }
                         }
                     }
                 }
+                
+                Log::channel('inventory')->info("Page {$page}: Found {$newLocationsFound} new locations, total: " . count($locations));
+                
+                // If we didn't find any new locations on this page, we might have all of them
+                if ($newLocationsFound === 0 && count($locations) > 0) {
+                    Log::channel('inventory')->info("No new locations found on page {$page}, stopping early");
+                    break;
+                }
+                
+                $page++;
+                
+            } catch (\Exception $e) {
+                Log::channel('inventory')->error("Error processing inventory page {$page}: " . $e->getMessage());
+                break;
             }
         }
         
-        Log::channel('inventory')->info('Extracted locations from inventory data', [
-            'count' => count($locations)
+        Log::channel('inventory')->info('Completed location extraction from inventory', [
+            'total_locations' => count($locations),
+            'pages_scanned' => $page - 1,
+            'location_ids' => $locationIds
         ]);
         
         return $locations;
