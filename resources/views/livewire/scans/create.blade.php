@@ -14,24 +14,6 @@
         <!-- Card Content -->
         <form wire:submit="save" class="p-6">
             <div class="space-y-6">
-                <!-- Product Preview Card -->
-                @if($selectedProduct)
-                    <div class="rounded-md bg-blue-50 dark:bg-blue-900/20 p-4 border border-blue-200 dark:border-blue-800">
-                        <div class="flex">
-                            <svg class="h-5 w-5 text-blue-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            <div class="ml-3">
-                                <h4 class="text-sm font-medium text-blue-800 dark:text-blue-200">Product Found</h4>
-                                <div class="mt-2 text-sm text-blue-700 dark:text-blue-300">
-                                    <p><strong>Name:</strong> {{ $selectedProduct->name }}</p>
-                                    <p><strong>SKU:</strong> {{ $selectedProduct->sku }}</p>
-                                    <p><strong>Current Quantity:</strong> {{ number_format($selectedProduct->quantity ?? 0) }}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                @endif
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <!-- Barcode -->
