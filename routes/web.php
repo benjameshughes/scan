@@ -17,7 +17,6 @@ use Illuminate\Support\Facades\Route;
 */
 // Route::redirect('/', 'dashboard')->name('home');
 Route::redirect('/', 'scanner')->name('home');
-Route::get('scanner', [ScanController::class, 'scan'])->name('scan.scan');
 Route::get('/invite/{token}', Accept::class)->name('invite.accept')->middleware(IsInviteValid::class);
 
 // Redirect registration attempts to login with message
@@ -32,7 +31,7 @@ Route::get('/register', function () {
 */
 Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard & Profile
-
+    Route::get('scanner', [ScanController::class, 'scan'])->name('scan.scan')->middleware('permission:view scanner');
     Route::view('dashboard', 'dashboard')->name('dashboard');
     Route::view('profile', 'profile')->name('profile');
 

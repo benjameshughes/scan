@@ -21,6 +21,18 @@ class Scanner extends Component
 
     public string $barcode = '';
 
+    public function mount()
+    {
+        // Ensure user is authenticated and has scanner permission
+        if (!auth()->check()) {
+            abort(401, 'Authentication required');
+        }
+        
+        if (!auth()->user()->can('view scanner')) {
+            abort(403, 'Insufficient permissions to use scanner');
+        }
+    }
+
     #[On('loadingCamera')]
     public function updateLoadingCamera($loading)
     {

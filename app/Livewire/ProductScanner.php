@@ -46,6 +46,15 @@ class ProductScanner extends Component
 
     public function mount()
     {
+        // Ensure user is authenticated and has scanner permission
+        if (!auth()->check()) {
+            abort(401, 'Authentication required');
+        }
+        
+        if (!auth()->user()->can('view scanner')) {
+            abort(403, 'Insufficient permissions to use scanner');
+        }
+        
         $this->loadingCamera = false; // Start with video element visible
         $this->isScanning = false;
     }
@@ -219,7 +228,7 @@ class ProductScanner extends Component
             'submitted' => false,
             'action' => $this->scanAction ? 'increase' : 'decrease',
             'sync_status' => 'pending',
-            'user_id' => auth()->check() ? auth()->user()->id : '1',
+            'user_id' => auth()->user()->id,
         ]);
 
         SyncBarcode::dispatch($scan);

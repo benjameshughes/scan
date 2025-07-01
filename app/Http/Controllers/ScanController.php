@@ -83,12 +83,12 @@ class ScanController extends Controller
     }
 
     /**
-     * Show the scan form publicly
+     * Show the scan form for authenticated users
      */
     public function scan()
     {
-        $layout = auth()->check() ? 'app' : 'guest';
+        $this->authorize('viewAny', Scan::class);
 
-        return view('scan.index')->layout('layouts.'.$layout);
+        return view('scan.index');
     }
 }
