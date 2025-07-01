@@ -17,12 +17,6 @@ class Show extends Component
     public $errorMessage = null;
     public $showHistoryModal = false;
 
-    protected $linnworksService;
-
-    public function boot(LinnworksApiService $linnworksService)
-    {
-        $this->linnworksService = $linnworksService;
-    }
 
     public function mount(Product $product)
     {
@@ -30,10 +24,20 @@ class Show extends Component
     }
 
     /**
+     * Test method to debug Livewire
+     */
+    public function testLivewire()
+    {
+        Log::info("TEST: Livewire is working for product: {$this->product->sku}");
+        session()->flash('message', 'Livewire is working!');
+    }
+
+    /**
      * Show stock history for this product
      */
     public function showStockHistory()
     {
+        Log::info("showStockHistory method called for product: {$this->product->sku}");
         $this->showHistoryModal = true;
         $this->getStockItemHistory();
     }
@@ -51,7 +55,8 @@ class Show extends Component
             Log::info("Fetching stock history for SKU: {$this->product->sku}");
 
             // Get the stock history from the Linnworks API
-            $history = $this->linnworksService->getStockItemHistory($this->product->sku);
+            $linnworksService = app(LinnworksApiService::class);
+            $history = $linnworksService->getStockItemHistory($this->product->sku);
 
             // Store the history data
             $this->stockHistory = $history;

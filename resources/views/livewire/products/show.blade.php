@@ -1,4 +1,17 @@
 <div class="max-w-6xl mx-auto space-y-6">
+    <!-- Session Flash Messages -->
+    @if (session()->has('message'))
+        <div class="bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-800 rounded-md p-4">
+            <div class="flex">
+                <svg class="h-5 w-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                <div class="ml-3">
+                    <p class="text-sm text-green-800 dark:text-green-200">{{ session('message') }}</p>
+                </div>
+            </div>
+        </div>
+    @endif
     <!-- Product Details Card -->
     <div class="bg-white dark:bg-zinc-800 shadow-sm rounded-lg border border-zinc-200 dark:border-zinc-700">
         <!-- Card Header -->
@@ -9,6 +22,10 @@
                     <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">SKU: {{ $product->sku }}</p>
                 </div>
                 <div class="flex items-center gap-3">
+                    <button wire:click="testLivewire" 
+                            class="text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-zinc-800 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 flex items-center gap-2">
+                        Test
+                    </button>
                     <button wire:click="showStockHistory" 
                             class="text-purple-600 hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-zinc-800 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 flex items-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
