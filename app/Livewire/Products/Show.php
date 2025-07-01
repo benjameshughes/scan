@@ -3,15 +3,76 @@
 namespace App\Livewire\Products;
 
 use App\Models\Product;
+use App\Services\LinnworksApiService;
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 
 class Show extends Component
 {
     public Product $product;
 
+    // Stock History Modal Properties
+    public $stockHistory = null;
+    public $isLoadingHistory = false;
+    public $errorMessage = null;
+    public $showHistoryModal = false;
+
+    protected $linnworksService;
+
+    public function boot(LinnworksApiService $linnworksService)
+    {
+        $this->linnworksService = $linnworksService;
+    }
+
     public function mount(Product $product)
     {
         $this->product = $product;
+    }
+
+    /**
+     * Show stock history for this product
+     */
+    public function showStockHistory()
+    {
+        $this->showHistoryModal = true;
+        $this->getStockItemHistory();
+    }
+
+    /**
+     * Get stock item history for the product
+     */
+    public function getStockItemHistory()
+    {
+        $this->isLoadingHistory = true;
+        $this->errorMessage = null;
+        $this->stockHistory = null;
+
+        try {
+            Log::info("Fetching stock history for SKU: {$this->product->sku}");
+
+            // Get the stock history from the Linnworks API
+            $history = $this->linnworksService->getStockItemHistory($this->product->sku);
+
+            // Store the history data
+            $this->stockHistory = $history;
+
+            Log::info("Retrieved stock history for SKU: {$this->product->sku}");
+        } catch (\Exception $e) {
+            Log::error("Failed to get stock history for SKU: {$this->product->sku} - ".$e->getMessage());
+            $this->errorMessage = 'Failed to load stock history: '.$e->getMessage();
+        } finally {
+            $this->isLoadingHistory = false;
+        }
+    }
+
+    /**
+     * Close the stock history modal
+     */
+    public function closeHistoryModal()
+    {
+        $this->showHistoryModal = false;
+        $this->stockHistory = null;
+        $this->errorMessage = null;
     }
 
     public function render()
