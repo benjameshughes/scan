@@ -15,8 +15,7 @@ use Illuminate\Support\Facades\Route;
 | Public Routes
 |--------------------------------------------------------------------------
 */
-// Route::redirect('/', 'dashboard')->name('home');
-Route::redirect('/', 'scanner')->name('home');
+ Route::redirect('/', 'dashboard')->name('home');
 Route::get('/invite/{token}', Accept::class)->name('invite.accept')->middleware(IsInviteValid::class);
 
 // Redirect registration attempts to login with message
