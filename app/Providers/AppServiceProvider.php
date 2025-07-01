@@ -82,7 +82,7 @@ class AppServiceProvider extends ServiceProvider
         // HTTP Linnworks API Macro
         Http::macro('linnworks', function ($url, $data = []) {
             $response = Http::withBody(json_encode($data))->withHeaders([
-                'Authorization' => Cache::get('linnworks.session_token'),
+                'Authorization' => Cache::get(config('linnworks.cache.session_token_key')),
                 'accept' => 'application/json',
                 'content-type' => 'application/json',
             ])->post(config('linnworks.base_url').$url);

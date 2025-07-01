@@ -15,7 +15,7 @@ class LinnworksController extends Controller
     public function index()
     {
         // Get token from cache
-        $token = Cache::get('linnworks.session_token');
+        $token = Cache::get(config('linnworks.cache.session_token_key'));
         // Get profile view
         $products = Product::all();
 

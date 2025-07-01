@@ -2,6 +2,7 @@
 
 use App\Livewire\Actions\Logout;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Livewire\Volt\Component;
 
 new class extends Component
@@ -13,7 +14,7 @@ new class extends Component
      */
     public function mount()
     {
-        $this->token = Cache::get('linnworks.session_token') ?? 'No token';
+        $this->token = Cache::get(config('linnworks.cache.session_token_key')) ?? 'No token';
     }
 
     /**
@@ -25,7 +26,7 @@ new class extends Component
 
         $linnworks->refreshToken();
 
-        $this->token = Cache::get('linnworks.session_token');
+        $this->token = Cache::get(config('linnworks.cache.session_token_key'));
     }
 }; ?>
 

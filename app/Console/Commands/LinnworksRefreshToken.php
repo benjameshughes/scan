@@ -40,7 +40,7 @@ class LinnworksRefreshToken extends Command
                     $this->warn('Token was updated during validation');
                 }
 
-                $this->info('Current token: '.Cache::get('linnworks.session_token'));
+                $this->info('Current token: '.Cache::get(config('linnworks.cache.session_token_key')));
 
                 return 0;
             } catch (\Exception $exception) {
