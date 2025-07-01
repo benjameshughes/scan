@@ -279,7 +279,7 @@ class LinnworksApiService
     /**
      * Search for stock items
      */
-    protected function searchStockItems(
+    public function searchStockItems(
         string $keyword,
         int $entriesPerPage = 1,
         array $dataRequirements = ['StockLevels'],
