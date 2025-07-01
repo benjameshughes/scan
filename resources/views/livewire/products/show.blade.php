@@ -199,7 +199,7 @@
 
             @if($isLoadingHistory)
                 <div class="flex items-center justify-center py-8">
-                    <flux:spinner size="lg" />
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                     <span class="ml-3 text-zinc-600 dark:text-zinc-400">Loading stock history...</span>
                 </div>
             @elseif($errorMessage)
@@ -247,7 +247,9 @@
                 </div>
             @else
                 <div class="text-center py-8">
-                    <flux:icon.chart-bar class="mx-auto h-12 w-12 text-zinc-400" />
+                    <svg class="mx-auto h-12 w-12 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
                     <flux:heading size="md" class="mt-4 text-zinc-500 dark:text-zinc-400">No stock history found</flux:heading>
                     <flux:subheading class="mt-2 text-zinc-400">Stock changes for this product will appear here.</flux:subheading>
                 </div>
