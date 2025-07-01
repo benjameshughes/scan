@@ -400,53 +400,27 @@ class LinnworksApiService
     }
 
     /**
-     * Get all locations from Linnworks
+     * Get all locations from Linnworks using the dedicated locations endpoint
      */
     public function getLocations(): array
     {
         try {
-            // Try the correct plural endpoint first
-            $response = $this->makeAuthenticatedRequest('GET', 'Locations/GetLocations');
+            // Use the dedicated locations endpoint - this is the correct one
+            $response = $this->makeAuthenticatedRequest('GET', 'Locations');
             
-            Log::channel('inventory')->info('Retrieved locations', [
-                'count' => count($response)
+            Log::channel('inventory')->info('Retrieved locations from dedicated endpoint', [
+                'count' => count($response),
+                'endpoint' => 'Locations'
             ]);
             
             return $response;
         } catch (\Exception $e) {
-            Log::channel('inventory')->error('Failed to get locations with GetLocations', [
-                'error' => $e->getMessage()
+            Log::channel('inventory')->error('Failed to get locations from dedicated endpoint', [
+                'error' => $e->getMessage(),
+                'endpoint' => 'Locations'
             ]);
             
-            // Fallback to try other possible endpoints
-            try {
-                Log::channel('inventory')->info('Trying alternative endpoint: Inventory/GetInventoryLocations');
-                $response = $this->makeAuthenticatedRequest('GET', 'Inventory/GetInventoryLocations');
-                
-                Log::channel('inventory')->info('Retrieved locations via alternative endpoint', [
-                    'count' => count($response)
-                ]);
-                
-                return $response;
-            } catch (\Exception $e2) {
-                Log::channel('inventory')->error('Failed to get locations with alternative endpoint', [
-                    'error' => $e2->getMessage()
-                ]);
-                
-                // Final fallback: extract locations from inventory data
-                try {
-                    Log::channel('inventory')->info('Trying fallback: extracting locations from inventory data');
-                    return $this->getLocationsFromInventory();
-                } catch (\Exception $e3) {
-                    Log::channel('inventory')->error('All location endpoint attempts failed', [
-                        'primary_error' => $e->getMessage(),
-                        'alternative_error' => $e2->getMessage(),
-                        'fallback_error' => $e3->getMessage()
-                    ]);
-                    
-                    throw new \Exception("Failed to retrieve locations: {$e->getMessage()}. Alternative endpoint also failed: {$e2->getMessage()}. Fallback method failed: {$e3->getMessage()}");
-                }
-            }
+            throw new \Exception("Failed to retrieve locations from dedicated endpoint: {$e->getMessage()}");
         }
     }
 
