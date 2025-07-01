@@ -176,7 +176,14 @@ class LinnworksApiService
             return json_decode($response->getBody()->getContents(), true);
         } catch (GuzzleException $e) {
             Log::channel('lw_auth')->error("API request failed: {$method} {$url} - ".$e->getMessage());
-            throw new Exception("API request failed: {$e->getMessage()}");
+            
+            // Transform specific Linnworks error messages to user-friendly messages
+            $errorMessage = $e->getMessage();
+            if (str_contains($errorMessage, 'No items found with given filter')) {
+                throw new Exception("Product not found in Linnworks");
+            }
+            
+            throw new Exception("API request failed: {$errorMessage}");
         }
     }
 
@@ -304,7 +311,6 @@ class LinnworksApiService
 
         if (empty($itemDetail)) {
             Log::channel('inventory')->warning("SKU not found: {$sku}");
-
             return [];
         }
 
