@@ -24,11 +24,17 @@ class Show extends Component
     // Update Details Properties
     public $isUpdatingDetails = false;
     public $updateMessage = null;
+    
+    // Location Stock Properties
+    public $locationStocks = [];
+    public $isLoadingLocationStocks = false;
+    public $locationStockError = null;
 
 
     public function mount(Product $product)
     {
         $this->product = $product;
+        $this->loadLocationStocks();
     }
 
 
@@ -163,6 +169,57 @@ class Show extends Component
         $this->historyCurrentPage = 1;
         $this->historyTotalPages = 1;
         $this->historyTotalEntries = 0;
+    }
+
+    /**
+     * Load location stock information for this product
+     */
+    public function loadLocationStocks()
+    {
+        $this->isLoadingLocationStocks = true;
+        $this->locationStockError = null;
+
+        try {
+            $linnworksService = app(LinnworksApiService::class);
+            $locations = $linnworksService->getStockLocationsByProduct($this->product->sku);
+            
+            // Filter and format locations with stock
+            $this->locationStocks = collect($locations)
+                ->filter(function($location) {
+                    return isset($location['StockLevel']) && $location['StockLevel'] > 0;
+                })
+                ->map(function($location) {
+                    return [
+                        'id' => $location['Location']['StockLocationId'] ?? 'unknown',
+                        'name' => $location['Location']['LocationName'] ?? 'Unknown Location',
+                        'stock_level' => $location['StockLevel'] ?? 0,
+                        'available' => $location['Available'] ?? 0,
+                        'allocated' => $location['Allocated'] ?? 0,
+                        'on_order' => $location['OnOrder'] ?? 0,
+                    ];
+                })
+                ->sortByDesc('stock_level')
+                ->values()
+                ->toArray();
+
+            Log::info("Loaded location stocks for SKU: {$this->product->sku}", [
+                'locations_with_stock' => count($this->locationStocks)
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error("Failed to load location stocks for SKU: {$this->product->sku} - " . $e->getMessage());
+            $this->locationStockError = 'Failed to load location stock information: ' . $e->getMessage();
+        } finally {
+            $this->isLoadingLocationStocks = false;
+        }
+    }
+
+    /**
+     * Refresh location stock data
+     */
+    public function refreshLocationStocks()
+    {
+        $this->loadLocationStocks();
     }
 
     public function render()

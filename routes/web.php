@@ -129,6 +129,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
+    | Location Management Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('locations')->name('locations.')->middleware('permission:manage products')->group(function () {
+        Route::get('/', function () {
+            return view('locations.index');
+        })->name('index');
+        Route::get('dashboard', function () {
+            return view('locations.dashboard');
+        })->name('dashboard');
+        Route::get('manage', function () {
+            return view('locations.manage');
+        })->name('manage');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
     | Admin Routes
     |--------------------------------------------------------------------------
     */

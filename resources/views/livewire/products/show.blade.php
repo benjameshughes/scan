@@ -178,6 +178,121 @@
         </div>
     </div>
 
+    <!-- Location Stock Information -->
+    <div class="bg-white dark:bg-zinc-800 shadow-sm rounded-lg border border-zinc-200 dark:border-zinc-700">
+        <!-- Card Header -->
+        <div class="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Stock by Location</h3>
+                    <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-1">Current inventory levels across all warehouse locations</p>
+                </div>
+                <flux:button 
+                    wire:click="refreshLocationStocks" 
+                    variant="ghost" 
+                    size="sm" 
+                    icon="arrow-path" 
+                    :loading="$isLoadingLocationStocks">
+                    Refresh
+                </flux:button>
+            </div>
+        </div>
+
+        <!-- Card Content -->
+        <div class="p-6">
+            @if($isLoadingLocationStocks)
+                <div class="flex items-center justify-center py-8">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <span class="ml-3 text-gray-600 dark:text-gray-400">Loading location stock data...</span>
+                </div>
+            @elseif($locationStockError)
+                <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                    <div class="flex items-center gap-3">
+                        <flux:icon.exclamation-triangle class="size-5 text-red-600 dark:text-red-400" />
+                        <span class="text-sm text-red-700 dark:text-red-300">{{ $locationStockError }}</span>
+                    </div>
+                </div>
+            @elseif(count($locationStocks) > 0)
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    @foreach($locationStocks as $locationStock)
+                        <div class="bg-zinc-50 dark:bg-zinc-700 rounded-lg p-4 border border-zinc-200 dark:border-zinc-600">
+                            <div class="flex items-center justify-between mb-3">
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                        {{ $locationStock['name'] }}
+                                    </h4>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 font-mono">
+                                        {{ $locationStock['id'] }}
+                                    </p>
+                                </div>
+                                <flux:icon.map-pin class="size-5 text-blue-600 dark:text-blue-400" />
+                            </div>
+                            
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-medium text-gray-600 dark:text-gray-300">Total Stock:</span>
+                                    <span class="text-sm font-bold text-gray-900 dark:text-gray-100">
+                                        {{ number_format($locationStock['stock_level']) }}
+                                    </span>
+                                </div>
+                                
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs text-gray-500 dark:text-gray-400">Available:</span>
+                                    <span class="text-xs font-medium text-green-600 dark:text-green-400">
+                                        {{ number_format($locationStock['available']) }}
+                                    </span>
+                                </div>
+                                
+                                @if($locationStock['allocated'] > 0)
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs text-gray-500 dark:text-gray-400">Allocated:</span>
+                                        <span class="text-xs font-medium text-amber-600 dark:text-amber-400">
+                                            {{ number_format($locationStock['allocated']) }}
+                                        </span>
+                                    </div>
+                                @endif
+                                
+                                @if($locationStock['on_order'] > 0)
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs text-gray-500 dark:text-gray-400">On Order:</span>
+                                        <span class="text-xs font-medium text-blue-600 dark:text-blue-400">
+                                            {{ number_format($locationStock['on_order']) }}
+                                        </span>
+                                    </div>
+                                @endif
+                            </div>
+                            
+                            <!-- Stock Level Indicator -->
+                            <div class="mt-3 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                @php
+                                    $maxStock = collect($locationStocks)->max('stock_level');
+                                    $percentage = $maxStock > 0 ? ($locationStock['stock_level'] / $maxStock) * 100 : 0;
+                                @endphp
+                                <div class="bg-blue-600 dark:bg-blue-400 h-2 rounded-full transition-all duration-300" 
+                                     style="width: {{ $percentage }}%"></div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+                
+                <div class="mt-6 text-center">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                        Showing {{ count($locationStocks) }} location(s) with stock. 
+                        Total inventory: {{ number_format(collect($locationStocks)->sum('stock_level')) }} units
+                    </p>
+                </div>
+            @else
+                <div class="text-center py-8">
+                    <flux:icon.map-pin class="size-12 text-gray-400 mx-auto mb-4" />
+                    <h4 class="text-sm font-medium text-gray-500 dark:text-gray-400">No stock at any location</h4>
+                    <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                        This product currently has no inventory at any warehouse location
+                    </p>
+                </div>
+            @endif
+        </div>
+    </div>
+
     <!-- Recent Scans -->
     <div class="bg-white dark:bg-zinc-800 shadow-sm rounded-lg border border-zinc-200 dark:border-zinc-700">
         <!-- Card Header -->

@@ -50,6 +50,10 @@ new class extends Component {
                         </x-nav-link>
                     @endcan
                     @can('manage products')
+                        <x-nav-link :href="route('locations.dashboard')" :active="request()->routeIs('locations.*')"
+                                    wire:navigate>
+                            {{ __('Locations') }}
+                        </x-nav-link>
                         <x-nav-link :href="route('admin.pending-updates')" :active="request()->routeIs('admin.pending-updates')"
                                     wire:navigate>
                             {{ __('Sync Updates') }}
@@ -75,6 +79,7 @@ new class extends Component {
                             <flux:navmenu.item href="{{route('products.import')}}" icon="import">Import</flux:navmenu.item>
                             @endcan
                             @can('manage products')
+                            <flux:navmenu.item href="{{route('locations.manage')}}" icon="map-pin">Manage Locations</flux:navmenu.item>
                             <flux:navmenu.item href="{{route('admin.manual-sync')}}" icon="arrow-path">Manual Sync</flux:navmenu.item>
                             @endcan
                         </flux:menu.group>
@@ -124,6 +129,10 @@ new class extends Component {
                 </x-responsive-nav-link>
             @endcan
             @can('manage products')
+                <x-responsive-nav-link :href="route('locations.dashboard')" :active="request()->routeIs('locations.*')"
+                                       wire:navigate>
+                    {{ __('Locations') }}
+                </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('admin.pending-updates')" :active="request()->routeIs('admin.pending-updates')"
                                        wire:navigate>
                     {{ __('Sync Updates') }}
