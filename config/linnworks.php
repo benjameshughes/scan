@@ -58,6 +58,35 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Sync Behavior Settings
+    |--------------------------------------------------------------------------
+    |
+    | Configure how the sync process handles different types of changes.
+    | 
+    | Auto-accepted changes are immediately applied to products but are still
+    | logged in the pending_product_updates table with status 'auto_accepted'
+    | for full audit trail and searchability.
+    |
+    | To modify these settings, add the corresponding environment variables
+    | to your .env file:
+    | - LINNWORKS_AUTO_ACCEPT_STOCK=true|false
+    | - LINNWORKS_AUTO_ACCEPT_NAMES=true|false  
+    | - LINNWORKS_AUTO_ACCEPT_BARCODES=true|false
+    |
+    */
+    'sync_behavior' => [
+        // Auto-accept stock level changes from Linnworks (still logged for audit)
+        'auto_accept_stock_changes' => env('LINNWORKS_AUTO_ACCEPT_STOCK', true),
+        
+        // Auto-accept product name changes from Linnworks
+        'auto_accept_name_changes' => env('LINNWORKS_AUTO_ACCEPT_NAMES', false),
+        
+        // Auto-accept barcode changes from Linnworks  
+        'auto_accept_barcode_changes' => env('LINNWORKS_AUTO_ACCEPT_BARCODES', false),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Rate Limiting Settings
     |--------------------------------------------------------------------------
     |

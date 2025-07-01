@@ -31,19 +31,20 @@
                 
                 <div class="flex items-center space-x-3">
                     <!-- Filter -->
-                    <select wire:model.live="filter" class="border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 rounded-md text-sm">
-                        <option value="pending">Pending</option>
-                        <option value="approved">Approved</option>
-                        <option value="rejected">Rejected</option>
-                    </select>
+                    <flux:select wire:model.live="filter" size="sm">
+                        <flux:select.option value="pending">Pending ({{ $pendingCount }})</flux:select.option>
+                        <flux:select.option value="auto_accepted">Auto-Accepted ({{ $autoAcceptedCount }})</flux:select.option>
+                        <flux:select.option value="approved">Approved ({{ $approvedCount }})</flux:select.option>
+                        <flux:select.option value="rejected">Rejected ({{ $rejectedCount }})</flux:select.option>
+                    </flux:select>
                     
                     <!-- Bulk Actions -->
                     @if(count($selectedUpdates) > 0 && $filter === 'pending')
-                    <div class="flex items-center space-x-2">
-                        <flux:button wire:click="bulkApprove" variant="primary" size="sm">
+                    <div class="flex items-center space-x-3">
+                        <flux:button wire:click="bulkApprove" variant="filled" size="sm" icon="check">
                             Approve Selected ({{ count($selectedUpdates) }})
                         </flux:button>
-                        <flux:button wire:click="bulkReject" variant="ghost" size="sm">
+                        <flux:button wire:click="bulkReject" variant="ghost" size="sm" icon="x-mark">
                             Reject Selected
                         </flux:button>
                     </div>
@@ -58,7 +59,7 @@
     <div class="bg-zinc-50 dark:bg-zinc-800 px-6 py-3 rounded-lg border border-zinc-200 dark:border-zinc-700">
         <label class="flex items-center space-x-2">
             <input type="checkbox" wire:model.live="selectAll" 
-                   class="rounded border-zinc-300 dark:border-zinc-600">
+                   class="h-4 w-4 text-blue-600 bg-white dark:bg-zinc-700 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500 dark:focus:ring-blue-600 focus:ring-1">
             <span class="text-sm text-gray-700 dark:text-gray-300">Select all {{ $updates->count() }} items on this page</span>
         </label>
     </div>
@@ -72,7 +73,7 @@
                 <div class="flex items-start space-x-3 flex-1">
                     @if($update->status === 'pending')
                     <input type="checkbox" wire:model.live="selectedUpdates" value="{{ $update->id }}" 
-                           class="mt-1 rounded border-zinc-300 dark:border-zinc-600">
+                           class="mt-1 h-4 w-4 text-blue-600 bg-white dark:bg-zinc-700 border-zinc-300 dark:border-zinc-600 rounded focus:ring-blue-500 dark:focus:ring-blue-600 focus:ring-1">
                     @endif
                     
                     <div class="flex-1">
@@ -105,14 +106,19 @@
                                 <span>{{ ucfirst($update->status) }} by {{ $update->reviewer->name ?? 'Unknown' }}</span>
                                 <span>•</span>
                                 <span>{{ $update->reviewed_at->diffForHumans() }}</span>
+                            @elseif($update->isAutoAccepted())
+                                <span>•</span>
+                                <span>Auto-accepted by system</span>
+                                <span>•</span>
+                                <span>{{ $update->accepted_at->diffForHumans() }}</span>
                             @endif
                         </div>
                     </div>
                 </div>
                 
                 @if($update->status === 'pending')
-                <div class="flex items-center space-x-2 ml-4">
-                    <flux:button wire:click="approveUpdate({{ $update->id }})" variant="primary" size="sm" icon="check">
+                <div class="flex items-center space-x-3 ml-4">
+                    <flux:button wire:click="approveUpdate({{ $update->id }})" variant="filled" size="sm" icon="check">
                         Approve
                     </flux:button>
                     <flux:button wire:click="rejectUpdate({{ $update->id }})" variant="ghost" size="sm" icon="x-mark">
@@ -121,9 +127,19 @@
                 </div>
                 @else
                 <div class="flex items-center ml-4">
-                    <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium 
-                        {{ $update->status === 'approved' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' }}">
-                        {{ ucfirst($update->status) }}
+                    <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium 
+                        @if($update->status === 'approved')
+                            bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
+                        @elseif($update->status === 'auto_accepted')
+                            bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200
+                        @else
+                            bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200
+                        @endif">
+                        @if($update->status === 'auto_accepted')
+                            Auto-Accepted
+                        @else
+                            {{ ucfirst($update->status) }}
+                        @endif
                     </span>
                 </div>
                 @endif

@@ -129,8 +129,14 @@ class PendingUpdates extends Component
      */
     private function getFilteredUpdates()
     {
-        return PendingProductUpdate::with(['product', 'reviewer'])
-            ->where('status', $this->filter);
+        $query = PendingProductUpdate::with(['product', 'reviewer']);
+        
+        // Include accepter relationship for auto-accepted items
+        if ($this->filter === 'auto_accepted') {
+            $query->with('accepter');
+        }
+        
+        return $query->where('status', $this->filter);
     }
     
     public function render()
@@ -140,10 +146,16 @@ class PendingUpdates extends Component
             ->paginate(20);
             
         $pendingCount = PendingProductUpdate::where('status', 'pending')->count();
+        $autoAcceptedCount = PendingProductUpdate::where('status', 'auto_accepted')->count();
+        $approvedCount = PendingProductUpdate::where('status', 'approved')->count();
+        $rejectedCount = PendingProductUpdate::where('status', 'rejected')->count();
             
         return view('livewire.admin.pending-updates', [
             'updates' => $updates,
-            'pendingCount' => $pendingCount
+            'pendingCount' => $pendingCount,
+            'autoAcceptedCount' => $autoAcceptedCount,
+            'approvedCount' => $approvedCount,
+            'rejectedCount' => $rejectedCount
         ]);
     }
 }

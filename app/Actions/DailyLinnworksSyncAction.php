@@ -123,19 +123,32 @@ class DailyLinnworksSyncAction
      */
     private function queueProductUpdate(Product $localProduct, array $linnworksData): void
     {
-        DB::transaction(function () use ($localProduct, $linnworksData) {
-            // Create or update the pending update record
-            PendingProductUpdate::updateOrCreate(
-                [
-                    'product_id' => $localProduct->id,
-                    'status' => 'pending'
-                ],
-                [
-                    'linnworks_data' => $linnworksData,
-                    'changes_detected' => $this->getChanges($localProduct, $linnworksData),
-                    'created_at' => now()
-                ]
-            );
+        $changes = $this->getChanges($localProduct, $linnworksData);
+        
+        // Separate auto-acceptable changes from manual review changes
+        $autoAcceptableChanges = $this->getAutoAcceptableChanges($changes);
+        $manualReviewChanges = $this->getManualReviewChanges($changes);
+        
+        DB::transaction(function () use ($localProduct, $linnworksData, $autoAcceptableChanges, $manualReviewChanges) {
+            // Auto-accept stock changes if enabled
+            if (!empty($autoAcceptableChanges)) {
+                $this->autoAcceptChanges($localProduct, $linnworksData, $autoAcceptableChanges);
+            }
+            
+            // Queue remaining changes for manual review
+            if (!empty($manualReviewChanges)) {
+                PendingProductUpdate::updateOrCreate(
+                    [
+                        'product_id' => $localProduct->id,
+                        'status' => 'pending'
+                    ],
+                    [
+                        'linnworks_data' => $linnworksData,
+                        'changes_detected' => $manualReviewChanges,
+                        'created_at' => now()
+                    ]
+                );
+            }
         });
     }
     
@@ -197,6 +210,88 @@ class DailyLinnworksSyncAction
         }
         
         return $changes;
+    }
+    
+    /**
+     * Get changes that can be auto-accepted based on configuration
+     */
+    private function getAutoAcceptableChanges(array $changes): array
+    {
+        $autoAcceptable = [];
+        
+        if (config('linnworks.sync_behavior.auto_accept_stock_changes') && isset($changes['quantity'])) {
+            $autoAcceptable['quantity'] = $changes['quantity'];
+        }
+        
+        if (config('linnworks.sync_behavior.auto_accept_name_changes') && isset($changes['name'])) {
+            $autoAcceptable['name'] = $changes['name'];
+        }
+        
+        if (config('linnworks.sync_behavior.auto_accept_barcode_changes')) {
+            foreach (['barcode', 'barcode_2', 'barcode_3'] as $barcodeField) {
+                if (isset($changes[$barcodeField])) {
+                    $autoAcceptable[$barcodeField] = $changes[$barcodeField];
+                }
+            }
+        }
+        
+        return $autoAcceptable;
+    }
+    
+    /**
+     * Get changes that require manual review
+     */
+    private function getManualReviewChanges(array $changes): array
+    {
+        $autoAcceptable = $this->getAutoAcceptableChanges($changes);
+        
+        // Return changes that are not auto-acceptable
+        return array_diff_key($changes, $autoAcceptable);
+    }
+    
+    /**
+     * Auto-accept changes and log them for audit trail
+     */
+    private function autoAcceptChanges(Product $localProduct, array $linnworksData, array $changes): void
+    {
+        // Apply the changes to the product
+        $updateData = [];
+        
+        if (isset($changes['quantity'])) {
+            $updateData['quantity'] = $changes['quantity']['linnworks'];
+        }
+        
+        if (isset($changes['name'])) {
+            $updateData['name'] = $changes['name']['linnworks'];
+        }
+        
+        if (isset($changes['barcode'])) {
+            $updateData['barcode'] = $changes['barcode']['linnworks'];
+        }
+        
+        if (isset($changes['barcode_2'])) {
+            $updateData['barcode_2'] = $changes['barcode_2']['linnworks'];
+        }
+        
+        if (isset($changes['barcode_3'])) {
+            $updateData['barcode_3'] = $changes['barcode_3']['linnworks'];
+        }
+        
+        // Update the product
+        if (!empty($updateData)) {
+            $localProduct->update($updateData);
+            
+            // Log the auto-accepted change for audit trail
+            PendingProductUpdate::create([
+                'product_id' => $localProduct->id,
+                'linnworks_data' => $linnworksData,
+                'changes_detected' => $changes,
+                'status' => 'auto_accepted',
+                'accepted_at' => now(),
+                'accepted_by' => null, // System auto-acceptance
+                'created_at' => now()
+            ]);
+        }
     }
     
     /**
