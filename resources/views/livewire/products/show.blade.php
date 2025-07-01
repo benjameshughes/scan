@@ -186,78 +186,103 @@
     </div>
 
     <!-- Stock History Modal -->
-    <flux:modal name="stock-history" :show="$showHistoryModal" wire:model="showHistoryModal">
-        <flux:modal.trigger>
-            <!-- Modal trigger is handled by the button, not needed here -->
-        </flux:modal.trigger>
+    @if($showHistoryModal)
+        <div class="fixed inset-0 z-50 overflow-y-auto" wire:key="stock-history-modal">
+            <!-- Background overlay -->
+            <div class="fixed inset-0 bg-black bg-opacity-50" wire:click="closeHistoryModal"></div>
+            
+            <!-- Modal container -->
+            <div class="flex items-center justify-center min-h-screen p-4">
+                <!-- Modal panel following Design System standards -->
+                <div class="relative bg-white dark:bg-zinc-800 rounded-lg shadow-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-zinc-200 dark:border-zinc-700 z-10">
+                    <!-- Modal Header following Card Header standards -->
+                    <div class="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 mb-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Stock History for {{ $product->name }}</h3>
+                                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Showing recent stock changes from Linnworks</p>
+                            </div>
+                            <flux:button variant="ghost" size="sm" wire:click="closeHistoryModal" icon="x-mark" />
+                        </div>
+                    </div>
 
-        <div class="space-y-6">
-            <div>
-                <flux:heading size="lg">Stock History for {{ $product->name }}</flux:heading>
-                <flux:subheading>Showing recent stock changes from Linnworks</flux:subheading>
-            </div>
+                    <!-- Modal Content -->
+                    <div class="px-6 space-y-4">
+                        @if($isLoadingHistory)
+                            <div class="flex items-center justify-center py-8">
+                                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                                <span class="ml-3 text-gray-600 dark:text-gray-400">Loading stock history...</span>
+                            </div>
+                        @elseif($errorMessage)
+                            <!-- Error Alert following Status Indicator standards -->
+                            <div class="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 rounded-md p-4 border border-red-200 dark:border-red-800">
+                                <div class="flex">
+                                    <svg class="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    <div class="ml-3">
+                                        <h3 class="text-sm font-medium">Error loading stock history</h3>
+                                        <p class="mt-2 text-sm">{{ $errorMessage }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        @elseif($stockHistory && count($stockHistory) > 0)
+                            <!-- Table following Table Development Standards -->
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
+                                    <thead class="bg-zinc-50 dark:bg-zinc-800">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Change</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Balance</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Note</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white dark:bg-zinc-800 divide-y divide-zinc-200 dark:border-zinc-700">
+                                        @foreach($stockHistory as $entry)
+                                            <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors duration-200">
+                                                <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
+                                                    {{ \Carbon\Carbon::parse($entry['ChangeDate'])->format('M d, Y H:i') }}
+                                                </td>
+                                                <td class="px-6 py-4 text-sm">
+                                                    <!-- Status Badge following Status Indicator Standards -->
+                                                    <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium {{ $entry['ChangeQuantity'] >= 0 ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' }}">
+                                                        {{ $entry['ChangeQuantity'] >= 0 ? '+' : '' }}{{ number_format($entry['ChangeQuantity']) }}
+                                                    </span>
+                                                </td>
+                                                <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
+                                                    {{ number_format($entry['BalanceAfter']) }}
+                                                </td>
+                                                <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
+                                                    {{ $entry['ChangeSource'] ?? 'N/A' }}
+                                                </td>
+                                                <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
+                                                    {{ $entry['Note'] ?? '' }}
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @else
+                            <!-- Empty State -->
+                            <div class="text-center py-8">
+                                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                </svg>
+                                <h4 class="mt-4 text-sm font-medium text-gray-500 dark:text-gray-400">No stock history found</h4>
+                                <p class="mt-2 text-sm text-gray-400">Stock changes for this product will appear here.</p>
+                            </div>
+                        @endif
+                    </div>
 
-            @if($isLoadingHistory)
-                <div class="flex items-center justify-center py-8">
-                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                    <span class="ml-3 text-zinc-600 dark:text-zinc-400">Loading stock history...</span>
+                    <!-- Modal Footer following Form Button Standards -->
+                    <div class="px-6 py-4 mt-6 flex justify-end space-x-3 border-t border-zinc-200 dark:border-zinc-700">
+                        <flux:button variant="ghost" wire:click="closeHistoryModal">Close</flux:button>
+                    </div>
                 </div>
-            @elseif($errorMessage)
-                <flux:alert variant="danger">
-                    <flux:alert.heading>Error loading stock history</flux:alert.heading>
-                    <flux:alert.text>{{ $errorMessage }}</flux:alert.text>
-                </flux:alert>
-            @elseif($stockHistory && count($stockHistory) > 0)
-                <div class="overflow-x-auto">
-                    <flux:table>
-                        <flux:columns>
-                            <flux:column>Date</flux:column>
-                            <flux:column>Change</flux:column>
-                            <flux:column>Balance</flux:column>
-                            <flux:column>Type</flux:column>
-                            <flux:column>Note</flux:column>
-                        </flux:columns>
-
-                        <flux:rows>
-                            @foreach($stockHistory as $entry)
-                                <flux:row>
-                                    <flux:cell>
-                                        {{ \Carbon\Carbon::parse($entry['ChangeDate'])->format('M d, Y H:i') }}
-                                    </flux:cell>
-                                    <flux:cell>
-                                        <flux:badge 
-                                            :color="$entry['ChangeQuantity'] >= 0 ? 'green' : 'red'" 
-                                            size="sm">
-                                            {{ $entry['ChangeQuantity'] >= 0 ? '+' : '' }}{{ number_format($entry['ChangeQuantity']) }}
-                                        </flux:badge>
-                                    </flux:cell>
-                                    <flux:cell>
-                                        {{ number_format($entry['BalanceAfter']) }}
-                                    </flux:cell>
-                                    <flux:cell>
-                                        {{ $entry['ChangeSource'] ?? 'N/A' }}
-                                    </flux:cell>
-                                    <flux:cell>
-                                        {{ $entry['Note'] ?? '' }}
-                                    </flux:cell>
-                                </flux:row>
-                            @endforeach
-                        </flux:rows>
-                    </flux:table>
-                </div>
-            @else
-                <div class="text-center py-8">
-                    <svg class="mx-auto h-12 w-12 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                    </svg>
-                    <flux:heading size="md" class="mt-4 text-zinc-500 dark:text-zinc-400">No stock history found</flux:heading>
-                    <flux:subheading class="mt-2 text-zinc-400">Stock changes for this product will appear here.</flux:subheading>
-                </div>
-            @endif
-
-            <div class="flex justify-end">
-                <flux:button variant="ghost" wire:click="closeHistoryModal">Close</flux:button>
             </div>
         </div>
-    </flux:modal>
+    @endif
 </div>
