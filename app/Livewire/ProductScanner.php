@@ -31,7 +31,7 @@ class ProductScanner extends Component
 
     // Scan state
     #[Validate([new BarcodePrefixCheck('505903')])]
-    public ?int $barcode = null;
+    public ?string $barcode = null;
 
     #[Validate('required|integer|min:1')]
     public int $quantity = 1;
@@ -99,7 +99,7 @@ class ProductScanner extends Component
             $this->isEmailRefill = true;
             
             // Set the barcode and trigger product lookup
-            $this->barcode = (int) $barcodeParam;
+            $this->barcode = $barcodeParam;
             
             // Validate barcode and find product
             $this->validateOnly('barcode');

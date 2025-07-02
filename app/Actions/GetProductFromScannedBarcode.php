@@ -6,11 +6,11 @@ use App\Models\Scan;
 
 class GetProductFromScannedBarcode
 {
-    protected int $barcode;
+    protected string $barcode;
 
     public function __construct($barcode)
     {
-        $this->barcode = $barcode;
+        $this->barcode = (string) $barcode;
     }
 
     public function handle()
