@@ -325,7 +325,7 @@ class BarcodeScanner {
         }
         
         // Dispatch result to Livewire
-        Livewire.dispatch("result", [result]);
+        Livewire.dispatch("onBarcodeDetected", [result.text]);
         Livewire.dispatch("barcodeScanned");
         
         // Stop scanning after successful read
