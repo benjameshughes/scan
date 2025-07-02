@@ -1,4 +1,35 @@
 <div class="table-container bg-white dark:bg-zinc-800 shadow-sm rounded-lg overflow-hidden">
+    {{-- Session Messages --}}
+    @if (session()->has('success'))
+        <div class="bg-green-50 dark:bg-green-900/20 border-b border-green-200 dark:border-green-800 p-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <flux:icon.check-circle class="h-5 w-5 text-green-400" />
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm font-medium text-green-800 dark:text-green-200">
+                        {{ session('success') }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    @endif
+    
+    @if (session()->has('error'))
+        <div class="bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800 p-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <flux:icon.x-circle class="h-5 w-5 text-red-400" />
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm font-medium text-red-800 dark:text-red-200">
+                        {{ session('error') }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    @endif
+
     {{-- Header with search, filters, and actions --}}
     <div class="p-6 border-b border-zinc-200 dark:border-zinc-700">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -96,15 +127,49 @@
         @if(!empty($table->getBulkActions()) && $table->isSelectable())
             <div class="mt-4 flex items-center justify-between">
                 <div class="flex items-center gap-4">
-                    <span class="text-sm text-zinc-500 dark:text-zinc-400">
-                        {{ count($bulkSelectedIds) }} selected
-                    </span>
+                    <div class="flex items-center gap-2">
+                        @if($isSelectingAll)
+                            <div class="flex items-center gap-2">
+                                <svg class="animate-spin h-4 w-4 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span class="text-sm text-zinc-600 dark:text-zinc-400 italic">Selecting...</span>
+                            </div>
+                        @else
+                            <span class="text-sm font-medium text-zinc-700 dark:text-zinc-200">
+                                {{ count($bulkSelectedIds) }} {{ Str::plural('item', count($bulkSelectedIds)) }} selected
+                                @if($selectAllPages && $totalRecordsCount > $perPage)
+                                    <span class="text-zinc-500 dark:text-zinc-400">(all {{ $totalRecordsCount }} records)</span>
+                                @elseif(count($bulkSelectedIds) > 0 && !$selectAllPages && $totalRecordsCount > $perPage)
+                                    <button wire:click="selectAllAcrossPages" class="ml-2 text-blue-600 dark:text-blue-400 hover:underline text-sm">
+                                        Select all {{ $totalRecordsCount }} records
+                                    </button>
+                                @endif
+                            </span>
+                        @endif
+                        
+                        @if(count($bulkSelectedIds) > 0)
+                            <button wire:click="clearSelection" 
+                                    class="ml-2 text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100">
+                                <flux:icon.x-mark class="w-4 h-4" />
+                            </button>
+                        @endif
+                    </div>
+                    
                     @if(!empty($bulkSelectedIds))
-                        <div class="flex gap-2">
+                        <div class="flex gap-2 border-l border-zinc-200 dark:border-zinc-700 pl-4">
                             @foreach($table->getBulkActions() as $bulkAction)
                                 <button wire:click="executeBulkAction('{{ $bulkAction['name'] }}')"
-                                        class="px-3 py-1 text-sm font-medium text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-900 rounded-md hover:bg-red-200 dark:hover:bg-red-800">
-                                    {{ $bulkAction['label'] }}
+                                        wire:loading.attr="disabled"
+                                        wire:loading.class="opacity-50 cursor-not-allowed"
+                                        class="px-3 py-1 text-sm font-medium text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-900 rounded-md hover:bg-red-200 dark:hover:bg-red-800 transition-colors duration-200">
+                                    <span wire:loading.remove wire:target="executeBulkAction('{{ $bulkAction['name'] }}')">
+                                        {{ $bulkAction['label'] }}
+                                    </span>
+                                    <span wire:loading wire:target="executeBulkAction('{{ $bulkAction['name'] }}')">
+                                        Processing...
+                                    </span>
                                 </button>
                             @endforeach
                         </div>
@@ -122,9 +187,24 @@
                     {{-- Bulk Select Column --}}
                     @if($table->isSelectable())
                         <th class="px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
-                            <input type="checkbox"
-                                   wire:model.live="selectAll"
-                                   class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                            <div x-data="{
+                                indeterminate: @entangle('bulkSelectedIds').defer,
+                                selectAll: @entangle('selectAll').defer,
+                                init() {
+                                    this.$watch('indeterminate', value => {
+                                        const hasSelection = value.length > 0;
+                                        const dataCount = {{ $data->count() }};
+                                        const isPartial = hasSelection && value.filter(id => {{ json_encode($data->pluck('id')->toArray()) }}.includes(id)).length < dataCount;
+                                        this.$refs.checkbox.indeterminate = isPartial;
+                                    });
+                                }
+                            }">
+                                <input type="checkbox"
+                                       x-ref="checkbox"
+                                       wire:model.live="selectAll"
+                                       :disabled="$wire.isSelectingAll"
+                                       class="rounded border-gray-300 dark:border-gray-600 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-wait">
+                            </div>
                         </th>
                     @endif
 

@@ -76,20 +76,26 @@
                 <flux:button
                     wire:click="{{ $action['livewire_method'] }}({{ $record->id }})"
                     wire:confirm="{{ $action['confirm'] }}"
+                    wire:loading.attr="disabled"
+                    wire:target="{{ $action['livewire_method'] }}({{ $record->id }})"
                     variant="{{ $variant }}"
                     size="{{ $size }}"
                     icon="{{ $iconName }}"
                     class="{{ $customClass }}"
+                    :loading="in_array({{ $record->id }}, $wire.processingRows)"
                 >
                     {{ $action['label'] }}
                 </flux:button>
             @else
                 <flux:button
                     wire:click="{{ $action['livewire_method'] }}({{ $record->id }})"
+                    wire:loading.attr="disabled"
+                    wire:target="{{ $action['livewire_method'] }}({{ $record->id }})"
                     variant="{{ $variant }}"
                     size="{{ $size }}"
                     icon="{{ $iconName }}"
                     class="{{ $customClass }}"
+                    :loading="in_array({{ $record->id }}, $wire.processingRows)"
                 >
                     {{ $action['label'] }}
                 </flux:button>
@@ -100,20 +106,26 @@
                 <flux:button
                     wire:click="executeCustomAction({{ $record->id }}, '{{ $action['action_id'] }}')"
                     wire:confirm="{{ $action['confirm'] }}"
+                    wire:loading.attr="disabled"
+                    wire:target="executeCustomAction({{ $record->id }}, '{{ $action['action_id'] }}')"
                     variant="{{ $variant }}"
                     size="{{ $size }}"
                     icon="{{ $iconName }}"
                     class="{{ $customClass }}"
+                    :loading="in_array({{ $record->id }}, $wire.processingRows)"
                 >
                     {{ $action['label'] }}
                 </flux:button>
             @else
                 <flux:button
                     wire:click="executeCustomAction({{ $record->id }}, '{{ $action['action_id'] }}')"
+                    wire:loading.attr="disabled"
+                    wire:target="executeCustomAction({{ $record->id }}, '{{ $action['action_id'] }}')"
                     variant="{{ $variant }}"
                     size="{{ $size }}"
                     icon="{{ $iconName }}"
                     class="{{ $customClass }}"
+                    :loading="in_array({{ $record->id }}, $wire.processingRows)"
                 >
                     {{ $action['label'] }}
                 </flux:button>
