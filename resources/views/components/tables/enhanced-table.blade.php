@@ -74,7 +74,7 @@
                         </div>
                         <input 
                             wire:model.live.debounce.300ms="search"
-                            placeholder="Search (min 2 chars)..."
+                            placeholder="Search products (min 2 chars)..."
                             class="w-full pl-10 pr-10 py-2 border border-zinc-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
                         @if($search)
                             <button 

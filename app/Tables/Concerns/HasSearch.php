@@ -29,6 +29,11 @@ trait HasSearch
         // Get searchable fields from table configuration
         $tableSearchableFields = $this->getTable()->getSearchableColumns();
 
+        // If no searchable columns or fields, return query unchanged
+        if ($searchableColumns->isEmpty() && empty($tableSearchableFields)) {
+            return $query;
+        }
+
         return $query->where(function ($query) use ($searchableColumns, $tableSearchableFields) {
             // Apply column-level search
             foreach ($searchableColumns as $column) {

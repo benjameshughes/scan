@@ -2,7 +2,7 @@
     {{-- Left side / Search --}}
     <div class="w-1/4">
         @if($this->hasSearch())
-            <flux:input wire:model.live.delay="search" placeholder="Search" id="search" name="search"/>
+            <flux:input wire:model.live.debounce.300ms="search" placeholder="Search" id="search" name="search"/>
         @endif
     </div>
 </div>

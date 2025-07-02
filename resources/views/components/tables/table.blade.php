@@ -17,8 +17,8 @@
     {{-- Search --}}
     @if($this->hasSearch())
         <div class="mb-4">
-            <input wire:model.live="search"
-                   placeholder="Search..."
+            <input wire:model.live.debounce.300ms="search"
+                   placeholder="Search (min 2 chars)..."
                    class="form-input w-full">
         </div>
     @endif
