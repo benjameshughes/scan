@@ -39,8 +39,8 @@
     </main>
 </div>
 
-@fluxScripts
 @livewireScripts
+@fluxScripts
 
 </body>
 </html>

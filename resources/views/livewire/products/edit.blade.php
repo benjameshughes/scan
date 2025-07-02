@@ -37,28 +37,30 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- SKU -->
                     <div>
-                        <flux:input 
+                        <label for="sku" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">SKU *</label>
+                        <input 
                             wire:model="sku" 
                             id="sku"
                             name="sku"
-                            label="SKU *"
+                            type="text"
                             placeholder="Enter product SKU"
                             required
-                            class="w-full"
+                            class="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                         />
                         <flux:error name="sku"/>
                     </div>
 
                     <!-- Product Name -->
                     <div>
-                        <flux:input 
+                        <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Product Name *</label>
+                        <input 
                             wire:model="name" 
                             id="name"
                             name="name"
-                            label="Product Name *"
+                            type="text"
                             placeholder="Enter product name"
                             required
-                            class="w-full"
+                            class="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                         />
                         <flux:error name="name"/>
                     </div>
