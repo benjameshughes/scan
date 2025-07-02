@@ -42,7 +42,7 @@
                             Resync
                         </flux:button>
                     @endif
-                    <flux:button variant="ghost" href="{{ route('scans.index') }}">
+                    <flux:button variant="ghost" href="{{ route('scans.index') }}" wire:navigate>
                         <flux:icon.arrow-left class="size-4" />
                         Back to Scans
                     </flux:button>
@@ -173,7 +173,7 @@
                         
                         <!-- Actions for Product -->
                         <div class="pt-4 border-t border-zinc-200 dark:border-zinc-700">
-                            <flux:button variant="ghost" href="{{ route('products.show', $product) }}">
+                            <flux:button variant="ghost" href="{{ route('products.show', $product) }}" wire:navigate>
                                 <flux:icon.eye class="size-4" />
                                 View Product Details
                             </flux:button>

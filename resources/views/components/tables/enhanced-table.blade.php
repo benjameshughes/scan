@@ -355,7 +355,7 @@
                                 @endif
                             }
                         }"
-                        :class="{ 'ring-2 ring-blue-500 ring-opacity-50': in_array({{ $row->id }}, $wire.bulkSelectedIds) }"
+                        :class="{ 'ring-2 ring-blue-500 ring-opacity-50': $wire.bulkSelectedIds.includes({{ $row->id }}) }"
                     >
                         {{-- Bulk Select Cell --}}
                         @if($table->isSelectable())

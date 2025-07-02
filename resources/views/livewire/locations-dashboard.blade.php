@@ -19,6 +19,7 @@
                             variant="filled"
                             icon="cog-6-tooth"
                             size="sm"
+                            wire:navigate
                         >
                             Manage Locations
                         </flux:button>
@@ -262,6 +263,7 @@
                             size="sm"
                             icon="arrow-right"
                             iconTrailing
+                            wire:navigate
                         >
                             Manage All Locations
                         </flux:button>

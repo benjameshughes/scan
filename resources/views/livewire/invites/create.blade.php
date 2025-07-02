@@ -5,6 +5,6 @@
     </div>
     <div class="flex gap-2 justify-end">
         <flux:button icon="send" type="button" variant="primary" wire:click="create">Invite User</flux:button>
-        <flux:button type="button" variant="danger" href="{{ route('admin.users.index') }}">Cancel</flux:button>
+        <flux:button type="button" variant="danger" href="{{ route('admin.users.index') }}" wire:navigate>Cancel</flux:button>
     </div>
 </div>

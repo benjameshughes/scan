@@ -4,7 +4,7 @@
         <div class="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700">
             <div class="flex items-center justify-between">
                 <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Create Manual Scan</h3>
-                <flux:button variant="ghost" href="{{ route('scans.index') }}">
+                <flux:button variant="ghost" href="{{ route('scans.index') }}" wire:navigate>
                     <flux:icon.arrow-left class="size-4" />
                     Back to Scans
                 </flux:button>
@@ -112,7 +112,7 @@
 
                 <!-- Action Buttons -->
                 <div class="flex items-center justify-end gap-3 pt-6 border-t border-zinc-200 dark:border-zinc-700">
-                    <flux:button variant="ghost" href="{{ route('scans.index') }}">
+                    <flux:button variant="ghost" href="{{ route('scans.index') }}" wire:navigate>
                         Cancel
                     </flux:button>
                     <flux:button type="submit" variant="primary" :disabled="!$selectedProduct">

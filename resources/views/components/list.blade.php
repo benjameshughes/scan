@@ -30,7 +30,7 @@
                 </div>
             </div>
             <div class="shrink-0 max-sm:flex-col items-end">
-                <flux:button variant="primary" href="{{route($routeName, $item->id)}}">{{__('View')}}</flux:button>
+                <flux:button variant="primary" href="{{route($routeName, $item->id)}}" wire:navigate>{{__('View')}}</flux:button>
                 @role('admin')
                 <flux:button variant="primary" wire:click="markAsSubmitted('{{$item->id}}')">{{__('Mark As Submitted')}}</flux:button>
                 @endrole()
