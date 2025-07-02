@@ -46,8 +46,8 @@
 
     <!-- Main Content -->
     <div class="px-4 py-4 sm:px-6">
-        <!-- Camera Section (only show if no product found and not in refill mode) -->
-        @if(!$product && !$showRefillForm)
+        <!-- Camera Section (only show if no barcode scanned and not in refill mode) -->
+        @if(!$barcodeScanned && !$showRefillForm)
             <div class="bg-white dark:bg-zinc-800 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-700 overflow-hidden mb-4">
                 <div class="relative">
                     @if($loadingCamera)
@@ -250,10 +250,41 @@
                     </div>
                 </div>
             </div>
+        @elseif($barcodeScanned)
+            <!-- Product Not Found -->
+            <div class="bg-white dark:bg-zinc-800 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-700 mb-4">
+                <div class="px-4 py-3 border-b border-zinc-200 dark:border-zinc-700">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+                            Product Not Found
+                        </h3>
+                        <button 
+                            wire:click="startNewScan" 
+                            class="text-xs px-3 py-1 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800 text-blue-800 dark:text-blue-200 rounded-full font-medium transition-colors duration-200"
+                        >
+                            Scan Another
+                        </button>
+                    </div>
+                </div>
+                <div class="p-4">
+                    <div class="text-center py-4">
+                        <div class="w-16 h-16 mx-auto bg-amber-100 dark:bg-amber-900/20 rounded-full flex items-center justify-center mb-3">
+                            <flux:icon.exclamation-triangle class="w-8 h-8 text-amber-600 dark:text-amber-400" />
+                        </div>
+                        <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">No Product Found</h4>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                            No product matches barcode: <span class="font-mono">{{ $barcode }}</span>
+                        </p>
+                        <p class="text-xs text-blue-600 dark:text-blue-400">
+                            You can still submit this scan for inventory tracking
+                        </p>
+                    </div>
+                </div>
+            </div>
         @endif
 
-        <!-- Manual Barcode Input (only show if no product found and not in refill mode) -->
-        @if(!$product && !$showRefillForm)
+        <!-- Manual Barcode Input (only show if no barcode scanned and not in refill mode) -->
+        @if(!$barcodeScanned && !$showRefillForm)
             <div class="bg-white dark:bg-zinc-800 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-700 mb-4">
                 <div class="px-4 py-3 border-b border-zinc-200 dark:border-zinc-700">
                     <h3 class="text-base font-medium text-gray-900 dark:text-gray-100">
@@ -282,8 +313,8 @@
             </div>
         @endif
 
-        <!-- Product Details Section (only show if product found and not in refill mode) -->
-        @if($product && !$showRefillForm)
+        <!-- Scan Details Section (show when barcode is scanned and not in refill mode) -->
+        @if($barcodeScanned && !$showRefillForm)
             <div class="bg-white dark:bg-zinc-800 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-700 mb-4">
                 <div class="px-4 py-3 border-b border-zinc-200 dark:border-zinc-700">
                     <h3 class="text-base font-medium text-gray-900 dark:text-gray-100">
@@ -350,46 +381,55 @@
 
                     <!-- Action Buttons -->
                     <div class="pt-4 border-t border-zinc-200 dark:border-zinc-700">
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                            <flux:button
-                                type="submit"
-                                variant="filled"
-                                icon="check"
-                                class="w-full"
-                            >
-                                <span class="hidden sm:inline">Save Scan</span>
-                                <span class="sm:hidden">Save</span>
-                            </flux:button>
-                            
-                            @can('refill bays')
+                        @if($product)
+                            <div class="grid grid-cols-3 gap-3">
+                                <flux:button
+                                    type="submit"
+                                    color="green"
+                                    icon="check"
+                                >Submit
+                                </flux:button>
+                                
+                                @can('refill bays')
+                                    <flux:button
+                                        type="button"
+                                        wire:click="showRefillBayForm"
+                                        variant="ghost"
+                                        :icon="$isProcessingRefill ? 'arrow-path' : 'arrow-path'"
+                                        :disabled="$isProcessingRefill"
+                                    >
+                                        @if($isProcessingRefill)
+                                            <span class="hidden sm:inline">Loading...</span>
+                                        @else
+                                            Refill Bay
+                                        @endif
+                                    </flux:button>
+                                @endcan
+                                
                                 <flux:button
                                     type="button"
-                                    wire:click="showRefillBayForm"
+                                    wire:click="emptyBayNotification"
                                     variant="ghost"
-                                    :icon="$isProcessingRefill ? 'arrow-path' : 'arrow-path'"
-                                    class="w-full"
-                                    :disabled="$isProcessingRefill"
+                                    icon="exclamation-triangle"
                                 >
-                                    @if($isProcessingRefill)
-                                        <span class="hidden sm:inline">Loading...</span>
-                                    @else
-                                        <span class="hidden sm:inline">Refill Bay</span>
-                                        <span class="sm:hidden">Refill</span>
-                                    @endif
+                                    Empty Bay
                                 </flux:button>
-                            @endcan
-                            
-                            <flux:button
-                                type="button"
-                                wire:click="emptyBayNotification"
-                                variant="ghost"
-                                icon="exclamation-triangle"
-                                class="w-full"
-                            >
-                                <span class="hidden sm:inline">Empty Bay</span>
-                                <span class="sm:hidden">Empty</span>
-                            </flux:button>
-                        </div>
+                            </div>
+                        @else
+                            <!-- Save button only for unknown products -->
+                            <div class="flex justify-center">
+                                <flux:button
+                                    type="submit"
+                                    variant="filled"
+                                    color="green"
+                                    icon="check"
+                                    class="w-full sm:w-auto px-8"
+                                >
+                                    <span class="hidden sm:inline">Save Unknown Barcode</span>
+                                    <span class="sm:hidden">Save</span>
+                                </flux:button>
+                            </div>
+                        @endif
                     </div>
                 </form>
             </div>
@@ -559,8 +599,8 @@
             </div>
         @endif
 
-        <!-- Scan Instructions (only show when no product found and not in refill mode) -->
-        @if(!$product && !$showRefillForm)
+        <!-- Scan Instructions (only show when no barcode scanned and not in refill mode) -->
+        @if(!$barcodeScanned && !$showRefillForm)
             <div class="bg-white dark:bg-zinc-800 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-700 mb-4">
                 <div class="p-6 text-center">
                     <svg class="w-16 h-16 mx-auto text-gray-400 dark:text-gray-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

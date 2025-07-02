@@ -142,15 +142,13 @@ class ProductScanner extends Component
                 $this->validateOnly('barcode');
                 $this->product = (new GetProductFromScannedBarcode($this->barcode))->handle();
 
-                if ($this->product) {
-                    // Product found - stop camera and switch to product view
-                    $this->barcodeScanned = true;
-                    $this->isScanning = false;
-                    $this->dispatch('camera-state-changed', false); // Stop camera
-                } else {
-                    // Valid barcode but no product found - keep scanning
-                    $this->barcodeScanned = false;
-                    $this->successMessage = 'No Product Found With That Barcode';
+                // Valid barcode - allow submission regardless of whether product is found
+                $this->barcodeScanned = true;
+                $this->isScanning = false;
+                $this->dispatch('camera-state-changed', false); // Stop camera
+                
+                if (!$this->product) {
+                    $this->successMessage = 'No Product Found With That Barcode - You can still submit the scan';
                     $this->showSuccessMessage = true;
                 }
             } catch (\Illuminate\Validation\ValidationException $e) {
@@ -241,7 +239,7 @@ class ProductScanner extends Component
         if ($this->validate()) {
             $this->product = new GetProductFromScannedBarcode($this->barcode)->handle();
             if (!$this->product) {
-                $this->successMessage = 'No Product Found With That Barcode';
+                $this->successMessage = 'No Product Found With That Barcode - You can still submit the scan';
                 $this->showSuccessMessage = true;
             }
         }

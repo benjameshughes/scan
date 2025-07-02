@@ -39,6 +39,18 @@ class BarcodePrefixCheck implements ValidationRule
         // Check if the barcode starts with the required prefix
         if (! Str::startsWith($valueStr, $this->prefix)) {
             $fail("The {$attribute} must start with {$this->prefix}.");
+            return;
+        }
+
+        // Check if the barcode has the correct length (prefix + 7 digits = 13 total)
+        if (strlen($valueStr) !== 13) {
+            $fail("The {$attribute} must be exactly 13 digits long.");
+            return;
+        }
+
+        // Check if the barcode contains only digits
+        if (! ctype_digit($valueStr)) {
+            $fail("The {$attribute} must contain only digits.");
         }
     }
 }
