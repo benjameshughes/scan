@@ -140,7 +140,7 @@ class ProductScanner extends Component
             // Validate just the barcode field with prefix check (no required rule needed here)
             try {
                 $this->validateOnly('barcode');
-                $this->product = (new GetProductFromScannedBarcode($this->barcode))->handle();
+                $this->product = new GetProductFromScannedBarcode($this->barcode)->handle();
 
                 // Valid barcode - allow submission regardless of whether product is found
                 $this->barcodeScanned = true;
@@ -236,12 +236,19 @@ class ProductScanner extends Component
         // JS handles pausing ZXing, we just update UI state
         $this->isScanning = false;
 
-        if ($this->validate()) {
+        try {
+            $this->validateOnly('barcode');
             $this->product = new GetProductFromScannedBarcode($this->barcode)->handle();
             if (!$this->product) {
                 $this->successMessage = 'No Product Found With That Barcode - You can still submit the scan';
                 $this->showSuccessMessage = true;
             }
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Invalid barcode - keep scanning, don't switch view
+            $this->barcodeScanned = false;
+            $this->product = null;
+            $this->showSuccessMessage = false;
+            $this->successMessage = '';
         }
     }
 
