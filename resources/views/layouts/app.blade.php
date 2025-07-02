@@ -12,11 +12,12 @@
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet"/>
 
     @fluxAppearance
+    @livewireStyles
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="font-sans antialiased">
-<div class="min-h-screen bg-zinc-50 dark:bg-zinc-900" wire:navigate>
+<div class="min-h-screen bg-zinc-50 dark:bg-zinc-900">
     <livewire:layout.navigation/>
 
     <!-- Page Heading -->
@@ -39,6 +40,7 @@
 </div>
 
 @fluxScripts
+@livewireScripts
 
 </body>
 </html>
