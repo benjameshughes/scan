@@ -385,9 +385,10 @@
                             <div class="grid grid-cols-3 gap-3">
                                 <flux:button
                                     type="submit"
-                                    color="green"
+                                    variant="primary"
                                     icon="check"
-                                >Submit
+                                >
+                                    Submit
                                 </flux:button>
                                 
                                 @can('refill bays')

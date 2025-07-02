@@ -597,11 +597,27 @@ class LinnworksApiService
     public function transferStockToDefaultLocation(string $sku, string $sourceLocationId, int $transferQuantity): array
     {
         try {
-            // Get current stock levels for both locations
-            $allLocations = $this->getStockLocationsByProduct($sku);
+            // Get current stock levels for ALL locations (including those with 0 stock)
+            $stockItem = $this->getStockDetails($sku);
+            
+            if (empty($stockItem) || !isset($stockItem['StockLevels'])) {
+                throw new \Exception("No stock information found for SKU: {$sku}");
+            }
+            
+            $allLocations = $stockItem['StockLevels']; // Don't filter out 0 stock locations
             $sourceLocation = null;
             $defaultLocation = null;
             $defaultLocationId = config('linnworks.default_location_id');
+            
+            Log::channel('inventory')->info("Searching for locations in transfer", [
+                'sku' => $sku,
+                'source_location_id' => $sourceLocationId,
+                'default_location_id' => $defaultLocationId,
+                'total_locations' => count($allLocations),
+                'all_location_ids' => array_map(function($loc) {
+                    return $loc['Location']['StockLocationId'] ?? 'no-id';
+                }, $allLocations)
+            ]);
             
             foreach ($allLocations as $location) {
                 $currentLocationId = $location['Location']['StockLocationId'] ?? null;

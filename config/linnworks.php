@@ -138,7 +138,7 @@ return [
     | The default Linnworks location ID for stock operations.
     |
     */
-    'default_location_id' => '00000000-0000-0000-0000-000000000000',
+    'default_location_id' => env('LINNWORKS_DEFAULT_LOCATION_ID', '00000000-0000-0000-0000-000000000000'),
 
     /*
     |--------------------------------------------------------------------------
