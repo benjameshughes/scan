@@ -37,11 +37,21 @@ class EmptyBayNotification extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
+        $refillUrl = route('scan.scan', [
+            'action' => 'refill',
+            'barcode' => $this->product->barcode
+        ]);
+
         return (new MailMessage)
-            ->subject('Empty Bay')
-            ->greeting("{$this->product->name} Bay Is Empty")
-            ->line("{$this->product->sku} is now an empty bay")
-            ->salutation('Please refill. Thanks.');
+            ->subject('Empty Bay Alert - Immediate Refill Required')
+            ->greeting("Bay Empty: {$this->product->name}")
+            ->line("The bay for **{$this->product->sku}** is now empty and requires immediate attention.")
+            ->line("Product: {$this->product->name}")
+            ->line("SKU: {$this->product->sku}")
+            ->line("Barcode: {$this->product->barcode}")
+            ->action('Refill Bay Now', $refillUrl)
+            ->line('Click the button above to go directly to the scanner and start the refill process.')
+            ->salutation('Thanks for keeping our inventory stocked!');
     }
 
     /**

@@ -19,6 +19,31 @@
         </div>
     </div>
 
+    <!-- Email Refill Context Banner -->
+    @if($isEmailRefill)
+        <div class="bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800 px-4 py-3 sm:px-6">
+            <div class="flex items-center gap-3">
+                <flux:icon.envelope class="size-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-blue-800 dark:text-blue-200">
+                        Email Refill Request
+                    </p>
+                    <p class="text-xs text-blue-600 dark:text-blue-300 mt-0.5">
+                        You've been directed here from an empty bay notification email
+                    </p>
+                </div>
+                <flux:button
+                    wire:click="resetScan"
+                    variant="ghost"
+                    size="sm"
+                    class="text-blue-600 dark:text-blue-400"
+                >
+                    Normal Scanning
+                </flux:button>
+            </div>
+        </div>
+    @endif
+
     <!-- Main Content -->
     <div class="px-4 py-4 sm:px-6">
         <!-- Camera Section (only show if no product found and not in refill mode) -->
@@ -340,9 +365,16 @@
                 <!-- Form Header -->
                 <div class="px-4 py-3 border-b border-zinc-200 dark:border-zinc-700">
                     <div class="flex items-center justify-between">
-                        <h3 class="text-base font-medium text-gray-900 dark:text-gray-100">
-                            Refill Bay
-                        </h3>
+                        <div>
+                            <h3 class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                {{ $isEmailRefill ? 'Email Refill Request' : 'Refill Bay' }}
+                            </h3>
+                            @if($isEmailRefill)
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                    Refilling from empty bay notification
+                                </p>
+                            @endif
+                        </div>
                         <flux:button
                             wire:click="cancelRefill"
                             variant="ghost"

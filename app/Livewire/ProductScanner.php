@@ -62,6 +62,9 @@ class ProductScanner extends Component
     public string $refillError = '';
     
     public string $refillSuccess = '';
+    
+    // Email workflow state
+    public bool $isEmailRefill = false;
 
     public function mount()
     {
@@ -76,6 +79,57 @@ class ProductScanner extends Component
         
         $this->loadingCamera = false; // Start with video element visible
         $this->isScanning = false;
+        
+        // Handle direct email navigation to refill bay
+        $action = request('action');
+        $barcodeParam = request('barcode');
+        
+        if ($action === 'refill' && $barcodeParam) {
+            $this->handleEmailRefillRequest($barcodeParam);
+        }
+    }
+
+    /**
+     * Handle direct refill request from email notification
+     */
+    private function handleEmailRefillRequest(string $barcodeParam): void
+    {
+        try {
+            // Set email refill mode
+            $this->isEmailRefill = true;
+            
+            // Set the barcode and trigger product lookup
+            $this->barcode = (int) $barcodeParam;
+            
+            // Validate barcode and find product
+            $this->validateOnly('barcode');
+            $this->product = (new GetProductFromScannedBarcode($this->barcode))->handle();
+            
+            if ($this->product) {
+                // Product found - set up for refill workflow
+                $this->barcodeScanned = true;
+                $this->successMessage = "Refilling bay for: {$this->product->name}";
+                $this->showSuccessMessage = true;
+                
+                // Check if user has refill permission before showing form
+                if (auth()->user()->can('refill bays')) {
+                    // Auto-trigger refill form
+                    $this->showRefillBayForm();
+                } else {
+                    $this->refillError = 'You do not have permission to refill bays.';
+                }
+            } else {
+                // Product not found
+                $this->successMessage = 'Product not found for this barcode';
+                $this->showSuccessMessage = true;
+                $this->isEmailRefill = false; // Reset email mode
+            }
+            
+        } catch (\Exception $e) {
+            // Handle validation or lookup errors
+            $this->cameraError = "Invalid barcode from email: {$e->getMessage()}";
+            $this->isEmailRefill = false; // Reset email mode
+        }
     }
 
     public function updatedBarcode()
@@ -249,6 +303,7 @@ class ProductScanner extends Component
         $this->product = null;
         $this->quantity = 1;
         $this->cameraError = '';
+        $this->isEmailRefill = false;
         $this->resetRefillForm();
         $this->resetValidation();
     }
