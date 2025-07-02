@@ -467,12 +467,14 @@
             <div class="p-6">
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <a href="{{ route('scan.scan') }}" 
+                       wire:navigate
                        class="flex flex-col items-center p-4 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors duration-200 group">
                         <flux:icon.qr-code class="size-8 text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform duration-200" />
                         <span class="mt-2 text-sm font-medium text-blue-700 dark:text-blue-300">Start Scanning</span>
                     </a>
                     
                     <a href="{{ route('products.index') }}" 
+                       wire:navigate
                        class="flex flex-col items-center p-4 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-lg transition-colors duration-200 group">
                         <flux:icon.cube class="size-8 text-green-600 dark:text-green-400 group-hover:scale-110 transition-transform duration-200" />
                         <span class="mt-2 text-sm font-medium text-green-700 dark:text-green-300">View Products</span>
@@ -480,6 +482,7 @@
                     
                     @can('manage products')
                     <a href="{{ route('locations.dashboard') }}" 
+                       wire:navigate
                        class="flex flex-col items-center p-4 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-lg transition-colors duration-200 group">
                         <flux:icon.map-pin class="size-8 text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform duration-200" />
                         <span class="mt-2 text-sm font-medium text-purple-700 dark:text-purple-300">Locations</span>
@@ -488,6 +491,7 @@
                     
                     @can('view scans')
                     <a href="{{ route('scans.index') }}" 
+                       wire:navigate
                        class="flex flex-col items-center p-4 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30 rounded-lg transition-colors duration-200 group">
                         <flux:icon.chart-bar class="size-8 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform duration-200" />
                         <span class="mt-2 text-sm font-medium text-amber-700 dark:text-amber-300">Scan History</span>

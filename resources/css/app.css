@@ -18,3 +18,36 @@
         --color-accent-foreground: var(--color-white);
     }
 }
+
+/* Livewire Navigate Progress Bar Styling */
+@layer utilities {
+    /* Style the progress bar to match design system */
+    [wire\:progress-bar] {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #3b82f6, #1d4ed8, #1e40af);
+        z-index: 9999;
+        transform-origin: left;
+        animation: livewire-progress 2s ease-in-out infinite;
+    }
+    
+    @keyframes livewire-progress {
+        0% {
+            transform: scaleX(0);
+        }
+        50% {
+            transform: scaleX(0.7);
+        }
+        100% {
+            transform: scaleX(1);
+        }
+    }
+    
+    /* Dark mode styling */
+    .dark [wire\:progress-bar] {
+        background: linear-gradient(90deg, #60a5fa, #3b82f6, #2563eb);
+    }
+}

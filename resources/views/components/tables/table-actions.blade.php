@@ -131,6 +131,7 @@
             @if(isset($action['confirm']))
                 <flux:button
                     href="{{ $action['url'] }}"
+                    wire:navigate
                     wire:confirm="{{ $action['confirm'] }}"
                     variant="{{ $variant }}"
                     size="{{ $size }}"
@@ -142,6 +143,7 @@
             @else
                 <flux:button
                     href="{{ $action['url'] }}"
+                    wire:navigate
                     variant="{{ $variant }}"
                     size="{{ $size }}"
                     icon="{{ $iconName }}"

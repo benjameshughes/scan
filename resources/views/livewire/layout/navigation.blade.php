@@ -74,13 +74,13 @@ new class extends Component {
 
                     <flux:navmenu>
                         <flux:menu.group heading="Signed in as">
-                            <flux:navmenu.item href="{{route('profile')}}" icon="user">{{__('My Profile')}}</flux:navmenu.item>
+                            <flux:navmenu.item href="{{route('profile')}}" icon="user" wire:navigate>{{__('My Profile')}}</flux:navmenu.item>
                             @can('import products')
-                            <flux:navmenu.item href="{{route('products.import')}}" icon="import">Import</flux:navmenu.item>
+                            <flux:navmenu.item href="{{route('products.import')}}" icon="import" wire:navigate>Import</flux:navmenu.item>
                             @endcan
                             @can('manage products')
-                            <flux:navmenu.item href="{{route('locations.manage')}}" icon="map-pin">Manage Locations</flux:navmenu.item>
-                            <flux:navmenu.item href="{{route('admin.manual-sync')}}" icon="arrow-path">Manual Sync</flux:navmenu.item>
+                            <flux:navmenu.item href="{{route('locations.manage')}}" icon="map-pin" wire:navigate>Manage Locations</flux:navmenu.item>
+                            <flux:navmenu.item href="{{route('admin.manual-sync')}}" icon="arrow-path" wire:navigate>Manual Sync</flux:navmenu.item>
                             @endcan
                         </flux:menu.group>
                         <flux:navmenu.item wire:click="logout" icon="trash" variant="danger">Logout</flux:navmenu.item>
