@@ -199,8 +199,21 @@
                                 @if($selectAllPages && $totalRecordsCount > $perPage)
                                     <span class="text-zinc-500 dark:text-zinc-400">(all {{ $totalRecordsCount }} records)</span>
                                 @elseif(count($bulkSelectedIds) > 0 && !$selectAllPages && $totalRecordsCount > $perPage)
-                                    <button wire:click="selectAllAcrossPages" class="ml-2 text-blue-600 dark:text-blue-400 hover:underline text-sm">
-                                        Select all {{ $totalRecordsCount }} records
+                                    <button 
+                                        wire:click="selectAllAcrossPages" 
+                                        wire:loading.attr="disabled"
+                                        wire:target="selectAllAcrossPages"
+                                        class="ml-2 text-blue-600 dark:text-blue-400 hover:underline text-sm disabled:opacity-50 disabled:cursor-wait flex items-center gap-1">
+                                        <span wire:loading.remove wire:target="selectAllAcrossPages">
+                                            Select all {{ $totalRecordsCount }} records
+                                        </span>
+                                        <span wire:loading wire:target="selectAllAcrossPages" class="flex items-center gap-1">
+                                            <svg class="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            Selecting all...
+                                        </span>
                                     </button>
                                 @endif
                             </span>
@@ -256,23 +269,43 @@
                     {{-- Bulk Select Column --}}
                     @if($table->isSelectable())
                         <th class="px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
-                            <div x-data="{
-                                indeterminate: @entangle('bulkSelectedIds').defer,
-                                selectAll: @entangle('selectAll').defer,
-                                init() {
-                                    this.$watch('indeterminate', value => {
-                                        const hasSelection = value.length > 0;
-                                        const dataCount = {{ $data->count() }};
-                                        const isPartial = hasSelection && value.filter(id => {{ json_encode($data->pluck('id')->toArray()) }}.includes(id)).length < dataCount;
-                                        this.$refs.checkbox.indeterminate = isPartial;
-                                    });
-                                }
-                            }">
-                                <input type="checkbox"
-                                       x-ref="checkbox"
-                                       wire:model.live="selectAll"
-                                       :disabled="$wire.isSelectingAll"
-                                       class="rounded border-gray-300 dark:border-gray-600 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-wait">
+                            <div class="flex items-center gap-2">
+                                <div x-data="{
+                                    indeterminate: @entangle('bulkSelectedIds').defer,
+                                    selectAll: @entangle('selectAll').defer,
+                                    init() {
+                                        this.$watch('indeterminate', value => {
+                                            const hasSelection = value.length > 0;
+                                            const dataCount = {{ $data->count() }};
+                                            const isPartial = hasSelection && value.filter(id => {{ json_encode($data->pluck('id')->toArray()) }}.includes(id)).length < dataCount;
+                                            this.$refs.checkbox.indeterminate = isPartial;
+                                        });
+                                    }
+                                }">
+                                    <input type="checkbox"
+                                           x-ref="checkbox"
+                                           wire:model.live="selectAll"
+                                           wire:loading.attr="disabled"
+                                           wire:target="selectAll"
+                                           :disabled="$wire.isSelectingAll"
+                                           class="rounded border-gray-300 dark:border-gray-600 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-wait">
+                                </div>
+                                
+                                {{-- Loading spinner when selecting all --}}
+                                <div wire:loading wire:target="selectAll" class="flex items-center">
+                                    <svg class="animate-spin h-3 w-3 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </div>
+                                
+                                {{-- Alternative: show loading when using isSelectingAll state --}}
+                                <div x-show="$wire.isSelectingAll" class="flex items-center" x-transition>
+                                    <svg class="animate-spin h-3 w-3 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </div>
                             </div>
                         </th>
                     @endif
