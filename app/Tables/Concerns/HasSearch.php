@@ -18,7 +18,7 @@ trait HasSearch
 
     protected function applySearch($query)
     {
-        if (empty($this->search)) {
+        if (empty($this->search) || strlen($this->search) < $this->searchMinLength) {
             return $query;
         }
 

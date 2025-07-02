@@ -1,4 +1,29 @@
-<div class="table-container bg-white dark:bg-zinc-800 shadow-sm rounded-lg overflow-hidden">
+<div class="table-container bg-white dark:bg-zinc-800 shadow-sm rounded-lg overflow-hidden" 
+     x-data="{
+        init() {
+            // Global keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                // Only handle if focus is within this table
+                if (!this.$el.contains(document.activeElement)) return;
+                
+                switch(e.key) {
+                    case 'Escape':
+                        e.preventDefault();
+                        $wire.clearSelection();
+                        break;
+                    case 'a':
+                    case 'A':
+                        if (e.ctrlKey || e.metaKey) {
+                            e.preventDefault();
+                            $wire.set('selectAll', true);
+                        }
+                        break;
+                }
+            });
+        }
+     }"
+     tabindex="0"
+>
     {{-- Session Messages --}}
     @if (session()->has('success'))
         <div class="bg-green-50 dark:bg-green-900/20 border-b border-green-200 dark:border-green-800 p-4">
@@ -36,9 +61,41 @@
             {{-- Search --}}
             @if($this->hasSearch())
                 <div class="flex-1 max-w-md">
-                    <input wire:model.live="search"
-                           placeholder="Search..."
-                           class="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <flux:icon.magnifying-glass 
+                                class="h-4 w-4 text-gray-400" 
+                                wire:loading.remove.delay 
+                                wire:target="search" />
+                            <svg wire:loading.delay wire:target="search" class="animate-spin h-4 w-4 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </div>
+                        <input 
+                            wire:model.live.debounce.300ms="search"
+                            placeholder="Search (min 2 chars)..."
+                            class="w-full pl-10 pr-10 py-2 border border-zinc-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
+                        @if($search)
+                            <button 
+                                wire:click="$set('search', '')"
+                                type="button" 
+                                class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                                <flux:icon.x-mark class="h-4 w-4" />
+                            </button>
+                        @endif
+                    </div>
+                    
+                    {{-- Search Results Info --}}
+                    @if($search && $data->total() > 0)
+                        <p class="mt-1 text-xs text-gray-600 dark:text-gray-400">
+                            Showing {{ number_format($data->total()) }} {{ Str::plural('result', $data->total()) }} for "{{ $search }}"
+                        </p>
+                    @elseif($search && $data->total() === 0)
+                        <p class="mt-1 text-xs text-amber-600 dark:text-amber-400">
+                            No results found for "{{ $search }}"
+                        </p>
+                    @endif
                 </div>
             @endif
 
@@ -180,9 +237,21 @@
     </div>
 
     {{-- Table --}}
-    <div class="overflow-x-auto">
+    <div class="overflow-x-auto" x-data="{ 
+        init() {
+            // Make header sticky when scrolling
+            this.$refs.tableContainer.addEventListener('scroll', () => {
+                const header = this.$refs.tableHeader;
+                if (this.$refs.tableContainer.scrollTop > 0) {
+                    header.classList.add('shadow-sm');
+                } else {
+                    header.classList.remove('shadow-sm');
+                }
+            });
+        }
+    }" x-ref="tableContainer">
         <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
-            <thead class="bg-zinc-50 dark:bg-zinc-800">
+            <thead x-ref="tableHeader" class="bg-zinc-50 dark:bg-zinc-800 sticky top-0 z-10 transition-shadow duration-200">
                 <tr>
                     {{-- Bulk Select Column --}}
                     @if($table->isSelectable())
@@ -234,7 +303,27 @@
             </thead>
             <tbody class="bg-white dark:bg-zinc-800 divide-y divide-zinc-200 dark:divide-zinc-700">
                 @forelse($data as $row)
-                    <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-700">
+                    <tr class="group hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors duration-150 cursor-pointer" 
+                        tabindex="0"
+                        x-data="{ 
+                            processing: false,
+                            init() {
+                                // Row highlight tracking
+                                this.$el.addEventListener('keydown', (e) => {
+                                    if (e.key === ' ') {
+                                        e.preventDefault();
+                                        this.toggleSelection();
+                                    }
+                                });
+                            },
+                            toggleSelection() {
+                                @if($table->isSelectable())
+                                    $wire.toggleBulkSelect({{ $row->id }});
+                                @endif
+                            }
+                        }"
+                        :class="{ 'ring-2 ring-blue-500 ring-opacity-50': in_array({{ $row->id }}, $wire.bulkSelectedIds) }"
+                    >
                         {{-- Bulk Select Cell --}}
                         @if($table->isSelectable())
                             <td class="px-6 py-4 whitespace-nowrap">
@@ -255,8 +344,41 @@
                 @empty
                     <tr>
                         <td colspan="{{ count($table->getColumns()) + ($table->isSelectable() ? 1 : 0) }}"
-                            class="px-6 py-4 text-center text-zinc-500 dark:text-zinc-400">
-                            No records found.
+                            class="px-6 py-12 text-center">
+                            <div class="flex flex-col items-center justify-center space-y-3">
+                                <div class="w-12 h-12 bg-zinc-100 dark:bg-zinc-700 rounded-full flex items-center justify-center">
+                                    @if($search)
+                                        <flux:icon.magnifying-glass class="w-6 h-6 text-zinc-400" />
+                                    @else
+                                        <flux:icon.inbox class="w-6 h-6 text-zinc-400" />
+                                    @endif
+                                </div>
+                                
+                                <div class="space-y-1">
+                                    <h3 class="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                                        @if($search)
+                                            No results found
+                                        @else
+                                            No records yet
+                                        @endif
+                                    </h3>
+                                    <p class="text-xs text-zinc-500 dark:text-zinc-400">
+                                        @if($search)
+                                            Try adjusting your search terms or clearing the search filter.
+                                        @else
+                                            Records will appear here once they are added.
+                                        @endif
+                                    </p>
+                                </div>
+                                
+                                @if($search)
+                                    <button 
+                                        wire:click="$set('search', '')"
+                                        class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900 hover:bg-blue-200 dark:hover:bg-blue-800 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                        Clear search
+                                    </button>
+                                @endif
+                            </div>
                         </td>
                     </tr>
                 @endforelse

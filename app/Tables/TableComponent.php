@@ -17,6 +17,8 @@ abstract class TableComponent extends Component
     use HasSearch, WithPagination;
 
     public string $search = '';
+    
+    protected int $searchMinLength = 2;
 
     public int $perPage = 10;
     
@@ -117,7 +119,8 @@ abstract class TableComponent extends Component
             $this->sortDirection = $table->getDefaultSortDirection();
         }
 
-        $this->perPage = $table->getPerPage();
+        // Load saved per-page preference or use default
+        $this->perPage = session()->get('table_per_page_' . static::class, $table->getPerPage());
         
         // Initialize total records count
         $this->totalRecordsCount = $this->getQuery()->count();
@@ -201,10 +204,23 @@ abstract class TableComponent extends Component
         $this->resetPage();
     }
     
+    // Search handling with validation
+    public function updatedSearch(): void
+    {
+        // Security: sanitize search input
+        $this->search = trim(strip_tags($this->search));
+        
+        // Reset page when search changes
+        $this->resetPage();
+    }
+    
     // Per page handling
     public function updatedPerPage(): void
     {
         $this->resetPage();
+        
+        // Store preference in session
+        session()->put('table_per_page_' . static::class, $this->perPage);
     }
 
     // Bulk selection
@@ -266,8 +282,21 @@ abstract class TableComponent extends Component
     // Bulk actions
     public function executeBulkAction(string $action): void
     {
+        // Security: validate action name
+        if (!preg_match('/^[a-zA-Z0-9_-]+$/', $action)) {
+            session()->flash('error', 'Invalid action name.');
+            return;
+        }
+        
         if (empty($this->bulkSelectedIds)) {
             session()->flash('error', 'No records selected.');
+            return;
+        }
+
+        // Security: validate selected IDs are integers
+        $validIds = array_filter($this->bulkSelectedIds, 'is_numeric');
+        if (count($validIds) !== count($this->bulkSelectedIds)) {
+            session()->flash('error', 'Invalid selection.');
             return;
         }
 
@@ -356,6 +385,18 @@ abstract class TableComponent extends Component
     // Execute custom action callback
     public function executeCustomAction(int $recordId, string $actionId): void
     {
+        // Security: validate recordId is positive integer
+        if ($recordId <= 0) {
+            session()->flash('error', 'Invalid record ID.');
+            return;
+        }
+        
+        // Security: validate actionId format
+        if (!is_string($actionId) || empty($actionId)) {
+            session()->flash('error', 'Invalid action ID.');
+            return;
+        }
+        
         if (!isset($this->customActionCallbacks[$actionId])) {
             session()->flash('error', 'Action not found.');
             return;
@@ -367,11 +408,18 @@ abstract class TableComponent extends Component
             return;
         }
 
+        // Add to processing rows for UI feedback
+        $this->processingRows[] = $recordId;
+
         try {
             $callback = $this->customActionCallbacks[$actionId];
             call_user_func($callback, $record, $this);
+            session()->flash('success', 'Action completed successfully.');
         } catch (\Exception $e) {
             session()->flash('error', 'Action failed: ' . $e->getMessage());
+        } finally {
+            // Remove from processing rows
+            $this->processingRows = array_diff($this->processingRows, [$recordId]);
         }
     }
 
