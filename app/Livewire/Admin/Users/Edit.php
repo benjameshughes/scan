@@ -26,9 +26,9 @@ class Edit extends Component
 
     // User data
     public array $form = [
-        'name',
-        'email',
-        'password',
+        'name' => '',
+        'email' => '',
+        'password' => '',
     ];
 
     public function mount(User $user)
@@ -70,7 +70,7 @@ class Edit extends Component
         try {
             $validated = $this->validate([
                 'form.name' => 'required|string|max:255',
-                'form.email' => 'required|email|max:255|unique:users,email,' . $this->user->id,
+                'form.email' => 'required|email|max:255|unique:users,email,'.$this->user->id,
                 'form.password' => 'nullable|string|min:6',
                 'selectedRole' => 'nullable|string|exists:roles,name',
             ]);

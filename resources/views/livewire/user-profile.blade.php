@@ -53,7 +53,7 @@
 
             <div class="flex items-center justify-between pt-4 border-t border-zinc-200 dark:border-zinc-700">
                 <div></div>
-                <flux:button type="submit" variant="filled">
+                <flux:button type="submit" variant="primary">
                     <flux:icon.check class="size-4" />
                     Update Profile
                 </flux:button>
