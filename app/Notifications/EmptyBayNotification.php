@@ -76,10 +76,9 @@ class EmptyBayNotification extends Notification implements ShouldQueue
                     foreach ($locationsWithStock as $location) {
                         $locationData = $location['Location'] ?? $location;
                         $locationName = $locationData['LocationName'] ?? $locationData['Name'] ?? 'Unknown Location';
-                        $locationId = $locationData['StockLocationId'] ?? $locationData['LocationId'] ?? $locationData['id'] ?? 'Unknown ID';
                         $stockLevel = $location['StockLevel'] ?? $location['Quantity'] ?? $location['Available'] ?? $location['Stock'] ?? 0;
                         
-                        $message->line("• **{$locationName}** (ID: {$locationId}) - {$stockLevel} units available");
+                        $message->line("• **{$locationName}** - {$stockLevel} units available");
                     }
                     
                     Log::channel('inventory')->info('Empty bay notification sent with location stock', [
