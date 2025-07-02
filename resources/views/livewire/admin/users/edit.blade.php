@@ -117,6 +117,7 @@
                 <flux:button 
                     variant="ghost" 
                     href="{{ route('users.index') }}"
+                    wire:navigate
                     type="button"
                 >
                     Cancel

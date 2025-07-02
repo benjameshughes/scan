@@ -12,6 +12,7 @@
                     <flux:button 
                         variant="ghost" 
                         href="{{ route('products.show', $product) }}"
+                        wire:navigate
                         size="sm"
                     >
                         <flux:icon.eye class="size-4" />
@@ -20,6 +21,7 @@
                     <flux:button 
                         variant="ghost" 
                         href="{{ route('products.index') }}"
+                        wire:navigate
                         size="sm"
                     >
                         <flux:icon.arrow-left class="size-4" />
@@ -141,6 +143,7 @@
                     <flux:button 
                         variant="ghost" 
                         href="{{ route('products.show', $product) }}"
+                        wire:navigate
                     >
                         Cancel
                     </flux:button>
