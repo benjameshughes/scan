@@ -5,7 +5,7 @@
             <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Update user information and role assignments</p>
         </div>
         
-        <form wire:submit="updateUser" class="p-6 space-y-4">
+        <form wire:submit.prevent="updateUser" class="p-6 space-y-4">
             {{-- Session flash message display --}}
             @if (session()->has('message'))
                 <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md p-4">
@@ -14,6 +14,17 @@
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                         </svg>
                         <p class="text-sm text-green-700 dark:text-green-300">{{ session('message') }}</p>
+                    </div>
+                </div>
+            @endif
+
+            @if (session()->has('error'))
+                <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-4">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-5 h-5 text-red-600 dark:text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-4a1 1 0 112 0 1 1 0 01-2 0zm1-9a1 1 0 00-1 1v4a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                        </svg>
+                        <p class="text-sm text-red-700 dark:text-red-300">{{ session('error') }}</p>
                     </div>
                 </div>
             @endif
@@ -123,9 +134,18 @@
                     Cancel
                 </flux:button>
                 
-                <flux:button type="submit" variant="primary" class="ml-3">
-                    <flux:icon.check class="size-4" />
-                    Update User
+                <flux:button type="submit" variant="primary" class="ml-3" wire:loading.attr="disabled" wire:target="updateUser">
+                    <span wire:loading.remove wire:target="updateUser">
+                        <flux:icon.check class="size-4" />
+                        Update User
+                    </span>
+                    <span wire:loading wire:target="updateUser" class="flex items-center">
+                        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Updating...
+                    </span>
                 </flux:button>
             </div>
         </form>

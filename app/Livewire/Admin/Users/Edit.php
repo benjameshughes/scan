@@ -67,12 +67,17 @@ class Edit extends Component
 
     public function updateUser()
     {
-
-        $validated = $this->validate([
-            'form.name' => 'required',
-            'form.email' => 'required|email',
-            'form.password' => 'nullable',
-        ]);
+        try {
+            $validated = $this->validate([
+                'form.name' => 'required|string|max:255',
+                'form.email' => 'required|email|max:255|unique:users,email,' . $this->user->id,
+                'form.password' => 'nullable|string|min:6',
+                'selectedRole' => 'nullable|string|exists:roles,name',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            session()->flash('error', 'Please check the form for errors and try again.');
+            throw $e;
+        }
 
         $updateData = [
             'name' => $validated['form']['name'],
@@ -102,6 +107,8 @@ class Edit extends Component
         }
 
         $this->dispatch('user-updated');
+
+        session()->flash('message', 'User updated successfully.');
 
         // Redirect after update
         return redirect()->route('users.index');
