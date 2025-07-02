@@ -82,7 +82,6 @@
                     size="{{ $size }}"
                     icon="{{ $iconName }}"
                     class="{{ $customClass }}"
-                    :loading="in_array({{ $record->id }}, $wire.processingRows)"
                 >
                     {{ $action['label'] }}
                 </flux:button>
@@ -95,7 +94,6 @@
                     size="{{ $size }}"
                     icon="{{ $iconName }}"
                     class="{{ $customClass }}"
-                    :loading="in_array({{ $record->id }}, $wire.processingRows)"
                 >
                     {{ $action['label'] }}
                 </flux:button>
@@ -112,7 +110,6 @@
                     size="{{ $size }}"
                     icon="{{ $iconName }}"
                     class="{{ $customClass }}"
-                    :loading="in_array({{ $record->id }}, $wire.processingRows)"
                 >
                     {{ $action['label'] }}
                 </flux:button>
@@ -125,7 +122,6 @@
                     size="{{ $size }}"
                     icon="{{ $iconName }}"
                     class="{{ $customClass }}"
-                    :loading="in_array({{ $record->id }}, $wire.processingRows)"
                 >
                     {{ $action['label'] }}
                 </flux:button>
