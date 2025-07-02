@@ -1,3 +1,3 @@
 <x-app-layout>
-    <livewire:admin.location-manager />
+    <livewire:locations-table />
 </x-app-layout>

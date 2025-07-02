@@ -5,9 +5,9 @@ namespace App\Tables\Actions;
 class DeleteAction extends BaseAction
 {
     protected string $label = 'Delete';
-    protected string $icon = 'trash';
-    protected string $color = 'red';
-    protected string $type = 'delete';
+    protected ?string $icon = 'trash';
+    protected ?string $color = 'red';
+    protected ?string $type = 'delete';
     protected ?string $action = null;
     protected ?string $confirmMessage = 'Are you sure you want to delete this item?';
 

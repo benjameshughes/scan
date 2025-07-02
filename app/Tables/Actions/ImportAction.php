@@ -5,8 +5,8 @@ namespace App\Tables\Actions;
 class ImportAction extends CustomAction
 {
     protected string $label = 'Import';
-    protected string $icon = 'upload';
-    protected string $color = 'purple';
+    protected ?string $icon = 'upload';
+    protected ?string $color = 'purple';
 
     public function __construct(string $label = null)
     {

@@ -91,15 +91,13 @@ class Edit extends Component
             $this->user->syncRoles([]);
         }
 
-        // Handle individual permissions (only for non-admin users)
-        if ($this->selectedRole !== 'admin') {
-            foreach ($this->userPermissions as $permission => $hasPermission) {
-                if ($hasPermission && ! $this->user->can($permission)) {
-                    $this->user->givePermissionTo($permission);
-                } elseif (! $hasPermission && $this->user->can($permission)) {
-                    // Only revoke if permission was granted directly, not via role
-                    $this->user->revokePermissionTo($permission);
-                }
+        // Handle individual permissions for all users (including admins)
+        foreach ($this->userPermissions as $permission => $hasPermission) {
+            if ($hasPermission && ! $this->user->can($permission)) {
+                $this->user->givePermissionTo($permission);
+            } elseif (! $hasPermission && $this->user->can($permission)) {
+                // Only revoke if permission was granted directly, not via role
+                $this->user->revokePermissionTo($permission);
             }
         }
 
@@ -111,12 +109,8 @@ class Edit extends Component
 
     public function updatedSelectedRole($value)
     {
-        // If admin role is selected, check all permissions but disable them in UI
-        if ($value === 'admin') {
-            foreach ($this->userPermissions as $permission => $currentValue) {
-                $this->userPermissions[$permission] = true;
-            }
-        }
+        // Admins can still have individual permissions configured
+        // Remove the automatic permission setting to allow granular control
     }
 
     public function render()

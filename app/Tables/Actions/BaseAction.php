@@ -5,13 +5,16 @@ namespace App\Tables\Actions;
 abstract class BaseAction
 {
     protected string $label;
-    protected string $icon;
-    protected string $color;
-    protected string $type;
+    protected ?string $icon = null;
+    protected ?string $color = null;
+    protected ?string $type = null;
     protected bool $requiresPermission = true;
     protected ?string $permission = null;
     protected ?string $confirmMessage = null;
     protected array $attributes = [];
+    protected ?string $size = null;
+    protected ?string $class = null;
+    protected ?string $actionMethod = null;
 
     public function __construct(string $label = null)
     {
@@ -64,6 +67,24 @@ abstract class BaseAction
         return $this;
     }
 
+    public function size(string $size): self
+    {
+        $this->size = $size;
+        return $this;
+    }
+
+    public function class(string $class): self
+    {
+        $this->class = $class;
+        return $this;
+    }
+
+    public function action(string $method): self
+    {
+        $this->actionMethod = $method;
+        return $this;
+    }
+
     public function canExecute($record): bool
     {
         if (!$this->requiresPermission) {
@@ -95,6 +116,9 @@ abstract class BaseAction
             'type' => $this->type,
             'confirm' => $this->confirmMessage,
             'attributes' => $this->attributes,
+            'size' => $this->size,
+            'class' => $this->class,
+            'action_method' => $this->actionMethod,
         ];
     }
 
@@ -103,17 +127,17 @@ abstract class BaseAction
         return $this->label;
     }
 
-    public function getIcon(): string
+    public function getIcon(): ?string
     {
         return $this->icon;
     }
 
-    public function getColor(): string
+    public function getColor(): ?string
     {
         return $this->color;
     }
 
-    public function getType(): string
+    public function getType(): ?string
     {
         return $this->type;
     }

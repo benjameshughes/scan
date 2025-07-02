@@ -193,6 +193,40 @@ class ProductScanner extends Component
         }
     }
 
+    /**
+     * Handle location selection from smart location selector
+     */
+    #[On('locationChanged')]
+    public function onLocationChanged($locationId): void
+    {
+        $this->selectedLocationId = $locationId;
+        $this->resetValidation(['selectedLocationId']);
+    }
+
+    /**
+     * Get formatted locations for the smart location selector
+     */
+    public function getSmartLocationSelectorDataProperty(): array
+    {
+        if (empty($this->availableLocations)) {
+            return [];
+        }
+
+        return collect($this->availableLocations)->map(function ($location) {
+            // Handle different API response structures
+            $locationData = $location['Location'] ?? $location;
+            
+            return [
+                'StockLocationId' => $locationData['StockLocationId'] ?? $locationData['LocationId'] ?? $locationData['id'],
+                'LocationName' => $locationData['LocationName'] ?? $locationData['Name'] ?? 'Unknown Location',
+                'Quantity' => $location['Quantity'] ?? $location['Available'] ?? $location['Stock'] ?? 0,
+            ];
+        })->filter(function ($location) {
+            // Only include locations with stock and valid ID
+            return !empty($location['StockLocationId']) && $location['Quantity'] > 0;
+        })->values()->toArray();
+    }
+
     // Form controls
     public function incrementQuantity()
     {

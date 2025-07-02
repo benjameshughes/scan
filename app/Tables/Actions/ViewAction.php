@@ -5,9 +5,9 @@ namespace App\Tables\Actions;
 class ViewAction extends BaseAction
 {
     protected string $label = 'View';
-    protected string $icon = 'eye';
-    protected string $color = 'blue';
-    protected string $type = 'view';
+    protected ?string $icon = 'eye';
+    protected ?string $color = 'blue';
+    protected ?string $type = 'view';
     protected ?string $route = null;
 
     public function route(string $route): self

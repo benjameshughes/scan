@@ -43,6 +43,12 @@ class Table
 
     protected array $perPageOptions = [10, 25, 50, 100];
 
+    protected ?string $title = null;
+
+    protected ?string $description = null;
+
+    protected array $headerActions = [];
+
     public static function make(): self
     {
         return new static;
@@ -138,6 +144,27 @@ class Table
     {
         $this->defaultSortField = $field;
         $this->defaultSortDirection = $direction;
+
+        return $this;
+    }
+
+    public function title(string $title): self
+    {
+        $this->title = $title;
+
+        return $this;
+    }
+
+    public function description(string $description): self
+    {
+        $this->description = $description;
+
+        return $this;
+    }
+
+    public function headerActions(array $actions): self
+    {
+        $this->headerActions = $actions;
 
         return $this;
     }
@@ -239,5 +266,20 @@ class Table
     public function getDefaultSortDirection(): string
     {
         return $this->defaultSortDirection;
+    }
+
+    public function getTitle(): ?string
+    {
+        return $this->title;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function getHeaderActions(): array
+    {
+        return $this->headerActions;
     }
 }

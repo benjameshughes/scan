@@ -383,31 +383,30 @@
                                 </div>
                             @endif
 
-                            <!-- Location Selection -->
+                            <!-- Smart Location Selection -->
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">
                                     Transfer From <span class="text-red-500">*</span>
                                 </label>
-                                <flux:select wire:model.live="selectedLocationId" placeholder="Select location...">
-                                    @foreach($availableLocations as $index => $location)
-                                        @php
-                                            // Handle nested location structure from Linnworks API
-                                            $locationId = $location['Location']['StockLocationId'] ?? $location['LocationId'] ?? $location['locationId'] ?? $location['id'] ?? $index;
-                                            $locationName = $location['Location']['LocationName'] ?? $location['LocationName'] ?? $location['locationName'] ?? $location['name'] ?? "Location {$locationId}";
-                                            $stockLevel = $location['StockLevel'] ?? $location['stockLevel'] ?? $location['stock'] ?? 0;
-                                        @endphp
-                                        <flux:select.option value="{{ $locationId }}">
-                                            {{ $locationName }} ({{ $stockLevel }} units)
-                                        </flux:select.option>
-                                    @endforeach
-                                </flux:select>
+                                
+                                @livewire('components.smart-location-selector', [
+                                    'locations' => $this->smartLocationSelectorData,
+                                    'selectedLocationId' => $selectedLocationId,
+                                    'placeholder' => 'Select location to transfer from...',
+                                    'showSearch' => true,
+                                    'showFavorites' => true,
+                                    'showRecent' => true
+                                ])
+                                
                                 <flux:error name="selectedLocationId" />
-                                @if(count($availableLocations) === 0)
+                                @if(empty($this->smartLocationSelectorData))
                                     <p class="text-xs text-amber-600 dark:text-amber-400">
+                                        <flux:icon.exclamation-triangle class="inline w-3 h-3 mr-1" />
                                         No locations with stock found for this product.
                                     </p>
-                                @elseif($selectedLocationId && count($availableLocations) === 2)
+                                @elseif($selectedLocationId && count($this->smartLocationSelectorData) === 1)
                                     <p class="text-xs text-blue-600 dark:text-blue-400">
+                                        <flux:icon.information-circle class="inline w-3 h-3 mr-1" />
                                         Auto-selected - only one transfer location available.
                                     </p>
                                 @endif

@@ -64,6 +64,13 @@ class TextColumn
         return $this;
     }
 
+    public function render(\Closure $callback): self
+    {
+        $this->valueCallback = $callback;
+
+        return $this;
+    }
+
     public function dateForHumans(bool $dateForHumans = true): self
     {
         $this->dateForHumans = $dateForHumans;

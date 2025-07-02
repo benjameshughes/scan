@@ -5,8 +5,8 @@ namespace App\Tables\Actions;
 class ExportAction extends CustomAction
 {
     protected string $label = 'Export';
-    protected string $icon = 'download';
-    protected string $color = 'indigo';
+    protected ?string $icon = 'download';
+    protected ?string $color = 'indigo';
 
     public function __construct(string $label = null)
     {

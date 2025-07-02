@@ -5,8 +5,8 @@ namespace App\Tables\Actions;
 class EmailAction extends CustomAction
 {
     protected string $label = 'Send Email';
-    protected string $icon = 'mail';
-    protected string $color = 'blue';
+    protected ?string $icon = 'mail';
+    protected ?string $color = 'blue';
 
     public function __construct(string $label = null)
     {

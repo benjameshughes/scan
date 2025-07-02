@@ -5,9 +5,9 @@ namespace App\Tables\Actions;
 class EditAction extends BaseAction
 {
     protected string $label = 'Edit';
-    protected string $icon = 'pencil';
-    protected string $color = 'green';
-    protected string $type = 'edit';
+    protected ?string $icon = 'pencil';
+    protected ?string $color = 'green';
+    protected ?string $type = 'edit';
     protected ?string $route = null;
 
     public function route(string $route): self

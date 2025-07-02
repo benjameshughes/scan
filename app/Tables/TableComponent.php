@@ -19,6 +19,8 @@ abstract class TableComponent extends Component
     public string $search = '';
 
     public int $perPage = 10;
+    
+    public array $perPageOptions = [1, 5, 10, 25, 50, 100, 250];
 
     public string $sortField = '';
 
@@ -43,6 +45,9 @@ abstract class TableComponent extends Component
     public array $bulkSelectedIds = [];
 
     public bool $selectAll = false;
+
+    // Store custom action callbacks by their hash
+    protected array $customActionCallbacks = [];
 
     // Auto-discovery properties
     protected ?string $model = null;
@@ -77,10 +82,18 @@ abstract class TableComponent extends Component
     {
         $table = $this->table(Table::make());
         
-        // Set component ID for ActionsColumn instances
+        // Set component ID for ActionsColumn instances and register callbacks
         foreach ($table->getColumns() as $column) {
             if ($column instanceof ActionsColumn) {
                 $column->setComponentId($this->getId());
+                
+                // Register custom action callbacks
+                foreach ($column->getActions() as $action) {
+                    if ($action instanceof \App\Tables\Actions\CustomAction && $action->getActionCallback()) {
+                        $actionId = spl_object_hash($action);
+                        $this->customActionCallbacks[$actionId] = $action->getActionCallback();
+                    }
+                }
             }
         }
         
@@ -174,6 +187,12 @@ abstract class TableComponent extends Component
             $this->sortDirection = 'asc';
         }
 
+        $this->resetPage();
+    }
+    
+    // Per page handling
+    public function updatedPerPage(): void
+    {
         $this->resetPage();
     }
 
@@ -272,6 +291,28 @@ abstract class TableComponent extends Component
     {
         $this->filters = [];
         $this->resetPage();
+    }
+
+    // Execute custom action callback
+    public function executeCustomAction(int $recordId, string $actionId): void
+    {
+        if (!isset($this->customActionCallbacks[$actionId])) {
+            session()->flash('error', 'Action not found.');
+            return;
+        }
+
+        $record = $this->model::find($recordId);
+        if (!$record) {
+            session()->flash('error', 'Record not found.');
+            return;
+        }
+
+        try {
+            $callback = $this->customActionCallbacks[$actionId];
+            call_user_func($callback, $record, $this);
+        } catch (\Exception $e) {
+            session()->flash('error', 'Action failed: ' . $e->getMessage());
+        }
     }
 
     // Export

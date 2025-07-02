@@ -84,11 +84,7 @@
                     User Permissions
                 </label>
                 <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">
-                    @if($selectedRole === 'admin')
-                        Administrators automatically have all permissions. Role-based permissions will override individual settings.
-                    @else
-                        Grant specific permissions to this user. Role-based permissions may also apply.
-                    @endif
+                    Grant specific permissions to this user. Individual permissions can be configured regardless of role.
                 </p>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -98,7 +94,7 @@
                                 {{ str_replace('_', ' ', $category) }}
                             </h4>
                             @foreach($permissions as $permission)
-                                <div class="flex items-center justify-between p-2 bg-zinc-50 dark:bg-zinc-700 rounded border border-zinc-200 dark:border-zinc-600 @if($selectedRole === 'admin') opacity-75 @endif">
+                                <div class="flex items-center justify-between p-2 bg-zinc-50 dark:bg-zinc-700 rounded border border-zinc-200 dark:border-zinc-600">
                                     <div class="flex-1">
                                         <label for="permission_{{ $permission }}" class="text-xs font-medium text-gray-700 dark:text-gray-200 cursor-pointer">
                                             {{ ucwords(str_replace(['_', 'users', 'scans', 'products', 'invites'], [' ', 'user', 'scan', 'product', 'invite'], $permission)) }}
@@ -108,7 +104,6 @@
                                         wire:model="userPermissions.{{ $permission }}"
                                         id="permission_{{ $permission }}"
                                         name="permission_{{ $permission }}"
-                                        :disabled="$selectedRole === 'admin'"
                                     />
                                 </div>
                             @endforeach

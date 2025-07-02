@@ -5,8 +5,8 @@ namespace App\Tables\Actions;
 class ResetPasswordAction extends CustomAction
 {
     protected string $label = 'Reset Password';
-    protected string $icon = 'key';
-    protected string $color = 'amber';
+    protected ?string $icon = 'key';
+    protected ?string $color = 'amber';
     protected ?string $confirmMessage = 'Are you sure you want to reset this user\'s password?';
 
     public function __construct(string $label = null)

@@ -74,6 +74,69 @@ class ActionsColumn extends TextColumn
         return $this;
     }
 
+    public function actions(array $actions): self
+    {
+        foreach ($actions as $key => $config) {
+            $this->addActionFromConfig($key, $config);
+        }
+        return $this;
+    }
+
+    protected function addActionFromConfig(string $key, array $config): void
+    {
+        // Handle dynamic labels (closures)
+        $label = $config['label'] ?? ucfirst($key);
+        if ($label instanceof \Closure) {
+            // Store the closure to be evaluated later with the record
+            $labelCallback = $label;
+            $label = ucfirst($key); // Fallback for constructor
+        } else {
+            $labelCallback = null;
+        }
+        
+        $action = new CustomAction($label, null);
+        
+        // Store the dynamic label callback if provided
+        if ($labelCallback) {
+            $action->dynamicLabel($labelCallback);
+        }
+        
+        // Handle dynamic icons (closures)
+        if (isset($config['icon'])) {
+            if ($config['icon'] instanceof \Closure) {
+                $action->dynamicIcon($config['icon']);
+            } else {
+                $action->icon($config['icon']);
+            }
+        }
+        
+        if (isset($config['variant'])) {
+            $action->color($config['variant']);
+        }
+        
+        if (isset($config['size'])) {
+            $action->size($config['size']);
+        }
+        
+        if (isset($config['class'])) {
+            $action->class($config['class']);
+        }
+        
+        if (isset($config['confirm'])) {
+            $action->confirm($config['confirm']);
+        }
+        
+        // Set the action method for secure Livewire calls
+        $action->livewire($key);
+        
+        $this->actions[] = $action;
+    }
+
+    public function getActions(): array
+    {
+        return $this->actions;
+    }
+
     // Convenience methods for common actions
     public function email(string $field = 'email', string $label = 'Send Email'): self
     {
