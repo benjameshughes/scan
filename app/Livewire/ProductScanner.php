@@ -147,8 +147,6 @@ class ProductScanner extends Component
                     $this->barcodeScanned = true;
                     $this->isScanning = false;
                     $this->dispatch('camera-state-changed', false); // Stop camera
-                    $this->successMessage = $this->product->name ?? 'Product Found';
-                    $this->showSuccessMessage = true;
                 } else {
                     // Valid barcode but no product found - keep scanning
                     $this->barcodeScanned = false;
@@ -242,8 +240,10 @@ class ProductScanner extends Component
 
         if ($this->validate()) {
             $this->product = new GetProductFromScannedBarcode($this->barcode)->handle();
-            $this->successMessage = $this->product ? ($this->product->name ?? 'Product Found') : 'No Product Found With That Barcode';
-            $this->showSuccessMessage = true;
+            if (!$this->product) {
+                $this->successMessage = 'No Product Found With That Barcode';
+                $this->showSuccessMessage = true;
+            }
         }
     }
 

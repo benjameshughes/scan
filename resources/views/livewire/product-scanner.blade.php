@@ -169,11 +169,47 @@
         @if($showSuccessMessage && !$product)
             <div class="bg-white dark:bg-zinc-800 rounded-lg shadow-sm border border-green-200 dark:border-green-800 mb-4">
                 <div class="p-4 bg-green-50 dark:bg-green-900/20">
-                    <div class="flex items-center gap-3">
-                        <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        <span class="text-sm font-medium text-green-700 dark:text-green-300">{{ $successMessage }}</span>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span class="text-sm font-medium text-green-700 dark:text-green-300">{{ $successMessage }}</span>
+                        </div>
+                        <button 
+                            wire:click="$set('showSuccessMessage', false)" 
+                            class="text-green-500 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
+                            title="Dismiss message"
+                        >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        <!-- Success Message (when product is found) -->
+        @if($showSuccessMessage && $product)
+            <div class="bg-white dark:bg-zinc-800 rounded-lg shadow-sm border border-green-200 dark:border-green-800 mb-4">
+                <div class="p-4 bg-green-50 dark:bg-green-900/20">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span class="text-sm font-medium text-green-700 dark:text-green-300">{{ $successMessage }}</span>
+                        </div>
+                        <button 
+                            wire:click="$set('showSuccessMessage', false)" 
+                            class="text-green-500 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
+                            title="Dismiss message"
+                        >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
                     </div>
                 </div>
             </div>
