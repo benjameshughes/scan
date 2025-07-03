@@ -93,15 +93,19 @@ abstract class TableComponent extends Component
         $table = $this->table(Table::make());
 
         // Set component ID for ActionsColumn instances and register callbacks
-        foreach ($table->getColumns() as $column) {
-            if ($column instanceof ActionsColumn) {
-                $column->setComponentId($this->getId());
+        // Only do this if component ID is available (not during mount)
+        $componentId = $this->getId();
+        if ($componentId) {
+            foreach ($table->getColumns() as $column) {
+                if ($column instanceof ActionsColumn) {
+                    $column->setComponentId($componentId);
 
-                // Register custom action callbacks
-                foreach ($column->getActions() as $action) {
-                    if ($action instanceof \App\Tables\Actions\CustomAction && $action->getActionCallback()) {
-                        $actionId = spl_object_hash($action);
-                        $this->customActionCallbacks[$actionId] = $action->getActionCallback();
+                    // Register custom action callbacks
+                    foreach ($column->getActions() as $action) {
+                        if ($action instanceof \App\Tables\Actions\CustomAction && $action->getActionCallback()) {
+                            $actionId = spl_object_hash($action);
+                            $this->customActionCallbacks[$actionId] = $action->getActionCallback();
+                        }
                     }
                 }
             }
@@ -112,18 +116,17 @@ abstract class TableComponent extends Component
 
     public function mount(): void
     {
-        $table = $this->getTable();
-
+        // Initialize basic properties without calling getTable() yet
+        // (getTable() will be called in render() when component ID is available)
+        
         if (empty($this->sortField)) {
-            $this->sortField = $table->getDefaultSortField();
-            $this->sortDirection = $table->getDefaultSortDirection();
+            // Set default sort - we'll get this from table in render if needed
+            $this->sortField = 'id';
+            $this->sortDirection = 'asc';
         }
 
-        // Load saved per-page preference or use default
-        $this->perPage = session()->get('table_per_page_'.static::class, $table->getPerPage());
-
-        // Initialize total records count
-        $this->totalRecordsCount = $this->getQuery()->count();
+        // Load saved per-page preference
+        $this->perPage = session()->get('table_per_page_'.static::class, 10);
     }
 
     // Auto-discovery methods
@@ -440,6 +443,14 @@ abstract class TableComponent extends Component
 
     public function render()
     {
+        $table = $this->getTable();
+        
+        // Initialize sort defaults if not set yet
+        if (empty($this->sortField) || $this->sortField === 'id') {
+            $this->sortField = $table->getDefaultSortField();
+            $this->sortDirection = $table->getDefaultSortDirection();
+        }
+        
         $query = $this->getQuery();
         $this->totalRecordsCount = $query->count();
         $data = $query->paginate($this->perPage);
@@ -453,7 +464,7 @@ abstract class TableComponent extends Component
 
         return view('components.tables.enhanced-table', [
             'data' => $data,
-            'table' => $this->getTable(),
+            'table' => $table,
         ]);
     }
 }
