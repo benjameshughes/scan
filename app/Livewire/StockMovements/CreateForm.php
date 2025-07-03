@@ -38,6 +38,8 @@ class CreateForm extends Component
     public $error_message = '';
     public $product_search = '';
     public $selected_product = null;
+    public $show_location_suggestions = true;
+    public $recently_used_locations = [];
 
     public function save()
     {
@@ -109,6 +111,70 @@ class CreateForm extends Component
         $this->product_id = null;
     }
 
+    public function selectFromLocation($locationCode, $locationId = null)
+    {
+        $this->from_location_code = $locationCode;
+        $this->from_location_id = $locationId;
+        $this->addToRecentlyUsed($locationCode, $locationId);
+        $this->dispatch('location-selected', ['type' => 'from', 'code' => $locationCode]);
+    }
+
+    public function selectToLocation($locationCode, $locationId = null)
+    {
+        $this->to_location_code = $locationCode;
+        $this->to_location_id = $locationId;
+        $this->addToRecentlyUsed($locationCode, $locationId);
+        $this->dispatch('location-selected', ['type' => 'to', 'code' => $locationCode]);
+    }
+
+    public function toggleLocationSuggestions()
+    {
+        $this->show_location_suggestions = !$this->show_location_suggestions;
+    }
+
+    public function clearFromLocation()
+    {
+        $this->from_location_code = '';
+        $this->from_location_id = '';
+    }
+
+    public function clearToLocation()
+    {
+        $this->to_location_code = '';
+        $this->to_location_id = '';
+    }
+
+    public function swapLocations()
+    {
+        $tempCode = $this->from_location_code;
+        $tempId = $this->from_location_id;
+        
+        $this->from_location_code = $this->to_location_code;
+        $this->from_location_id = $this->to_location_id;
+        
+        $this->to_location_code = $tempCode;
+        $this->to_location_id = $tempId;
+        
+        $this->dispatch('locations-swapped');
+    }
+
+    private function addToRecentlyUsed($locationCode, $locationId = null)
+    {
+        $location = ['code' => $locationCode, 'id' => $locationId];
+        
+        // Remove if already exists
+        $this->recently_used_locations = array_filter(
+            $this->recently_used_locations,
+            fn($loc) => $loc['code'] !== $locationCode
+        );
+        
+        // Add to beginning
+        array_unshift($this->recently_used_locations, $location);
+        
+        // Keep only last 5
+        $this->recently_used_locations = array_slice($this->recently_used_locations, 0, 5);
+    }
+
     public function getMovementTypesProperty()
     {
         return [
@@ -121,6 +187,7 @@ class CreateForm extends Component
     {
         try {
             return Location::where('is_active', true)
+                           ->orderBy('use_count', 'desc')
                            ->orderBy('code')
                            ->get()
                            ->map(function ($location) {
@@ -128,12 +195,24 @@ class CreateForm extends Component
                                    'id' => $location->location_id,
                                    'code' => $location->code,
                                    'name' => $location->name,
+                                   'use_count' => $location->use_count ?? 0,
+                                   'last_used' => $location->last_used_at ? $location->last_used_at->diffForHumans() : null,
                                ];
                            });
         } catch (\Exception $e) {
             // Return empty array if there's an error
             return collect([]);
         }
+    }
+
+    public function getPopularLocationsProperty()
+    {
+        return $this->availableLocations->take(6);
+    }
+
+    public function getRecentLocationsProperty()
+    {
+        return collect($this->recently_used_locations);
     }
 
     public function render()
