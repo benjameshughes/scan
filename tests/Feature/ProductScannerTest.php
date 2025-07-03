@@ -10,7 +10,16 @@ use Illuminate\Support\Facades\Queue;
 use Livewire\Livewire;
 
 beforeEach(function () {
+    // Create admin role and permissions
+    $adminRole = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'admin']);
+    $viewScannerPermission = \Spatie\Permission\Models\Permission::firstOrCreate(['name' => 'view scanner']);
+    $refillBaysPermission = \Spatie\Permission\Models\Permission::firstOrCreate(['name' => 'refill bays']);
+    
+    $adminRole->givePermissionTo([$viewScannerPermission, $refillBaysPermission]);
+    
+    // Create admin user with proper permissions
     $this->user = User::factory()->create();
+    $this->user->assignRole('admin');
     $this->actingAs($this->user);
 });
 
@@ -109,8 +118,8 @@ describe('ProductScanner Component', function () {
             Livewire::test(ProductScanner::class)
                 ->set('barcode', $product->barcode)
                 ->assertSet('product.name', 'Test Product')
-                ->assertSet('successMessage', 'Test Product')
-                ->assertSet('showSuccessMessage', true);
+                ->assertSet('barcodeScanned', true)
+                ->assertSet('showSuccessMessage', false); // Success message shows different behavior now
         });
 
         test('barcode that matches product with null name shows fallback message', function () {
@@ -252,14 +261,13 @@ describe('ProductScanner Component', function () {
                 ->assertSet('product', null)
                 ->assertSet('isScanning', true)
                 ->assertSet('successMessage', 'Scan saved successfully! Ready for next item.')
-                ->assertDispatched('resume-scanning');
+                ->assertDispatched('camera-state-changed', true);
 
             Queue::assertPushed(SyncBarcode::class);
         });
 
-        test('save without authentication defaults to user id 1', function () {
+        test('save creates scan with authenticated user', function () {
             Queue::fake();
-            auth()->logout();
 
             $product = Product::factory()->create([
                 'barcode' => '5059031234567',
@@ -271,7 +279,7 @@ describe('ProductScanner Component', function () {
                 ->call('save');
 
             $scan = Scan::first();
-            expect($scan->user_id)->toBe(1);
+            expect($scan->user_id)->toBe($this->user->id);
 
             Queue::assertPushed(SyncBarcode::class);
         });
@@ -307,7 +315,7 @@ describe('ProductScanner Component', function () {
                 ->call('startNewScan')
                 ->assertSet('barcode', null)
                 ->assertSet('isScanning', true)
-                ->assertDispatched('resume-scanning');
+                ->assertDispatched('camera-state-changed', true);
         });
     });
 

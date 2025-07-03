@@ -538,10 +538,15 @@
                                         aria-label="Decrease quantity"
                                     />
                                     
-                                    <div class="flex-1 text-center">
-                                        <div class="text-xl font-bold text-gray-900 dark:text-gray-100 bg-zinc-50 dark:bg-zinc-700 rounded-md py-2 border border-zinc-200 dark:border-zinc-600">
-                                            {{ $refillQuantity }}
-                                        </div>
+                                    <div class="flex-1">
+                                        <flux:input
+                                            type="number"
+                                            wire:model.live="refillQuantity"
+                                            min="1"
+                                            max="{{ $this->maxRefillStock }}"
+                                            class="text-center text-xl font-bold"
+                                            inputmode="numeric"
+                                        />
                                     </div>
                                     
                                     <flux:button
@@ -552,22 +557,13 @@
                                         square
                                         icon="plus"
                                         aria-label="Increase quantity"
+                                        :disabled="$refillQuantity >= $this->maxRefillStock"
                                     />
                                 </div>
                                 <flux:error name="refillQuantity" />
-                                @if($selectedLocationId)
-                                    @php
-                                        $selectedLocation = collect($availableLocations)->first(function($location, $index) {
-                                            $locationId = $location['Location']['StockLocationId'] ?? $location['LocationId'] ?? $location['locationId'] ?? $location['id'] ?? $index;
-                                            return $locationId == $this->selectedLocationId;
-                                        });
-                                        $maxStock = 0;
-                                        if ($selectedLocation) {
-                                            $maxStock = $selectedLocation['StockLevel'] ?? $selectedLocation['stockLevel'] ?? $selectedLocation['stock'] ?? 0;
-                                        }
-                                    @endphp
+                                @if($selectedLocationId && $this->maxRefillStock > 0)
                                     <p class="text-xs text-gray-500 dark:text-gray-400">
-                                        Maximum available: {{ $maxStock }} units
+                                        Maximum available: {{ $this->maxRefillStock }} units
                                     </p>
                                 @endif
                             </div>
@@ -592,7 +588,7 @@
                                     @if($isProcessingRefill)
                                         Processing...
                                     @else
-                                        Transfer to Bay
+                                        Transfer
                                     @endif
                                 </flux:button>
                             </div>

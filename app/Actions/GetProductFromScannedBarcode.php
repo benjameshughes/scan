@@ -2,7 +2,7 @@
 
 namespace App\Actions;
 
-use App\Models\Scan;
+use App\Models\Product;
 
 class GetProductFromScannedBarcode
 {
@@ -15,12 +15,11 @@ class GetProductFromScannedBarcode
 
     public function handle()
     {
-        $tempScan = new Scan(['barcode' => $this->barcode]);
-        $product = $tempScan->product;
-
-        if (! $product) {
-            return null;
-        }
+        // Search for product by checking all barcode fields
+        $product = Product::where('barcode', $this->barcode)
+            ->orWhere('barcode_2', $this->barcode)
+            ->orWhere('barcode_3', $this->barcode)
+            ->first();
 
         return $product;
     }

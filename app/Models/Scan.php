@@ -28,12 +28,30 @@ class Scan extends Model
 
     public function product()
     {
-        // This creates a custom relationship that checks all barcode columns
-        return $this->belongsTo(Product::class, 'barcode', 'barcode')
-            ->orWhere(function ($query) {
-                $query->where('barcode_2', $this->barcode)
-                    ->orWhere('barcode_3', $this->barcode);
-            });
+        // Standard belongsTo relationship for primary barcode
+        return $this->belongsTo(Product::class, 'barcode', 'barcode');
+    }
+
+    /**
+     * Get the product by checking all barcode fields
+     */
+    public function getProductAttribute()
+    {
+        // Check if we already have a cached product
+        if (isset($this->relations['product']) && $this->relations['product']) {
+            return $this->relations['product'];
+        }
+
+        // Search for product by checking all barcode fields
+        $product = Product::where('barcode', $this->barcode)
+            ->orWhere('barcode_2', $this->barcode)
+            ->orWhere('barcode_3', $this->barcode)
+            ->first();
+
+        // Cache the result
+        $this->setRelation('product', $product);
+
+        return $product;
     }
 
     /**

@@ -49,42 +49,42 @@ class ProductScanner extends Component
 
     // Refill bay state
     public bool $showRefillForm = false;
-    
+
     #[Validate('required')]
     public string $selectedLocationId = '';
-    
+
     #[Validate('required|integer|min:1')]
     public int $refillQuantity = 1;
-    
+
     public array $availableLocations = [];
-    
+
     public bool $isProcessingRefill = false;
-    
+
     public string $refillError = '';
-    
+
     public string $refillSuccess = '';
-    
+
     // Email workflow state
     public bool $isEmailRefill = false;
 
     public function mount()
     {
         // Ensure user is authenticated and has scanner permission
-        if (!auth()->check()) {
+        if (! auth()->check()) {
             abort(401, 'Authentication required');
         }
-        
-        if (!auth()->user()->can('view scanner')) {
+
+        if (! auth()->user()->can('view scanner')) {
             abort(403, 'Insufficient permissions to use scanner');
         }
-        
+
         $this->loadingCamera = false; // Start with video element visible
         $this->isScanning = false;
-        
+
         // Handle direct email navigation to refill bay
         $action = request('action');
         $barcodeParam = request('barcode');
-        
+
         if ($action === 'refill' && $barcodeParam) {
             $this->handleEmailRefillRequest($barcodeParam);
         }
@@ -98,20 +98,20 @@ class ProductScanner extends Component
         try {
             // Set email refill mode
             $this->isEmailRefill = true;
-            
+
             // Set the barcode and trigger product lookup
             $this->barcode = $barcodeParam;
-            
+
             // Validate barcode and find product
             $this->validateOnly('barcode');
             $this->product = (new GetProductFromScannedBarcode($this->barcode))->handle();
-            
+
             if ($this->product) {
                 // Product found - set up for refill workflow
                 $this->barcodeScanned = true;
                 $this->successMessage = "Refilling bay for: {$this->product->name}";
                 $this->showSuccessMessage = true;
-                
+
                 // Check if user has refill permission before showing form
                 if (auth()->user()->can('refill bays')) {
                     // Auto-trigger refill form
@@ -125,7 +125,7 @@ class ProductScanner extends Component
                 $this->showSuccessMessage = true;
                 $this->isEmailRefill = false; // Reset email mode
             }
-            
+
         } catch (\Exception $e) {
             // Handle validation or lookup errors
             $this->cameraError = "Invalid barcode from email: {$e->getMessage()}";
@@ -147,8 +147,8 @@ class ProductScanner extends Component
                 $this->barcodeScanned = true;
                 $this->isScanning = false;
                 $this->dispatch('camera-state-changed', false); // Stop camera
-                
-                if (!$this->product) {
+
+                if (! $this->product) {
                     $this->successMessage = 'No Product Found With That Barcode - You can still submit the scan';
                     $this->showSuccessMessage = true;
                 }
@@ -240,7 +240,7 @@ class ProductScanner extends Component
         try {
             $this->validateOnly('barcode');
             $this->product = new GetProductFromScannedBarcode($this->barcode)->handle();
-            if (!$this->product) {
+            if (! $this->product) {
                 $this->successMessage = 'No Product Found With That Barcode - You can still submit the scan';
                 $this->showSuccessMessage = true;
             }
@@ -261,6 +261,66 @@ class ProductScanner extends Component
     {
         $this->selectedLocationId = $locationId;
         $this->resetValidation(['selectedLocationId']);
+
+        // Reset quantity to safe value when location changes
+        $this->refillQuantity = 1;
+        $this->resetValidation(['refillQuantity']);
+    }
+
+    /**
+     * Validate refill quantity when updated
+     */
+    public function updatedRefillQuantity()
+    {
+        if (! $this->selectedLocationId || empty($this->availableLocations)) {
+            return;
+        }
+
+        // Find the selected location and get max stock
+        $selectedLocation = collect($this->availableLocations)->first(function ($location, $index) {
+            $locationId = $location['Location']['StockLocationId'] ?? $location['LocationId'] ?? $location['locationId'] ?? $location['id'] ?? $index;
+
+            return $locationId == $this->selectedLocationId;
+        });
+
+        if (! $selectedLocation) {
+            return;
+        }
+
+        $maxStock = $selectedLocation['StockLevel'] ?? $selectedLocation['stockLevel'] ?? $selectedLocation['stock'] ?? 0;
+
+        // Validate against max stock
+        if ($this->refillQuantity > $maxStock) {
+            $this->refillQuantity = $maxStock;
+            $this->addError('refillQuantity', "Maximum available quantity is {$maxStock} units.");
+        } elseif ($this->refillQuantity < 1) {
+            $this->refillQuantity = 1;
+            $this->addError('refillQuantity', 'Minimum quantity is 1 unit.');
+        } else {
+            $this->resetValidation(['refillQuantity']);
+        }
+    }
+
+    /**
+     * Get the maximum stock available for the selected location
+     */
+    public function getMaxRefillStockProperty(): int
+    {
+        if (! $this->selectedLocationId || empty($this->availableLocations)) {
+            return 0;
+        }
+
+        $selectedLocation = collect($this->availableLocations)->first(function ($location, $index) {
+            $locationId = $location['Location']['StockLocationId'] ?? $location['LocationId'] ?? $location['locationId'] ?? $location['id'] ?? $index;
+
+            return $locationId == $this->selectedLocationId;
+        });
+
+        if (! $selectedLocation) {
+            return 0;
+        }
+
+        return $selectedLocation['StockLevel'] ?? $selectedLocation['stockLevel'] ?? $selectedLocation['stock'] ?? 0;
     }
 
     /**
@@ -275,7 +335,7 @@ class ProductScanner extends Component
         return collect($this->availableLocations)->map(function ($location) {
             // Handle different API response structures
             $locationData = $location['Location'] ?? $location;
-            
+
             return [
                 'StockLocationId' => $locationData['StockLocationId'] ?? $locationData['LocationId'] ?? $locationData['id'],
                 'LocationName' => $locationData['LocationName'] ?? $locationData['Name'] ?? 'Unknown Location',
@@ -283,7 +343,7 @@ class ProductScanner extends Component
             ];
         })->filter(function ($location) {
             // Only include locations with stock and valid ID
-            return !empty($location['StockLocationId']) && $location['Quantity'] > 0;
+            return ! empty($location['StockLocationId']) && $location['Quantity'] > 0;
         })->values()->toArray();
     }
 
@@ -387,76 +447,80 @@ class ProductScanner extends Component
     public function showRefillBayForm(): void
     {
         // Check permission
-        if (!auth()->user()->can('refill bays')) {
+        if (! auth()->user()->can('refill bays')) {
             $this->refillError = 'You do not have permission to refill bays.';
+
             return;
         }
 
-        if (!$this->product) {
+        if (! $this->product) {
             $this->refillError = 'No product selected for refill.';
+
             return;
         }
 
         try {
             $this->isProcessingRefill = true;
             $this->refillError = '';
-            
+
             $linnworksService = app(LinnworksApiService::class);
             $locations = $linnworksService->getStockLocationsByProduct($this->product->sku);
-            
+
             // Debug: Log the actual structure we're getting
             Log::channel('inventory')->info('Raw locations data structure', [
                 'product_sku' => $this->product->sku,
                 'locations_count' => count($locations),
-                'sample_location' => !empty($locations) ? $locations[0] : 'no locations',
-                'all_locations' => $locations
+                'sample_location' => ! empty($locations) ? $locations[0] : 'no locations',
+                'all_locations' => $locations,
             ]);
-            
+
             if (empty($locations)) {
                 $this->refillError = 'No locations with stock found for this product.';
                 $this->isProcessingRefill = false;
+
                 return;
             }
 
             $this->availableLocations = $locations;
-            
+
             // Auto-select if only one location besides default
             $defaultLocationId = config('linnworks.default_location_id');
-            $nonDefaultLocations = array_filter($locations, function($location) use ($defaultLocationId) {
+            $nonDefaultLocations = array_filter($locations, function ($location) use ($defaultLocationId) {
                 $locationId = $location['Location']['StockLocationId'] ?? null;
+
                 return $locationId !== $defaultLocationId;
             });
-            
+
             if (count($nonDefaultLocations) === 1) {
                 $singleLocation = array_values($nonDefaultLocations)[0];
                 $this->selectedLocationId = $singleLocation['Location']['StockLocationId'] ?? '';
-                
+
                 Log::channel('inventory')->info('Auto-selected single location', [
                     'product_sku' => $this->product->sku,
                     'auto_selected_location' => $this->selectedLocationId,
-                    'location_name' => $singleLocation['Location']['LocationName'] ?? 'Unknown'
+                    'location_name' => $singleLocation['Location']['LocationName'] ?? 'Unknown',
                 ]);
             }
-            
+
             $this->showRefillForm = true;
             $this->isProcessingRefill = false;
-            
+
             Log::channel('inventory')->info('Refill form opened', [
                 'product_sku' => $this->product->sku,
                 'locations_count' => count($locations),
                 'non_default_locations' => count($nonDefaultLocations),
                 'auto_selected' => count($nonDefaultLocations) === 1,
-                'user_id' => auth()->id()
+                'user_id' => auth()->id(),
             ]);
-            
+
         } catch (\Exception $e) {
             $this->refillError = "Failed to load locations: {$e->getMessage()}";
             $this->isProcessingRefill = false;
-            
+
             Log::channel('inventory')->error('Failed to load refill locations', [
                 'product_sku' => $this->product?->sku,
                 'error' => $e->getMessage(),
-                'user_id' => auth()->id()
+                'user_id' => auth()->id(),
             ]);
         }
     }
@@ -475,14 +539,30 @@ class ProductScanner extends Component
     public function submitRefill(): void
     {
         try {
-            // Validate form data
+            // Get max stock for dynamic validation
+            $maxStock = 0;
+            if ($this->selectedLocationId && ! empty($this->availableLocations)) {
+                $selectedLocation = collect($this->availableLocations)->first(function ($location, $index) {
+                    $locationId = $location['Location']['StockLocationId'] ?? $location['LocationId'] ?? $location['locationId'] ?? $location['id'] ?? $index;
+
+                    return $locationId == $this->selectedLocationId;
+                });
+
+                if ($selectedLocation) {
+                    $maxStock = $selectedLocation['StockLevel'] ?? $selectedLocation['stockLevel'] ?? $selectedLocation['stock'] ?? 0;
+                }
+            }
+
+            // Validate form data with dynamic max rule
             $this->validate([
                 'selectedLocationId' => 'required',
-                'refillQuantity' => 'required|integer|min:1'
+                'refillQuantity' => "required|integer|min:1|max:{$maxStock}",
+            ], [
+                'refillQuantity.max' => "Cannot refill more than {$maxStock} units available at this location.",
             ]);
 
             // Check permission again
-            if (!auth()->user()->can('refill bays')) {
+            if (! auth()->user()->can('refill bays')) {
                 throw new ValidationException(validator([], []), 'You do not have permission to refill bays.');
             }
 
@@ -490,17 +570,18 @@ class ProductScanner extends Component
             $this->refillError = '';
 
             // Find the selected location details
-            $selectedLocation = collect($this->availableLocations)->first(function($location, $index) {
+            $selectedLocation = collect($this->availableLocations)->first(function ($location, $index) {
                 $locationId = $location['Location']['StockLocationId'] ?? $location['LocationId'] ?? $location['locationId'] ?? $location['id'] ?? $index;
+
                 return $locationId == $this->selectedLocationId;
             });
-            
-            if (!$selectedLocation) {
+
+            if (! $selectedLocation) {
                 throw new \Exception('Selected location not found.');
             }
 
             $currentStock = $selectedLocation['StockLevel'] ?? $selectedLocation['stockLevel'] ?? $selectedLocation['stock'] ?? 0;
-            
+
             // Validate we have enough stock
             if ($this->refillQuantity > $currentStock) {
                 throw new \Exception("Cannot refill {$this->refillQuantity} units. Only {$currentStock} available at this location.");
@@ -510,23 +591,23 @@ class ProductScanner extends Component
             $locationId = $selectedLocation['Location']['StockLocationId'] ?? $selectedLocation['LocationId'] ?? $selectedLocation['locationId'] ?? $selectedLocation['id'] ?? 'Unknown';
             $locationName = $selectedLocation['Location']['LocationName'] ?? $selectedLocation['LocationName'] ?? $selectedLocation['locationName'] ?? $selectedLocation['name'] ?? "Location {$locationId}";
             $confirmationMessage = "Transfer {$this->refillQuantity} units of {$this->product->sku} from {$locationName} to main bay?";
-            
+
             // For now, we'll auto-confirm. In the future, you could add a confirmation step
             $this->processRefillConfirmation($selectedLocation, $confirmationMessage);
-            
+
         } catch (ValidationException $e) {
             $this->isProcessingRefill = false;
             throw $e;
         } catch (\Exception $e) {
             $this->refillError = $e->getMessage();
             $this->isProcessingRefill = false;
-            
+
             Log::channel('inventory')->error('Refill submission failed', [
                 'product_sku' => $this->product?->sku,
                 'location_id' => $this->selectedLocationId,
                 'quantity' => $this->refillQuantity,
                 'error' => $e->getMessage(),
-                'user_id' => auth()->id()
+                'user_id' => auth()->id(),
             ]);
         }
     }
@@ -538,13 +619,13 @@ class ProductScanner extends Component
     {
         try {
             $linnworksService = app(LinnworksApiService::class);
-            
+
             // Log what we're about to send to the API
             Log::channel('inventory')->info('About to transfer stock to main bay', [
                 'product_sku' => $this->product->sku,
                 'source_location_id' => $this->selectedLocationId,
                 'transfer_quantity' => $this->refillQuantity,
-                'selected_location_data' => $selectedLocation
+                'selected_location_data' => $selectedLocation,
             ]);
 
             // Transfer stock from source location to default location (bay refill)
@@ -556,9 +637,9 @@ class ProductScanner extends Component
 
             $locationId = $selectedLocation['Location']['StockLocationId'] ?? $selectedLocation['LocationId'] ?? $selectedLocation['locationId'] ?? $selectedLocation['id'] ?? 'Unknown';
             $locationName = $selectedLocation['Location']['LocationName'] ?? $selectedLocation['LocationName'] ?? $selectedLocation['locationName'] ?? $selectedLocation['name'] ?? "Location {$locationId}";
-            
+
             $this->refillSuccess = "Successfully transferred {$this->refillQuantity} units from {$locationName} to the main bay.";
-            
+
             Log::channel('inventory')->info('Bay refill transfer completed', [
                 'product_sku' => $this->product->sku,
                 'source_location_id' => $this->selectedLocationId,
@@ -566,18 +647,18 @@ class ProductScanner extends Component
                 'quantity_transferred' => $this->refillQuantity,
                 'source_stock_before' => $selectedLocation['StockLevel'] ?? $selectedLocation['stockLevel'] ?? $selectedLocation['stock'] ?? 0,
                 'user_id' => auth()->id(),
-                'linnworks_response' => $response
+                'linnworks_response' => $response,
             ]);
 
             // Log the stock movement for historical tracking
             try {
                 // Extract location code - try multiple possible fields
-                $locationCode = $selectedLocation['Location']['LocationCode'] ?? 
-                               $selectedLocation['LocationCode'] ?? 
-                               $selectedLocation['locationCode'] ?? 
-                               $selectedLocation['code'] ?? 
+                $locationCode = $selectedLocation['Location']['LocationCode'] ??
+                               $selectedLocation['LocationCode'] ??
+                               $selectedLocation['locationCode'] ??
+                               $selectedLocation['code'] ??
                                $locationName; // Fallback to name if no code
-                
+
                 StockMovement::createBayRefill(
                     $this->product,
                     $this->selectedLocationId,
@@ -587,46 +668,46 @@ class ProductScanner extends Component
                     [
                         'location_name' => $locationName,
                         'stock_before' => $selectedLocation['StockLevel'] ?? $selectedLocation['stockLevel'] ?? $selectedLocation['stock'] ?? 0,
-                        'linnworks_response' => $response
+                        'linnworks_response' => $response,
                     ]
                 );
-                
+
                 Log::channel('inventory')->info('Stock movement logged', [
                     'product_sku' => $this->product->sku,
                     'from_location' => $locationCode,
                     'quantity' => $this->refillQuantity,
-                    'type' => 'bay_refill'
+                    'type' => 'bay_refill',
                 ]);
             } catch (\Exception $e) {
                 // Log error but don't fail the transfer - movement logging is non-critical
                 Log::channel('inventory')->error('Failed to log stock movement', [
                     'error' => $e->getMessage(),
                     'product_sku' => $this->product->sku,
-                    'location_id' => $this->selectedLocationId
+                    'location_id' => $this->selectedLocationId,
                 ]);
             }
 
             // Reset everything back to scanner after successful transfer
             $this->resetScan();
-            
+
             // Show success message and restart scanning
             $this->showSuccessMessage = true;
             $this->successMessage = $this->refillSuccess;
-            
+
             // Auto-resume scanning for next item
             $this->isScanning = true;
             $this->dispatch('camera-state-changed', true);
-            
+
         } catch (\Exception $e) {
             $this->refillError = "Refill failed: {$e->getMessage()}";
             $this->isProcessingRefill = false;
-            
+
             Log::channel('inventory')->error('Stock transfer failed', [
                 'product_sku' => $this->product->sku,
                 'source_location_id' => $this->selectedLocationId,
                 'transfer_quantity' => $this->refillQuantity,
                 'error' => $e->getMessage(),
-                'user_id' => auth()->id()
+                'user_id' => auth()->id(),
             ]);
         }
     }
@@ -644,17 +725,18 @@ class ProductScanner extends Component
      */
     public function incrementRefillQuantity(): void
     {
-        $selectedLocation = collect($this->availableLocations)->first(function($location, $index) {
+        $selectedLocation = collect($this->availableLocations)->first(function ($location, $index) {
             $locationId = $location['Location']['StockLocationId'] ?? $location['LocationId'] ?? $location['locationId'] ?? $location['id'] ?? $index;
+
             return $locationId == $this->selectedLocationId;
         });
-        
-        if (!$selectedLocation) {
+
+        if (! $selectedLocation) {
             return;
         }
-        
+
         $maxStock = $selectedLocation['StockLevel'] ?? $selectedLocation['stockLevel'] ?? $selectedLocation['stock'] ?? 0;
-        
+
         if ($this->refillQuantity < $maxStock) {
             $this->refillQuantity++;
         }

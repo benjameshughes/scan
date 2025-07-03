@@ -1,8 +1,14 @@
-<nav class="-mx-3 flex flex-1 justify-end items-center dark:bg-zinc-800 px-4">
+<nav class="flex flex-1 justify-between items-center dark:bg-zinc-800 px-4">
+    <div class="justify-start">
+        @auth
+            <span class="text-zinc-900 dark:text-white">{{ (now()->hour < 12 ? 'Good Morning' : 'Good Evening') . ', ' . auth()->user()->name }}</span>
+        @endauth
+    </div>
+    <div class="justify-end">
     <!-- Dark mode toggle -->
     <flux:button x-data x-on:click="$flux.dark = ! $flux.dark" icon="moon" variant="subtle"
                  aria-label="Toggle dark mode" class="mr-2"/>
-    
+
     @auth
         <a
             href="{{ url('/dashboard') }}"
@@ -27,4 +33,5 @@
             </a>
         @endif
     @endauth
+    </div>
 </nav>
