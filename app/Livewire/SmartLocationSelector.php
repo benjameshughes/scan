@@ -85,8 +85,8 @@ class SmartLocationSelector extends Component
         $this->showDropdown = false;
         $this->errorMessage = '';
 
-        // Emit event for parent components
-        $this->dispatch('locationSelected', $this->selectedLocationId, $this->search);
+        // Emit event for parent components - include location code for stock movement form
+        $this->dispatch('locationSelected', $this->selectedLocationId, $code ?? $this->search, 'from');
     }
 
     public function createLocation(string $code)

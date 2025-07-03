@@ -5,6 +5,7 @@ namespace App\Livewire\StockMovements;
 use App\Models\Location;
 use App\Models\Product;
 use App\Models\StockMovement;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
@@ -45,6 +46,14 @@ class CreateForm extends Component
     public $show_location_suggestions = true;
 
     public $recently_used_locations = [];
+    
+    // Smart selector properties
+    public $selectedProductId = '';
+    public $selectedFromLocationId = '';
+    public $selectedToLocationId = '';
+    
+    public $maxQuantity = null;
+    public $currentStockLevel = null;
 
     public function mount()
     {
@@ -228,6 +237,64 @@ class CreateForm extends Component
         return collect($this->recently_used_locations);
     }
 
+    #[On('productSelected')]
+    public function onProductSelected($productId, $sku, $name)
+    {
+        $this->selectedProductId = $productId;
+        $this->product_id = $productId;
+        $this->selected_product = Product::find($productId);
+        
+        // Update stock levels when product is selected
+        $this->updateStockLevels();
+    }
+    
+    #[On('productCleared')]
+    public function onProductCleared()
+    {
+        $this->selectedProductId = '';
+        $this->product_id = null;
+        $this->selected_product = null;
+        $this->maxQuantity = null;
+        $this->currentStockLevel = null;
+    }
+    
+    #[On('locationSelected')]
+    public function onLocationSelected($locationId, $locationCode, $type = 'from')
+    {
+        if ($type === 'from') {
+            $this->selectedFromLocationId = $locationId;
+            $this->from_location_id = $locationId;
+            $this->from_location_code = $locationCode;
+        } else {
+            $this->selectedToLocationId = $locationId;
+            $this->to_location_id = $locationId;
+            $this->to_location_code = $locationCode;
+        }
+        
+        // Update stock levels when location changes
+        $this->updateStockLevels();
+    }
+    
+    protected function updateStockLevels()
+    {
+        if ($this->selected_product && $this->from_location_id) {
+            // Here you would typically get stock levels from Linnworks or your inventory system
+            // For now, we'll use a placeholder
+            $this->currentStockLevel = rand(0, 100); // Placeholder
+            $this->maxQuantity = $this->currentStockLevel;
+        }
+    }
+    
+    public function updatedQuantity()
+    {
+        if ($this->maxQuantity && $this->quantity > $this->maxQuantity) {
+            $this->quantity = $this->maxQuantity;
+            $this->error_message = "Quantity cannot exceed available stock ({$this->maxQuantity})";
+        } else {
+            $this->error_message = '';
+        }
+    }
+    
     public function render()
     {
         return view('livewire.stock-movements.create-form');
