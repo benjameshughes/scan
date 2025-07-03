@@ -84,15 +84,15 @@
                                 :max="$maxQuantity"
                                 placeholder="Enter quantity..."
                                 icon="calculator"
-                                class="pr-20"
+                                class="{{ $maxQuantity ? 'pr-16' : '' }}"
                             />
-                            @if($maxQuantity)
-                                <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                            @if($maxQuantity && $maxQuantity > 0)
+                                <div class="absolute right-2 top-1/2 -translate-y-1/2">
                                     <button
                                         type="button"
                                         wire:click="$set('quantity', {{ $maxQuantity }})"
-                                        class="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
-                                        title="Set to maximum available"
+                                        class="px-2 py-1 text-xs bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white rounded transition-colors"
+                                        title="Set to maximum available ({{ $maxQuantity }} units)"
                                     >
                                         Max
                                     </button>
@@ -100,9 +100,13 @@
                             @endif
                         </div>
                         <flux:error name="quantity" />
-                        @if($maxQuantity)
-                            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                Maximum available: {{ $maxQuantity }} units
+                        @if($maxQuantity !== null)
+                            <div class="text-xs {{ $maxQuantity > 0 ? 'text-gray-500 dark:text-gray-400' : 'text-amber-600 dark:text-amber-400' }} mt-1">
+                                @if($maxQuantity > 0)
+                                    Maximum available: {{ $maxQuantity }} units
+                                @else
+                                    No stock available in selected location
+                                @endif
                             </div>
                         @endif
                     </div>
@@ -146,10 +150,12 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- From Location -->
                     <div>
-                        @livewire('smart-location-selector', [
-                            'label' => 'From Location',
-                            'placeholder' => 'Select source location...',
-                            'selectedLocationId' => $selectedFromLocationId
+                        @livewire('product-location-selector', [
+                            'label' => 'From Location (Source)',
+                            'placeholder' => 'Select location with stock...',
+                            'productId' => $selectedProductId,
+                            'selectedLocationId' => $selectedFromLocationId,
+                            'required' => true
                         ], key('from-location'))
                         <flux:error name="from_location_code" />
                     </div>
@@ -158,9 +164,10 @@
                     <!-- To Location -->
                     <div>
                         @livewire('smart-location-selector', [
-                            'label' => 'To Location',
-                            'placeholder' => 'Select destination location...',
-                            'selectedLocationId' => $selectedToLocationId
+                            'label' => 'To Location (Destination)',
+                            'placeholder' => 'Search and select destination...',
+                            'selectedLocationId' => $selectedToLocationId,
+                            'required' => true
                         ], key('to-location'))
                         <flux:error name="to_location_code" />
                     </div>

@@ -236,6 +236,7 @@ class CreateForm extends Component
     {
         return collect($this->recently_used_locations);
     }
+    
 
     #[On('productSelected')]
     public function onProductSelected($productId, $sku, $name)
@@ -244,8 +245,21 @@ class CreateForm extends Component
         $this->product_id = $productId;
         $this->selected_product = Product::find($productId);
         
-        // Update stock levels when product is selected
-        $this->updateStockLevels();
+        // Clear location selections when product changes
+        $this->selectedFromLocationId = '';
+        $this->from_location_id = '';
+        $this->from_location_code = '';
+        $this->selectedToLocationId = '';
+        $this->to_location_id = '';
+        $this->to_location_code = '';
+        
+        // Reset stock levels
+        $this->currentStockLevel = null;
+        $this->maxQuantity = null;
+        $this->quantity = null;
+        
+        // Notify location selector to refresh
+        $this->dispatch('productChanged', $productId);
     }
     
     #[On('productCleared')]
@@ -265,23 +279,47 @@ class CreateForm extends Component
             $this->selectedFromLocationId = $locationId;
             $this->from_location_id = $locationId;
             $this->from_location_code = $locationCode;
+            
+            // Update stock levels when from location changes
+            $this->updateStockLevels();
         } else {
             $this->selectedToLocationId = $locationId;
             $this->to_location_id = $locationId;
             $this->to_location_code = $locationCode;
         }
-        
-        // Update stock levels when location changes
-        $this->updateStockLevels();
     }
     
     protected function updateStockLevels()
     {
-        if ($this->selected_product && $this->from_location_id) {
-            // Here you would typically get stock levels from Linnworks or your inventory system
-            // For now, we'll use a placeholder
-            $this->currentStockLevel = rand(0, 100); // Placeholder
-            $this->maxQuantity = $this->currentStockLevel;
+        if ($this->selected_product && $this->from_location_code) {
+            try {
+                // Get stock locations for this product from Linnworks
+                $linnworksService = app(\App\Services\LinnworksApiService::class);
+                $stockLocations = $linnworksService->getStockLocationsByProduct($this->selected_product->sku);
+                
+                // Find the specific location
+                $locationStock = collect($stockLocations)->firstWhere('LocationName', $this->from_location_code);
+                
+                if ($locationStock) {
+                    $this->currentStockLevel = $locationStock['StockLevel'] ?? 0;
+                    $this->maxQuantity = $this->currentStockLevel;
+                } else {
+                    $this->currentStockLevel = 0;
+                    $this->maxQuantity = 0;
+                }
+            } catch (\Exception $e) {
+                // Fallback to zero stock
+                $this->currentStockLevel = 0;
+                $this->maxQuantity = 0;
+                \Log::warning('Failed to get stock level from Linnworks', [
+                    'product_sku' => $this->selected_product->sku,
+                    'location_code' => $this->from_location_code,
+                    'error' => $e->getMessage()
+                ]);
+            }
+        } else {
+            $this->currentStockLevel = null;
+            $this->maxQuantity = null;
         }
     }
     
