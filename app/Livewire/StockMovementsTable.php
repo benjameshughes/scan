@@ -18,12 +18,15 @@ class StockMovementsTable extends TableComponent
 
     protected array $searchable = ['product.sku', 'product.name', 'from_location_code', 'to_location_code'];
 
-    public function mount()
+    public function mount(): void
     {
         // Check if user has permission to view stock movements
         if (! auth()->user()->can('view stock movements')) {
             abort(403, 'You do not have permission to view stock movements.');
         }
+
+        // Call parent mount to initialize table
+        parent::mount();
     }
 
     public function table(Table $table): Table
