@@ -162,6 +162,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::middleware('permission:create stock movements')->group(function () {
             Route::get('movements/create', function () {
+                // Debug logging to help diagnose the issue
+                \Log::info('Create route accessed', [
+                    'user' => auth()->user()->email ?? 'not authenticated',
+                    'can_create' => auth()->check() ? auth()->user()->can('create stock movements') : false,
+                ]);
+                
                 return view('locations.movements.create');
             })->name('movements.create');
         });
