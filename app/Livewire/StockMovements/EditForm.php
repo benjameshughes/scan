@@ -31,6 +31,11 @@ class EditForm extends Component
 
     public function mount(StockMovement $movement)
     {
+        // Check if user has permission to edit stock movements
+        if (! auth()->user()->can('edit stock movements')) {
+            abort(403, 'You do not have permission to edit stock movements.');
+        }
+
         $this->movement = $movement;
         $this->quantity = $movement->quantity;
         $this->notes = $movement->notes;

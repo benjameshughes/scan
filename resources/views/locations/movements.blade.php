@@ -11,17 +11,7 @@
                             Track all stock movements between locations
                         </p>
                     </div>
-                    <div class="flex items-center gap-3">
-                        <flux:button
-                            href="{{ route('locations.movements.create') }}"
-                            variant="filled"
-                            icon="plus"
-                            size="sm"
-                            wire:navigate
-                        >
-                            Create Movement
-                        </flux:button>
-                    </div>
+                    <!-- Create button removed - available in table component -->
                 </div>
             </div>
 

@@ -46,6 +46,14 @@ class CreateForm extends Component
 
     public $recently_used_locations = [];
 
+    public function mount()
+    {
+        // Check if user has permission to create stock movements
+        if (! auth()->user()->can('create stock movements')) {
+            abort(403, 'You do not have permission to create stock movements.');
+        }
+    }
+
     public function save()
     {
         $this->validate();
