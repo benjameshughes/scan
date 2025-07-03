@@ -230,7 +230,7 @@
                 @if($from_location_code || $to_location_code)
                 <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
                     <h4 class="text-sm font-medium text-blue-800 dark:text-blue-200 mb-3 flex items-center gap-2">
-                        <flux:icon.lightning-bolt class="size-4" />
+                        <flux:icon.bolt class="size-4" />
                         Quick Actions
                     </h4>
                     <div class="space-y-2">
