@@ -143,13 +143,40 @@ class SmartProductSelector extends Component
     
     protected function loadRecentProducts()
     {
-        // Get products from recent scans by the current user
-        $this->recentProducts = Product::whereHas('scans', function ($query) {
-            $query->where('user_id', auth()->id())
-                ->orderBy('created_at', 'desc');
-        })
-        ->limit(5)
-        ->get();
+        try {
+            // Get recent products from session first, then fall back to database
+            $recentProductIds = session()->get('recent_products', []);
+            
+            if (!empty($recentProductIds) && is_array($recentProductIds)) {
+                // Load products from session storage
+                $validIds = array_filter(array_map('intval', $recentProductIds));
+                if (!empty($validIds)) {
+                    $this->recentProducts = Product::whereIn('id', $validIds)
+                        ->orderByRaw('FIELD(id, ' . implode(',', $validIds) . ')')
+                        ->limit(5)
+                        ->get();
+                    return;
+                }
+            }
+            
+            // Fall back to products from recent scans by the current user
+            if (auth()->check()) {
+                $this->recentProducts = Product::whereHas('scans', function ($query) {
+                    $query->where('user_id', auth()->id());
+                })
+                ->withCount(['scans' => function ($query) {
+                    $query->where('user_id', auth()->id());
+                }])
+                ->orderBy('scans_count', 'desc')
+                ->limit(5)
+                ->get();
+            } else {
+                $this->recentProducts = collect();
+            }
+        } catch (\Exception $e) {
+            // If anything fails, just return empty collection
+            $this->recentProducts = collect();
+        }
     }
     
     protected function addToRecentProducts(Product $product)
