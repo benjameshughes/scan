@@ -151,10 +151,16 @@ class SmartProductSelector extends Component
                 // Load products from session storage
                 $validIds = array_filter(array_map('intval', $recentProductIds));
                 if (!empty($validIds)) {
-                    $this->recentProducts = Product::whereIn('id', $validIds)
-                        ->orderByRaw('FIELD(id, ' . implode(',', $validIds) . ')')
-                        ->limit(5)
-                        ->get();
+                    // Get products and then sort them manually to maintain order
+                    $products = Product::whereIn('id', $validIds)->get();
+                    $sortedProducts = collect();
+                    foreach ($validIds as $id) {
+                        $product = $products->firstWhere('id', $id);
+                        if ($product) {
+                            $sortedProducts->push($product);
+                        }
+                    }
+                    $this->recentProducts = $sortedProducts->take(5);
                     return;
                 }
             }

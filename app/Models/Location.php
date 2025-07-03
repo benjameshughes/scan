@@ -26,22 +26,14 @@ class Location extends Model
     /**
      * Get locations ordered by frecency (frequency + recency)
      * More recent and more frequently used locations appear first
+     * Pure Eloquent implementation
      */
     public function scopeFrecencyOrder(Builder $query): Builder
     {
         return $query->where('is_active', true)
-            ->orderByRaw('
-                (use_count * 0.7) + 
-                (CASE 
-                    WHEN last_used_at IS NULL THEN 0
-                    WHEN last_used_at > DATE_SUB(NOW(), INTERVAL 1 DAY) THEN 50
-                    WHEN last_used_at > DATE_SUB(NOW(), INTERVAL 7 DAYS) THEN 30
-                    WHEN last_used_at > DATE_SUB(NOW(), INTERVAL 30 DAYS) THEN 15
-                    WHEN last_used_at > DATE_SUB(NOW(), INTERVAL 90 DAYS) THEN 5
-                    ELSE 1
-                END * 0.3
-            ) DESC
-        ');
+            ->orderBy('use_count', 'desc')
+            ->orderBy('last_used_at', 'desc')
+            ->orderBy('code');
     }
 
     /**
