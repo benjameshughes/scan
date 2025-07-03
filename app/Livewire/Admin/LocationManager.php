@@ -12,17 +12,26 @@ class LocationManager extends Component
     use WithPagination;
 
     public string $search = '';
+
     public bool $showInactiveLocations = false;
+
     public bool $isProcessingSync = false;
+
     public string $successMessage = '';
+
     public string $errorMessage = '';
 
     // Form state for editing
     public bool $showEditModal = false;
+
     public ?int $editingLocationId = null;
+
     public string $editCode = '';
+
     public string $editName = '';
+
     public string $editQrCode = '';
+
     public bool $editIsActive = true;
 
     protected $rules = [
@@ -45,14 +54,14 @@ class LocationManager extends Component
     public function editLocation($locationId)
     {
         $location = Location::findOrFail($locationId);
-        
+
         $this->editingLocationId = $location->id;
         $this->editCode = $location->code;
         $this->editName = $location->name ?? '';
         $this->editQrCode = $location->qr_code ?? '';
         $this->editIsActive = $location->is_active;
         $this->showEditModal = true;
-        
+
         $this->resetValidation();
     }
 
@@ -62,7 +71,7 @@ class LocationManager extends Component
 
         try {
             $location = Location::findOrFail($this->editingLocationId);
-            
+
             $location->update([
                 'code' => $this->editCode,
                 'name' => $this->editName ?: null,
@@ -73,9 +82,9 @@ class LocationManager extends Component
             $this->successMessage = "Location '{$location->code}' updated successfully.";
             $this->showEditModal = false;
             $this->resetEditForm();
-            
+
         } catch (\Exception $e) {
-            $this->errorMessage = 'Failed to update location: ' . $e->getMessage();
+            $this->errorMessage = 'Failed to update location: '.$e->getMessage();
         }
     }
 
@@ -100,13 +109,13 @@ class LocationManager extends Component
         try {
             $location = Location::findOrFail($locationId);
             $locationCode = $location->code;
-            
+
             $location->delete();
-            
+
             $this->successMessage = "Location '{$locationCode}' deleted successfully.";
-            
+
         } catch (\Exception $e) {
-            $this->errorMessage = 'Failed to delete location: ' . $e->getMessage();
+            $this->errorMessage = 'Failed to delete location: '.$e->getMessage();
         }
     }
 
@@ -114,13 +123,13 @@ class LocationManager extends Component
     {
         try {
             $location = Location::findOrFail($locationId);
-            $location->update(['is_active' => !$location->is_active]);
-            
+            $location->update(['is_active' => ! $location->is_active]);
+
             $status = $location->is_active ? 'activated' : 'deactivated';
             $this->successMessage = "Location '{$location->code}' {$status} successfully.";
-            
+
         } catch (\Exception $e) {
-            $this->errorMessage = 'Failed to update location status: ' . $e->getMessage();
+            $this->errorMessage = 'Failed to update location status: '.$e->getMessage();
         }
     }
 
@@ -133,43 +142,43 @@ class LocationManager extends Component
         try {
             $linnworksService = app(LinnworksApiService::class);
             $locations = $linnworksService->getLocations();
-            
+
             $synced = 0;
             $updated = 0;
-            
+
             foreach ($locations as $locationData) {
                 // Handle multiple possible field names from different API responses
-                $locationId = $locationData['StockLocationId'] 
-                    ?? $locationData['LocationId'] 
-                    ?? $locationData['Id'] 
+                $locationId = $locationData['StockLocationId']
+                    ?? $locationData['LocationId']
+                    ?? $locationData['Id']
                     ?? null;
-                    
-                $locationName = $locationData['LocationName'] 
-                    ?? $locationData['Name'] 
+
+                $locationName = $locationData['LocationName']
+                    ?? $locationData['Name']
                     ?? $locationData['BinRack']
                     ?? "Location {$locationId}";
-                
+
                 if ($locationId) {
                     $location = Location::createOrUpdateFromLinnworks($locationId, $locationName);
-                    
+
                     if ($location->wasRecentlyCreated) {
                         $synced++;
                     } else {
                         $updated++;
                     }
-                    
-                    \Log::channel('inventory')->info("Processed location", [
+
+                    \Log::channel('inventory')->info('Processed location', [
                         'location_id' => $locationId,
                         'location_name' => $locationName,
-                        'action' => $location->wasRecentlyCreated ? 'created' : 'updated'
+                        'action' => $location->wasRecentlyCreated ? 'created' : 'updated',
                     ]);
                 }
             }
-            
+
             $this->successMessage = "Sync completed: {$synced} new locations created, {$updated} locations updated.";
-            
+
         } catch (\Exception $e) {
-            $this->errorMessage = 'Failed to sync from Linnworks: ' . $e->getMessage();
+            $this->errorMessage = 'Failed to sync from Linnworks: '.$e->getMessage();
         } finally {
             $this->isProcessingSync = false;
         }
@@ -189,7 +198,7 @@ class LocationManager extends Component
             $query->search($this->search);
         }
 
-        if (!$this->showInactiveLocations) {
+        if (! $this->showInactiveLocations) {
             $query->where('is_active', true);
         }
 

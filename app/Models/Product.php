@@ -41,7 +41,7 @@ class Product extends Model
                 });
         });
     }
-    
+
     /**
      * Get the pending updates for this product
      */

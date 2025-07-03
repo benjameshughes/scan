@@ -21,7 +21,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true)->comment('Whether location is active');
             $table->string('qr_code')->nullable()->comment('QR code for location (optional)');
             $table->timestamps();
-            
+
             $table->index(['is_active', 'last_used_at']);
             $table->index(['use_count', 'last_used_at']);
         });

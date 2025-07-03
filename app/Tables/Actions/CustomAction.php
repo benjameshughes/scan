@@ -5,10 +5,15 @@ namespace App\Tables\Actions;
 class CustomAction extends BaseAction
 {
     protected ?string $type = 'custom';
+
     protected $urlCallback;
+
     protected ?string $livewireMethod = null;
+
     protected ?\Closure $actionCallback = null;
+
     protected ?\Closure $dynamicLabelCallback = null;
+
     protected ?\Closure $dynamicIconCallback = null;
 
     public function __construct(string $label, $urlCallback = null)
@@ -21,6 +26,7 @@ class CustomAction extends BaseAction
     {
         $this->livewireMethod = $method;
         $this->type = 'livewire';
+
         return $this;
     }
 
@@ -28,18 +34,21 @@ class CustomAction extends BaseAction
     {
         $this->actionCallback = $callback;
         $this->type = 'callback';
+
         return $this;
     }
 
     public function dynamicLabel(\Closure $callback): self
     {
         $this->dynamicLabelCallback = $callback;
+
         return $this;
     }
 
     public function dynamicIcon(\Closure $callback): self
     {
         $this->dynamicIconCallback = $callback;
+
         return $this;
     }
 
@@ -62,17 +71,17 @@ class CustomAction extends BaseAction
     public function toArray($record): array
     {
         $array = parent::toArray($record);
-        
+
         // Handle dynamic labels
         if ($this->dynamicLabelCallback) {
             $array['label'] = call_user_func($this->dynamicLabelCallback, $record);
         }
-        
+
         // Handle dynamic icons
         if ($this->dynamicIconCallback) {
             $array['icon'] = call_user_func($this->dynamicIconCallback, $record);
         }
-        
+
         // Set Livewire method for secure action handling
         if ($this->livewireMethod) {
             $array['livewire_method'] = $this->livewireMethod;

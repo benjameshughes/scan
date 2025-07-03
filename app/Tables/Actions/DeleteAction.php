@@ -5,15 +5,21 @@ namespace App\Tables\Actions;
 class DeleteAction extends BaseAction
 {
     protected string $label = 'Delete';
+
     protected ?string $icon = 'trash';
+
     protected ?string $color = 'red';
+
     protected ?string $type = 'delete';
+
     protected ?string $action = null;
+
     protected ?string $confirmMessage = 'Are you sure you want to delete this item?';
 
     public function action(string $action): self
     {
         $this->action = $action;
+
         return $this;
     }
 
@@ -37,6 +43,7 @@ class DeleteAction extends BaseAction
         $array = parent::toArray($record);
         $array['action'] = $this->getAction($record);
         unset($array['url']); // Delete actions don't use URLs
+
         return $array;
     }
 

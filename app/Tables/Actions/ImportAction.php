@@ -5,10 +5,12 @@ namespace App\Tables\Actions;
 class ImportAction extends CustomAction
 {
     protected string $label = 'Import';
+
     protected ?string $icon = 'upload';
+
     protected ?string $color = 'purple';
 
-    public function __construct(string $label = null)
+    public function __construct(?string $label = null)
     {
         parent::__construct($label ?? $this->label);
         $this->requiresPermission = false; // Import typically doesn't relate to specific records
@@ -19,6 +21,7 @@ class ImportAction extends CustomAction
         $this->urlCallback = function ($record) use ($route) {
             return route($route);
         };
+
         return $this;
     }
 

@@ -4,7 +4,6 @@ namespace App\Livewire;
 
 use App\Models\Location;
 use App\Models\StockMovement;
-use App\Services\LinnworksApiService;
 use Livewire\Component;
 
 class LocationsDashboard extends Component
@@ -12,7 +11,7 @@ class LocationsDashboard extends Component
     public function mount()
     {
         // Check if user has permission to view locations dashboard
-        if (!auth()->user()->can('view locations')) {
+        if (! auth()->user()->can('view locations')) {
             abort(403, 'You do not have permission to view the locations dashboard.');
         }
     }
@@ -74,9 +73,9 @@ class LocationsDashboard extends Component
         }
 
         // Get locations that need attention (inactive or never used)
-        $locationsNeedingAttention = Location::where(function($query) {
+        $locationsNeedingAttention = Location::where(function ($query) {
             $query->where('is_active', false)
-                  ->orWhereNull('last_used_at');
+                ->orWhereNull('last_used_at');
         })->limit(5)->get();
 
         return view('livewire.locations-dashboard', [

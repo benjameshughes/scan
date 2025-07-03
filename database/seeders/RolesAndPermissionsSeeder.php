@@ -180,9 +180,9 @@ class RolesAndPermissionsSeeder extends Seeder
         foreach ($users as $user) {
             $role = fake()->randomElement([
                 'user',            // 40% - Basic scanner users
-                'user',            
-                'user',            
-                'user',            
+                'user',
+                'user',
+                'user',
                 'warehouse_worker', // 30% - Warehouse workers
                 'warehouse_worker',
                 'warehouse_worker',

@@ -2,14 +2,14 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class Location extends Model
 {
     protected $fillable = [
         'location_id',
-        'code', 
+        'code',
         'name',
         'use_count',
         'last_used_at',
@@ -49,9 +49,9 @@ class Location extends Model
      */
     public function scopeSearch(Builder $query, string $search): Builder
     {
-        return $query->where(function($q) use ($search) {
+        return $query->where(function ($q) use ($search) {
             $q->where('code', 'LIKE', "%{$search}%")
-              ->orWhere('name', 'LIKE', "%{$search}%");
+                ->orWhere('name', 'LIKE', "%{$search}%");
         });
     }
 

@@ -35,10 +35,15 @@ class CreateForm extends Component
     public $to_location_id;
 
     public $success_message = '';
+
     public $error_message = '';
+
     public $product_search = '';
+
     public $selected_product = null;
+
     public $show_location_suggestions = true;
+
     public $recently_used_locations = [];
 
     public function save()
@@ -60,26 +65,26 @@ class CreateForm extends Component
                 'metadata' => [
                     'manually_created' => true,
                     'created_by' => auth()->user()->name,
-                ]
+                ],
             ]);
 
             $this->success_message = 'Stock movement created successfully!';
             $this->error_message = '';
-            
+
             // Redirect to the new movement using Livewire redirect
             $this->redirect(route('locations.movements.show', $movement), navigate: true);
-            
+
         } catch (\Exception $e) {
-            $this->error_message = 'Failed to create movement: ' . $e->getMessage();
+            $this->error_message = 'Failed to create movement: '.$e->getMessage();
             $this->success_message = '';
-            
+
             // Log the full error for debugging
             \Log::error('Stock movement creation failed', [
                 'error' => $e->getMessage(),
                 'user_id' => auth()->id(),
                 'product_id' => $this->product_id,
                 'quantity' => $this->quantity,
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
         }
     }
@@ -87,10 +92,10 @@ class CreateForm extends Component
     public function updatedProductSearch()
     {
         if (strlen($this->product_search) >= 2) {
-            $product = Product::where('sku', 'like', '%' . $this->product_search . '%')
-                              ->orWhere('name', 'like', '%' . $this->product_search . '%')
-                              ->first();
-            
+            $product = Product::where('sku', 'like', '%'.$this->product_search.'%')
+                ->orWhere('name', 'like', '%'.$this->product_search.'%')
+                ->first();
+
             if ($product) {
                 $this->selected_product = $product;
                 $this->product_id = $product->id;
@@ -129,7 +134,7 @@ class CreateForm extends Component
 
     public function toggleLocationSuggestions()
     {
-        $this->show_location_suggestions = !$this->show_location_suggestions;
+        $this->show_location_suggestions = ! $this->show_location_suggestions;
     }
 
     public function clearFromLocation()
@@ -148,29 +153,29 @@ class CreateForm extends Component
     {
         $tempCode = $this->from_location_code;
         $tempId = $this->from_location_id;
-        
+
         $this->from_location_code = $this->to_location_code;
         $this->from_location_id = $this->to_location_id;
-        
+
         $this->to_location_code = $tempCode;
         $this->to_location_id = $tempId;
-        
+
         $this->dispatch('locations-swapped');
     }
 
     private function addToRecentlyUsed($locationCode, $locationId = null)
     {
         $location = ['code' => $locationCode, 'id' => $locationId];
-        
+
         // Remove if already exists
         $this->recently_used_locations = array_filter(
             $this->recently_used_locations,
-            fn($loc) => $loc['code'] !== $locationCode
+            fn ($loc) => $loc['code'] !== $locationCode
         );
-        
+
         // Add to beginning
         array_unshift($this->recently_used_locations, $location);
-        
+
         // Keep only last 5
         $this->recently_used_locations = array_slice($this->recently_used_locations, 0, 5);
     }
@@ -187,18 +192,18 @@ class CreateForm extends Component
     {
         try {
             return Location::where('is_active', true)
-                           ->orderBy('use_count', 'desc')
-                           ->orderBy('code')
-                           ->get()
-                           ->map(function ($location) {
-                               return [
-                                   'id' => $location->location_id,
-                                   'code' => $location->code,
-                                   'name' => $location->name,
-                                   'use_count' => $location->use_count ?? 0,
-                                   'last_used' => $location->last_used_at ? $location->last_used_at->diffForHumans() : null,
-                               ];
-                           });
+                ->orderBy('use_count', 'desc')
+                ->orderBy('code')
+                ->get()
+                ->map(function ($location) {
+                    return [
+                        'id' => $location->location_id,
+                        'code' => $location->code,
+                        'name' => $location->name,
+                        'use_count' => $location->use_count ?? 0,
+                        'last_used' => $location->last_used_at ? $location->last_used_at->diffForHumans() : null,
+                    ];
+                });
         } catch (\Exception $e) {
             // Return empty array if there's an error
             return collect([]);

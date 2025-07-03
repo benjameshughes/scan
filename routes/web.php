@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Route;
 | Public Routes
 |--------------------------------------------------------------------------
 */
- Route::redirect('/', 'dashboard')->name('home');
+Route::redirect('/', 'dashboard')->name('home');
 Route::get('/invite/{token}', Accept::class)->name('invite.accept')->middleware(IsInviteValid::class);
 
 // Redirect registration attempts to login with message
@@ -142,14 +142,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 return view('locations.dashboard');
             })->name('dashboard');
         });
-        
+
         // Location management - require manage locations permission
         Route::middleware('permission:manage locations')->group(function () {
             Route::get('manage', function () {
                 return view('locations.manage');
             })->name('manage');
         });
-        
+
         // Stock movement routes - require stock movement permissions
         Route::middleware('permission:view stock movements')->group(function () {
             Route::get('movements', function () {
@@ -159,23 +159,24 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 return view('locations.movements.show', compact('movement'));
             })->name('movements.show');
         });
-        
+
         Route::middleware('permission:create stock movements')->group(function () {
             Route::get('movements/create', function () {
                 return view('locations.movements.create');
             })->name('movements.create');
         });
-        
+
         Route::middleware('permission:edit stock movements')->group(function () {
             Route::get('movements/{movement}/edit', function (App\Models\StockMovement $movement) {
                 return view('locations.movements.edit', compact('movement'));
             })->name('movements.edit');
         });
-        
+
         // Debug route to test location endpoints
         Route::get('debug-endpoints', function () {
             $linnworksService = app(\App\Services\LinnworksApiService::class);
             $results = $linnworksService->debugLocationEndpoints();
+
             return response()->json($results, 200, [], JSON_PRETTY_PRINT);
         })->name('debug');
     });
@@ -189,7 +190,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('pending-updates', function () {
             return view('admin.pending-updates');
         })->name('pending-updates');
-        
+
         Route::get('manual-sync', function () {
             return view('admin.manual-sync');
         })->name('manual-sync');

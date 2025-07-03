@@ -37,8 +37,18 @@ return new class extends Migration
             'manage locations',            // Manage stock locations (high level)
         ];
 
-        // Create all new permissions
+        // Create all new permissions first
         foreach (array_merge($stockMovementPermissions, $locationPermissions) as $permission) {
+            Permission::findOrCreate($permission);
+        }
+
+        // Ensure basic permissions exist (they should from the seeder)
+        $basicPermissions = [
+            'view scanner', 'create scans', 'view scans', 'view products', 'refill bays',
+            'view users', 'create users', 'edit users'
+        ];
+        
+        foreach ($basicPermissions as $permission) {
             Permission::findOrCreate($permission);
         }
 
@@ -60,7 +70,7 @@ return new class extends Migration
     private function createStockManagerRole(array $stockMovementPermissions, array $locationPermissions): void
     {
         $stockManagerRole = Role::findOrCreate('stock_manager');
-        
+
         $stockManagerPermissions = [
             // Basic user permissions
             'view scanner',
@@ -91,7 +101,7 @@ return new class extends Migration
     private function createSupervisorRole(array $stockMovementPermissions, array $locationPermissions): void
     {
         $supervisorRole = Role::findOrCreate('supervisor');
-        
+
         $supervisorPermissions = [
             // All stock manager permissions
             'view scanner',
@@ -130,7 +140,7 @@ return new class extends Migration
     private function createWarehouseWorkerRole(array $stockMovementPermissions, array $locationPermissions): void
     {
         $warehouseWorkerRole = Role::findOrCreate('warehouse_worker');
-        
+
         $warehouseWorkerPermissions = [
             // Basic scanner permissions
             'view scanner',

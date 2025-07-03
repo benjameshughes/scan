@@ -17,7 +17,6 @@ class ProductsTable extends TableComponent
 
     protected ?string $title = 'Products Management';
 
-
     public function table(Table $table): Table
     {
         return parent::table($table)
@@ -96,5 +95,4 @@ class ProductsTable extends TableComponent
     {
         $this->redirect(route('products.create'));
     }
-
 }

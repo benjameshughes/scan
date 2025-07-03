@@ -14,20 +14,30 @@ use App\Tables\TableComponent;
 class LocationsTable extends TableComponent
 {
     protected ?string $model = Location::class;
+
     protected ?string $title = 'Locations';
+
     protected array $searchable = ['code', 'name', 'qr_code'];
 
     public bool $showInactiveLocations = false;
+
     public bool $isProcessingSync = false;
+
     public string $successMessage = '';
+
     public string $errorMessage = '';
 
     // Form state for editing
     public bool $showEditModal = false;
+
     public ?int $editingLocationId = null;
+
     public string $editCode = '';
+
     public string $editName = '';
+
     public string $editQrCode = '';
+
     public bool $editIsActive = true;
 
     protected $rules = [
@@ -50,20 +60,21 @@ class LocationsTable extends TableComponent
                     ->searchable()
                     ->render(function ($record) {
                         $html = '<div>';
-                        $html .= '<div class="text-sm font-medium text-gray-900 dark:text-gray-100">' . e($record->code) . '</div>';
-                        
+                        $html .= '<div class="text-sm font-medium text-gray-900 dark:text-gray-100">'.e($record->code).'</div>';
+
                         if ($record->name && $record->name !== $record->code) {
-                            $html .= '<div class="text-xs text-zinc-500 dark:text-zinc-400">' . e($record->name) . '</div>';
+                            $html .= '<div class="text-xs text-zinc-500 dark:text-zinc-400">'.e($record->name).'</div>';
                         }
-                        
+
                         if ($record->qr_code) {
                             $html .= '<div class="flex items-center gap-1 mt-1">';
                             $html .= '<flux:icon.qr-code class="size-3 text-zinc-400 dark:text-zinc-500" />';
-                            $html .= '<span class="text-xs text-zinc-400 dark:text-zinc-500 font-mono">' . e($record->qr_code) . '</span>';
+                            $html .= '<span class="text-xs text-zinc-400 dark:text-zinc-500 font-mono">'.e($record->qr_code).'</span>';
                             $html .= '</div>';
                         }
-                        
+
                         $html .= '</div>';
+
                         return $html;
                     }),
 
@@ -74,7 +85,7 @@ class LocationsTable extends TableComponent
                         return '<div class="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
                                     <span class="flex items-center gap-1">
                                         <flux:icon.arrow-trending-up class="size-3" />
-                                        ' . $record->use_count . ' uses
+                                        '.$record->use_count.' uses
                                     </span>
                                 </div>';
                     }),
@@ -83,21 +94,21 @@ class LocationsTable extends TableComponent
                     ->label('Status')
                     ->sortable()
                     ->render(function ($record) {
-                        $class = $record->is_active 
+                        $class = $record->is_active
                             ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
                             : 'bg-zinc-100 text-zinc-800 dark:bg-zinc-700 dark:text-zinc-200';
-                        
+
                         $text = $record->is_active ? 'Active' : 'Inactive';
-                        
-                        return '<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ' . $class . '">' . $text . '</span>';
+
+                        return '<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium '.$class.'">'.$text.'</span>';
                     }),
 
                 DateColumn::make('last_used_at')
                     ->label('Last Used')
                     ->sortable()
                     ->render(function ($record) {
-                        return '<span class="text-sm text-zinc-500 dark:text-zinc-400">' . 
-                               ($record->last_used_at ? $record->last_used_at->diffForHumans() : 'Never') . 
+                        return '<span class="text-sm text-zinc-500 dark:text-zinc-400">'.
+                               ($record->last_used_at ? $record->last_used_at->diffForHumans() : 'Never').
                                '</span>';
                     }),
 
@@ -108,13 +119,13 @@ class LocationsTable extends TableComponent
                             'icon' => 'pencil',
                             'label' => 'Edit',
                             'variant' => 'ghost',
-                            'size' => 'xs'
+                            'size' => 'xs',
                         ],
                         'toggle' => [
-                            'icon' => fn($record) => $record->is_active ? 'eye-slash' : 'eye',
-                            'label' => fn($record) => $record->is_active ? 'Deactivate' : 'Activate',
+                            'icon' => fn ($record) => $record->is_active ? 'eye-slash' : 'eye',
+                            'label' => fn ($record) => $record->is_active ? 'Deactivate' : 'Activate',
                             'variant' => 'ghost',
-                            'size' => 'xs'
+                            'size' => 'xs',
                         ],
                         'delete' => [
                             'icon' => 'trash',
@@ -122,9 +133,9 @@ class LocationsTable extends TableComponent
                             'variant' => 'ghost',
                             'size' => 'xs',
                             'class' => 'text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300',
-                            'confirm' => 'Are you sure you want to delete this location? This action cannot be undone.'
-                        ]
-                    ])
+                            'confirm' => 'Are you sure you want to delete this location? This action cannot be undone.',
+                        ],
+                    ]),
             ])
             ->headerActions([
                 [
@@ -133,8 +144,8 @@ class LocationsTable extends TableComponent
                     'icon' => 'arrow-path',
                     'variant' => 'filled',
                     'size' => 'sm',
-                    'loading' => 'isProcessingSync'
-                ]
+                    'loading' => 'isProcessingSync',
+                ],
             ])
             ->filters([
                 [
@@ -143,11 +154,11 @@ class LocationsTable extends TableComponent
                     'type' => 'boolean',
                     'default' => false,
                     'apply' => function ($query, $value) {
-                        if (!$value) {
+                        if (! $value) {
                             $query->where('is_active', true);
                         }
-                    }
-                ]
+                    },
+                ],
             ])
             ->defaultSort('use_count', 'desc')
             ->perPage(15)
@@ -163,8 +174,8 @@ class LocationsTable extends TableComponent
     protected function applyFilters($query)
     {
         parent::applyFilters($query);
-        
-        if (!$this->showInactiveLocations) {
+
+        if (! $this->showInactiveLocations) {
             $query->where('is_active', true);
         }
     }
@@ -172,14 +183,14 @@ class LocationsTable extends TableComponent
     public function editLocation($locationId)
     {
         $location = Location::findOrFail($locationId);
-        
+
         $this->editingLocationId = $location->id;
         $this->editCode = $location->code;
         $this->editName = $location->name ?? '';
         $this->editQrCode = $location->qr_code ?? '';
         $this->editIsActive = $location->is_active;
         $this->showEditModal = true;
-        
+
         $this->resetValidation();
     }
 
@@ -199,7 +210,7 @@ class LocationsTable extends TableComponent
 
         try {
             $location = Location::findOrFail($this->editingLocationId);
-            
+
             $location->update([
                 'code' => $this->editCode,
                 'name' => $this->editName ?: null,
@@ -210,9 +221,9 @@ class LocationsTable extends TableComponent
             $this->successMessage = "Location '{$location->code}' updated successfully.";
             $this->showEditModal = false;
             $this->resetEditForm();
-            
+
         } catch (\Exception $e) {
-            $this->errorMessage = 'Failed to update location: ' . $e->getMessage();
+            $this->errorMessage = 'Failed to update location: '.$e->getMessage();
         }
     }
 
@@ -237,13 +248,13 @@ class LocationsTable extends TableComponent
         try {
             $location = Location::findOrFail($locationId);
             $locationCode = $location->code;
-            
+
             $location->delete();
-            
+
             $this->successMessage = "Location '{$locationCode}' deleted successfully.";
-            
+
         } catch (\Exception $e) {
-            $this->errorMessage = 'Failed to delete location: ' . $e->getMessage();
+            $this->errorMessage = 'Failed to delete location: '.$e->getMessage();
         }
     }
 
@@ -251,13 +262,13 @@ class LocationsTable extends TableComponent
     {
         try {
             $location = Location::findOrFail($locationId);
-            $location->update(['is_active' => !$location->is_active]);
-            
+            $location->update(['is_active' => ! $location->is_active]);
+
             $status = $location->is_active ? 'activated' : 'deactivated';
             $this->successMessage = "Location '{$location->code}' {$status} successfully.";
-            
+
         } catch (\Exception $e) {
-            $this->errorMessage = 'Failed to update location status: ' . $e->getMessage();
+            $this->errorMessage = 'Failed to update location status: '.$e->getMessage();
         }
     }
 
@@ -270,43 +281,43 @@ class LocationsTable extends TableComponent
         try {
             $linnworksService = app(LinnworksApiService::class);
             $locations = $linnworksService->getLocations();
-            
+
             $synced = 0;
             $updated = 0;
-            
+
             foreach ($locations as $locationData) {
                 // Handle multiple possible field names from different API responses
-                $locationId = $locationData['StockLocationId'] 
-                    ?? $locationData['LocationId'] 
-                    ?? $locationData['Id'] 
+                $locationId = $locationData['StockLocationId']
+                    ?? $locationData['LocationId']
+                    ?? $locationData['Id']
                     ?? null;
-                    
-                $locationName = $locationData['LocationName'] 
-                    ?? $locationData['Name'] 
+
+                $locationName = $locationData['LocationName']
+                    ?? $locationData['Name']
                     ?? $locationData['BinRack']
                     ?? "Location {$locationId}";
-                
+
                 if ($locationId) {
                     $location = Location::createOrUpdateFromLinnworks($locationId, $locationName);
-                    
+
                     if ($location->wasRecentlyCreated) {
                         $synced++;
                     } else {
                         $updated++;
                     }
-                    
-                    \Log::channel('inventory')->info("Processed location", [
+
+                    \Log::channel('inventory')->info('Processed location', [
                         'location_id' => $locationId,
                         'location_name' => $locationName,
-                        'action' => $location->wasRecentlyCreated ? 'created' : 'updated'
+                        'action' => $location->wasRecentlyCreated ? 'created' : 'updated',
                     ]);
                 }
             }
-            
+
             $this->successMessage = "Sync completed: {$synced} new locations created, {$updated} locations updated.";
-            
+
         } catch (\Exception $e) {
-            $this->errorMessage = 'Failed to sync from Linnworks: ' . $e->getMessage();
+            $this->errorMessage = 'Failed to sync from Linnworks: '.$e->getMessage();
         } finally {
             $this->isProcessingSync = false;
         }

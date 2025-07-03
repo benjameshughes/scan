@@ -15,7 +15,7 @@ class FailedScanList extends Component
         return view('livewire.dashboard.failed-scan-list', [
             'scans' => Scan::where(function ($query) {
                 $query->whereNull('submitted_at')
-                      ->orWhere('sync_status', 'failed');
+                    ->orWhere('sync_status', 'failed');
             })->orderBy('created_at', 'desc')->paginate(10),
         ]);
     }

@@ -5,7 +5,6 @@ use App\Models\Product;
 use App\Models\StockMovement;
 use App\Models\User;
 use App\Services\LinnworksApiService;
-use Illuminate\Support\Facades\Log;
 use Livewire\Livewire;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -15,24 +14,24 @@ beforeEach(function () {
     $adminRole = Role::firstOrCreate(['name' => 'admin']);
     $viewScannerPermission = Permission::firstOrCreate(['name' => 'view scanner']);
     $refillBaysPermission = Permission::firstOrCreate(['name' => 'refill bays']);
-    
+
     $adminRole->givePermissionTo([$viewScannerPermission, $refillBaysPermission]);
-    
+
     // Create admin user
     $this->adminUser = User::factory()->create();
     $this->adminUser->assignRole('admin');
-    
+
     // Create regular user
     $this->regularUser = User::factory()->create();
     $this->regularUser->givePermissionTo('view scanner');
-    
+
     // Create test product
     $this->product = Product::factory()->create([
         'name' => 'Test Refill Product',
         'sku' => 'TEST-REFILL-001',
         'barcode' => '5059031234567',
     ]);
-    
+
     // Mock Linnworks service
     $this->mockLinnworksService = $this->mock(LinnworksApiService::class);
 });
@@ -58,20 +57,20 @@ describe('ProductScanner Refill Functionality', function () {
                     'Location' => [
                         'StockLocationId' => 'loc-001',
                         'LocationName' => 'Warehouse A',
-                        'LocationCode' => 'WH-A'
+                        'LocationCode' => 'WH-A',
                     ],
                     'StockLevel' => 50,
-                    'Quantity' => 50
+                    'Quantity' => 50,
                 ],
                 [
                     'Location' => [
-                        'StockLocationId' => 'loc-002', 
+                        'StockLocationId' => 'loc-002',
                         'LocationName' => 'Warehouse B',
-                        'LocationCode' => 'WH-B'
+                        'LocationCode' => 'WH-B',
                     ],
                     'StockLevel' => 25,
-                    'Quantity' => 25
-                ]
+                    'Quantity' => 25,
+                ],
             ];
 
             $this->mockLinnworksService
@@ -94,10 +93,10 @@ describe('ProductScanner Refill Functionality', function () {
                 [
                     'Location' => [
                         'StockLocationId' => 'loc-001',
-                        'LocationName' => 'Warehouse A'
+                        'LocationName' => 'Warehouse A',
                     ],
-                    'StockLevel' => 100
-                ]
+                    'StockLevel' => 100,
+                ],
             ];
 
             $component = Livewire::test(ProductScanner::class)
@@ -113,10 +112,10 @@ describe('ProductScanner Refill Functionality', function () {
                 [
                     'Location' => [
                         'StockLocationId' => 'loc-001',
-                        'LocationName' => 'Warehouse A'
+                        'LocationName' => 'Warehouse A',
                     ],
-                    'StockLevel' => 10
-                ]
+                    'StockLevel' => 10,
+                ],
             ];
 
             Livewire::test(ProductScanner::class)
@@ -133,10 +132,10 @@ describe('ProductScanner Refill Functionality', function () {
                 [
                     'Location' => [
                         'StockLocationId' => 'loc-001',
-                        'LocationName' => 'Warehouse A'
+                        'LocationName' => 'Warehouse A',
                     ],
-                    'StockLevel' => 5
-                ]
+                    'StockLevel' => 5,
+                ],
             ];
 
             Livewire::test(ProductScanner::class)
@@ -168,10 +167,10 @@ describe('ProductScanner Refill Functionality', function () {
                     'Location' => [
                         'StockLocationId' => 'loc-001',
                         'LocationName' => 'Warehouse A',
-                        'LocationCode' => 'WH-A'
+                        'LocationCode' => 'WH-A',
                     ],
-                    'StockLevel' => 50
-                ]
+                    'StockLevel' => 50,
+                ],
             ];
 
             $this->mockLinnworksService
@@ -202,10 +201,10 @@ describe('ProductScanner Refill Functionality', function () {
                 [
                     'Location' => [
                         'StockLocationId' => 'loc-001',
-                        'LocationName' => 'Warehouse A'
+                        'LocationName' => 'Warehouse A',
                     ],
-                    'StockLevel' => 3 // Only 3 available
-                ]
+                    'StockLevel' => 3, // Only 3 available
+                ],
             ];
 
             // Test that real-time validation auto-corrects excessive quantities
@@ -330,17 +329,17 @@ describe('ProductScanner Refill Functionality', function () {
                 [
                     'Location' => [
                         'StockLocationId' => 'default-loc',
-                        'LocationName' => 'Default Location'
+                        'LocationName' => 'Default Location',
                     ],
-                    'StockLevel' => 100
+                    'StockLevel' => 100,
                 ],
                 [
                     'Location' => [
                         'StockLocationId' => 'only-option',
-                        'LocationName' => 'Only Option'
+                        'LocationName' => 'Only Option',
                     ],
-                    'StockLevel' => 50
-                ]
+                    'StockLevel' => 50,
+                ],
             ];
 
             $this->mockLinnworksService
@@ -367,10 +366,10 @@ describe('ProductScanner Refill Functionality', function () {
                     'Location' => [
                         'StockLocationId' => 'loc-001',
                         'LocationName' => 'Test Location',
-                        'LocationCode' => 'TEST-LOC'
+                        'LocationCode' => 'TEST-LOC',
                     ],
-                    'StockLevel' => 25
-                ]
+                    'StockLevel' => 25,
+                ],
             ];
 
             $this->mockLinnworksService
@@ -391,16 +390,16 @@ describe('ProductScanner Refill Functionality', function () {
                 ->set('barcode', $this->product->barcode)
                 ->set('product', $this->product)
                 ->assertSet('barcodeScanned', true)
-                
+
                 // 2. Open refill form
                 ->call('showRefillBayForm')
                 ->assertSet('showRefillForm', true)
-                
+
                 // 3. Select location and quantity
                 ->dispatch('locationChanged', 'loc-001')
                 ->assertSet('selectedLocationId', 'loc-001')
                 ->set('refillQuantity', 3)
-                
+
                 // 4. Submit refill
                 ->call('submitRefill')
                 ->assertSet('showSuccessMessage', true)

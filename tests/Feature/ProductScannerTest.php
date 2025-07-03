@@ -14,9 +14,9 @@ beforeEach(function () {
     $adminRole = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'admin']);
     $viewScannerPermission = \Spatie\Permission\Models\Permission::firstOrCreate(['name' => 'view scanner']);
     $refillBaysPermission = \Spatie\Permission\Models\Permission::firstOrCreate(['name' => 'refill bays']);
-    
+
     $adminRole->givePermissionTo([$viewScannerPermission, $refillBaysPermission]);
-    
+
     // Create admin user with proper permissions
     $this->user = User::factory()->create();
     $this->user->assignRole('admin');
@@ -122,7 +122,7 @@ describe('ProductScanner Component', function () {
                 ->assertSet('showSuccessMessage', false); // Success message shows different behavior now
         });
 
-        test('barcode that matches product with null name shows fallback message', function () {
+        test('barcode that matches product with null name shows product without success message', function () {
             $product = Product::factory()->create([
                 'name' => null,
                 'barcode' => '5059031234567',
@@ -130,8 +130,9 @@ describe('ProductScanner Component', function () {
 
             Livewire::test(ProductScanner::class)
                 ->set('barcode', $product->barcode)
-                ->assertSet('successMessage', 'Product Found')
-                ->assertSet('showSuccessMessage', true);
+                ->assertSet('product.id', $product->id)
+                ->assertSet('barcodeScanned', true)
+                ->assertSet('showSuccessMessage', false); // Product found = no success message
         });
 
         test('valid barcode with no matching product shows not found message', function () {
@@ -140,7 +141,7 @@ describe('ProductScanner Component', function () {
             Livewire::test(ProductScanner::class)
                 ->set('barcode', $validBarcodeNotInDb)
                 ->assertSet('product', null)
-                ->assertSet('successMessage', 'No Product Found With That Barcode')
+                ->assertSet('successMessage', 'No Product Found With That Barcode - You can still submit the scan')
                 ->assertSet('showSuccessMessage', true);
         });
 
@@ -155,7 +156,8 @@ describe('ProductScanner Component', function () {
             Livewire::test(ProductScanner::class)
                 ->set('barcode', '5059031234567')
                 ->assertSet('product.name', 'Test Product 2')
-                ->assertSet('successMessage', 'Test Product 2');
+                ->assertSet('barcodeScanned', true)
+                ->assertSet('showSuccessMessage', false); // Product found = no success message
         });
 
         test('product matching works with tertiary barcodes', function () {
@@ -169,7 +171,8 @@ describe('ProductScanner Component', function () {
             Livewire::test(ProductScanner::class)
                 ->set('barcode', '5059031234567')
                 ->assertSet('product.name', 'Test Product 3')
-                ->assertSet('successMessage', 'Test Product 3');
+                ->assertSet('barcodeScanned', true)
+                ->assertSet('showSuccessMessage', false); // Product found = no success message
         });
     });
 
@@ -415,8 +418,7 @@ describe('ProductScanner Component', function () {
                 ->assertSet('isScanning', false)
                 ->assertSet('cameraError', '')
                 ->assertSet('product.name', 'Detected Product')
-                ->assertSet('successMessage', 'Detected Product')
-                ->assertSet('showSuccessMessage', true);
+                ->assertSet('showSuccessMessage', false); // Product found = no success message
         });
     });
 

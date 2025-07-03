@@ -20,7 +20,7 @@ describe('Pagination System', function () {
             $completedScan = Scan::factory()->create(['submitted_at' => now(), 'sync_status' => 'completed']);
 
             $component = Livewire::test(Dashboard::class);
-            
+
             // Should see failed and pending scans
             $scans = $component->viewData('scans');
             expect($scans->pluck('id')->toArray())
@@ -33,12 +33,12 @@ describe('Pagination System', function () {
             // Create enough failed scans for multiple pages (Dashboard shows 5 per page)
             Scan::factory()->count(12)->create([
                 'submitted_at' => null,
-                'sync_status' => 'pending'
+                'sync_status' => 'pending',
             ]);
 
             $component = Livewire::test(Dashboard::class);
             $scans = $component->viewData('scans');
-            
+
             // Should have pagination
             expect($scans->hasPages())->toBeTrue();
             expect($scans->total())->toBe(12);
@@ -54,7 +54,7 @@ describe('Pagination System', function () {
 
             $component = Livewire::test(FailedScanList::class);
             $scans = $component->viewData('scans');
-            
+
             expect($scans->pluck('id')->toArray())
                 ->toContain($failedScan->id)
                 ->toContain($unsubmittedScan->id)
@@ -66,7 +66,7 @@ describe('Pagination System', function () {
 
             $component = Livewire::test(FailedScanList::class);
             $scans = $component->viewData('scans');
-            
+
             // Should have pagination
             expect($scans->hasPages())->toBeTrue();
             expect($scans->total())->toBe(25);
@@ -78,12 +78,12 @@ describe('Pagination System', function () {
         it('renders simple pagination view with multiple pages', function () {
             Scan::factory()->count(20)->create();
             $paginated = Scan::query()->paginate(5);
-            
+
             // Only test if pagination actually renders (multiple pages)
             if ($paginated->hasPages()) {
                 $view = view('pagination.simple', ['paginator' => $paginated]);
                 $html = $view->render();
-                
+
                 expect($html)
                     ->toContain('Previous')
                     ->toContain('Next')
@@ -100,11 +100,11 @@ describe('Pagination System', function () {
         it('simple pagination shows page numbers correctly', function () {
             Scan::factory()->count(20)->create();
             $paginated = Scan::query()->paginate(5);
-            
+
             if ($paginated->hasPages()) {
                 $view = view('pagination.simple', ['paginator' => $paginated]);
                 $html = $view->render();
-                
+
                 expect($html)
                     ->toContain('Page')
                     ->toContain('of')
@@ -116,10 +116,10 @@ describe('Pagination System', function () {
         it('simple pagination handles single page correctly', function () {
             Scan::factory()->count(3)->create();
             $paginated = Scan::query()->paginate(10); // Single page
-            
+
             $view = view('pagination.simple', ['paginator' => $paginated]);
             $html = $view->render();
-            
+
             // Should be minimal when only one page (just blade comments)
             expect(trim(strip_tags($html)))->toBe('');
         });
@@ -127,11 +127,11 @@ describe('Pagination System', function () {
         it('simple pagination includes dark mode classes when paginated', function () {
             Scan::factory()->count(15)->create();
             $paginated = Scan::query()->paginate(5);
-            
+
             if ($paginated->hasPages()) {
                 $view = view('pagination.simple', ['paginator' => $paginated]);
                 $html = $view->render();
-                
+
                 expect($html)
                     ->toContain('dark:bg-zinc-800')
                     ->toContain('dark:text-gray-200')

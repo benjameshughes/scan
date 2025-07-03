@@ -2,9 +2,9 @@
 
 namespace App\Livewire\Products;
 
+use App\Actions\DailyLinnworksSyncAction;
 use App\Models\Product;
 use App\Services\LinnworksApiService;
-use App\Actions\DailyLinnworksSyncAction;
 use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 
@@ -14,29 +14,36 @@ class Show extends Component
 
     // Stock History Modal Properties
     public $stockHistory = null;
+
     public $isLoadingHistory = false;
+
     public $errorMessage = null;
+
     public $showHistoryModal = false;
+
     public $historyCurrentPage = 1;
+
     public $historyTotalPages = 1;
+
     public $historyTotalEntries = 0;
-    
+
     // Update Details Properties
     public $isUpdatingDetails = false;
+
     public $updateMessage = null;
-    
+
     // Location Stock Properties
     public $locationStocks = [];
-    public $isLoadingLocationStocks = false;
-    public $locationStockError = null;
 
+    public $isLoadingLocationStocks = false;
+
+    public $locationStockError = null;
 
     public function mount(Product $product)
     {
         $this->product = $product;
         $this->loadLocationStocks();
     }
-
 
     /**
      * Show stock history for this product
@@ -45,7 +52,7 @@ class Show extends Component
     {
         Log::info("showStockHistory method called for product: {$this->product->sku}");
         $this->showHistoryModal = true;
-        Log::info("Modal flag set to: " . ($this->showHistoryModal ? 'true' : 'false'));
+        Log::info('Modal flag set to: '.($this->showHistoryModal ? 'true' : 'false'));
         $this->getStockItemHistory();
     }
 
@@ -56,7 +63,7 @@ class Show extends Component
     {
         $this->isLoadingHistory = true;
         $this->errorMessage = null;
-        
+
         // Only clear history if loading first page
         if ($page === 1) {
             $this->stockHistory = null;
@@ -111,31 +118,33 @@ class Show extends Component
     {
         $this->isUpdatingDetails = true;
         $this->updateMessage = null;
-        
+
         try {
             Log::info("Manual product update requested for SKU: {$this->product->sku}");
-            
+
             $linnworksService = app(LinnworksApiService::class);
             $syncAction = app(DailyLinnworksSyncAction::class);
-            
+
             // Search for this specific product in Linnworks
             $linnworksProducts = $linnworksService->searchStockItems($this->product->sku, 1, ['StockLevels'], ['SKU', 'Title', 'Barcode']);
-            
+
             if (empty($linnworksProducts)) {
                 $this->updateMessage = 'error:Product not found in Linnworks';
+
                 return;
             }
-            
+
             $linnworksProduct = $linnworksProducts[0];
-            
+
             // Process this single product through the sync action
             $stats = $syncAction->processBatch([$linnworksProduct], false);
-            
+
             if ($stats['errors'] > 0) {
                 $this->updateMessage = 'error:Failed to update product details';
+
                 return;
             }
-            
+
             if ($stats['queued'] > 0) {
                 $this->updateMessage = 'warning:Changes detected and queued for admin review';
             } elseif ($stats['created'] > 0) {
@@ -144,20 +153,20 @@ class Show extends Component
             } else {
                 $this->updateMessage = 'info:Product is already up to date with Linnworks';
             }
-            
+
             // Refresh the product data
             $this->product->refresh();
-            
+
             Log::info("Manual product update completed for SKU: {$this->product->sku}", $stats);
-            
+
         } catch (\Exception $e) {
-            Log::error("Manual product update failed for SKU: {$this->product->sku} - " . $e->getMessage());
-            $this->updateMessage = 'error:Failed to update product: ' . $e->getMessage();
+            Log::error("Manual product update failed for SKU: {$this->product->sku} - ".$e->getMessage());
+            $this->updateMessage = 'error:Failed to update product: '.$e->getMessage();
         } finally {
             $this->isUpdatingDetails = false;
         }
     }
-    
+
     /**
      * Close the stock history modal
      */
@@ -182,13 +191,13 @@ class Show extends Component
         try {
             $linnworksService = app(LinnworksApiService::class);
             $locations = $linnworksService->getStockLocationsByProduct($this->product->sku);
-            
+
             // Filter and format locations with stock
             $this->locationStocks = collect($locations)
-                ->filter(function($location) {
+                ->filter(function ($location) {
                     return isset($location['StockLevel']) && $location['StockLevel'] > 0;
                 })
-                ->map(function($location) {
+                ->map(function ($location) {
                     return [
                         'id' => $location['Location']['StockLocationId'] ?? 'unknown',
                         'name' => $location['Location']['LocationName'] ?? 'Unknown Location',
@@ -203,12 +212,12 @@ class Show extends Component
                 ->toArray();
 
             Log::info("Loaded location stocks for SKU: {$this->product->sku}", [
-                'locations_with_stock' => count($this->locationStocks)
+                'locations_with_stock' => count($this->locationStocks),
             ]);
 
         } catch (\Exception $e) {
-            Log::error("Failed to load location stocks for SKU: {$this->product->sku} - " . $e->getMessage());
-            $this->locationStockError = 'Failed to load location stock information: ' . $e->getMessage();
+            Log::error("Failed to load location stocks for SKU: {$this->product->sku} - ".$e->getMessage());
+            $this->locationStockError = 'Failed to load location stock information: '.$e->getMessage();
         } finally {
             $this->isLoadingLocationStocks = false;
         }

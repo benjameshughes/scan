@@ -16,16 +16,16 @@ class PendingProductUpdate extends Model
         'reviewed_at',
         'accepted_by',
         'accepted_at',
-        'notes'
+        'notes',
     ];
-    
+
     protected $casts = [
         'linnworks_data' => 'json',
         'changes_detected' => 'json',
         'reviewed_at' => 'datetime',
-        'accepted_at' => 'datetime'
+        'accepted_at' => 'datetime',
     ];
-    
+
     /**
      * Get the product that this update is for
      */
@@ -33,7 +33,7 @@ class PendingProductUpdate extends Model
     {
         return $this->belongsTo(Product::class);
     }
-    
+
     /**
      * Get the user who reviewed this update
      */
@@ -41,7 +41,7 @@ class PendingProductUpdate extends Model
     {
         return $this->belongsTo(User::class, 'reviewed_by');
     }
-    
+
     /**
      * Scope a query to only include pending updates
      */
@@ -49,7 +49,7 @@ class PendingProductUpdate extends Model
     {
         return $query->where('status', 'pending');
     }
-    
+
     /**
      * Get the user who accepted this update (for auto-accepted changes)
      */
@@ -57,7 +57,7 @@ class PendingProductUpdate extends Model
     {
         return $this->belongsTo(User::class, 'accepted_by');
     }
-    
+
     /**
      * Scope a query to only include auto-accepted updates
      */
@@ -65,7 +65,7 @@ class PendingProductUpdate extends Model
     {
         return $query->where('status', 'auto_accepted');
     }
-    
+
     /**
      * Check if this update has been reviewed
      */
@@ -73,7 +73,7 @@ class PendingProductUpdate extends Model
     {
         return in_array($this->status, ['approved', 'rejected']);
     }
-    
+
     /**
      * Check if this update was auto-accepted
      */

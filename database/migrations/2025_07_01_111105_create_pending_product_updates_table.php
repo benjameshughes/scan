@@ -21,7 +21,7 @@ return new class extends Migration
             $table->timestamp('reviewed_at')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
-            
+
             $table->index(['status', 'created_at']);
             $table->index('product_id');
         });

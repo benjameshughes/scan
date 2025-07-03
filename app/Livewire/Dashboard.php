@@ -50,8 +50,9 @@ class Dashboard extends Component
     public function redispatch()
     {
         // Check if user has admin permissions
-        if (!auth()->user()->hasRole('admin')) {
+        if (! auth()->user()->hasRole('admin')) {
             $this->dispatch('error', 'You do not have permission to perform this action.');
+
             return 0;
         }
 
@@ -123,7 +124,7 @@ class Dashboard extends Component
             ->get()
             ->pluck('user_id')
             ->search($user->id);
-        
+
         $userRank = $userRanking !== false ? $userRanking + 1 : null;
         $totalActiveUsers = DB::table('scans')
             ->where('created_at', '>=', now()->subDays(30))
@@ -140,7 +141,7 @@ class Dashboard extends Component
             $dayScans = Scan::where('user_id', $user->id)
                 ->whereDate('created_at', $currentDate)
                 ->count();
-            
+
             if ($dayScans > 0) {
                 $userStreak++;
                 $currentDate->subDay();
@@ -172,10 +173,10 @@ class Dashboard extends Component
 
         // Recent top scanned products - using barcode relationships
         $topProducts = DB::table('scans')
-            ->leftJoin('products', function($join) {
+            ->leftJoin('products', function ($join) {
                 $join->on('scans.barcode', '=', 'products.barcode')
-                     ->orOn('scans.barcode', '=', 'products.barcode_2')
-                     ->orOn('scans.barcode', '=', 'products.barcode_3');
+                    ->orOn('scans.barcode', '=', 'products.barcode_2')
+                    ->orOn('scans.barcode', '=', 'products.barcode_3');
             })
             ->select('products.name', 'products.sku', DB::raw('COUNT(scans.id) as scan_count'))
             ->where('scans.created_at', '>=', now()->subDays(7))
@@ -188,7 +189,7 @@ class Dashboard extends Component
         return view('livewire.dashboard', [
             'scans' => Scan::where(function ($query) {
                 $query->whereNull('submitted_at')
-                      ->orWhere('sync_status', 'failed');
+                    ->orWhere('sync_status', 'failed');
             })->orderBy('created_at', 'desc')->paginate(5),
             'stats' => [
                 'total_scans' => $totalScans,

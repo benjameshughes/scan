@@ -41,7 +41,7 @@ class EmptyBayNotification extends Notification implements ShouldQueue
     {
         $refillUrl = route('scan.scan', [
             'action' => 'refill',
-            'barcode' => $this->product->barcode
+            'barcode' => $this->product->barcode,
         ]);
 
         $message = (new MailMessage)
@@ -56,54 +56,56 @@ class EmptyBayNotification extends Notification implements ShouldQueue
         try {
             $linnworksService = app(LinnworksApiService::class);
             $locations = $linnworksService->getStockLocationsByProduct($this->product->sku);
-            
-            if (!empty($locations)) {
+
+            if (! empty($locations)) {
                 // Sort locations by stock level (highest first) for better visibility
-                usort($locations, function($a, $b) {
+                usort($locations, function ($a, $b) {
                     $stockA = $a['StockLevel'] ?? $a['Quantity'] ?? $a['Available'] ?? $a['Stock'] ?? 0;
                     $stockB = $b['StockLevel'] ?? $b['Quantity'] ?? $b['Available'] ?? $b['Stock'] ?? 0;
+
                     return $stockB <=> $stockA;
                 });
-                
-                $locationsWithStock = array_filter($locations, function($location) {
+
+                $locationsWithStock = array_filter($locations, function ($location) {
                     $stockLevel = $location['StockLevel'] ?? $location['Quantity'] ?? $location['Available'] ?? $location['Stock'] ?? 0;
+
                     return $stockLevel > 0;
                 });
-                
-                if (!empty($locationsWithStock)) {
-                    $message->line("**Available Stock Locations:**");
-                    
+
+                if (! empty($locationsWithStock)) {
+                    $message->line('**Available Stock Locations:**');
+
                     foreach ($locationsWithStock as $location) {
                         $locationData = $location['Location'] ?? $location;
                         $locationName = $locationData['LocationName'] ?? $locationData['Name'] ?? 'Unknown Location';
                         $stockLevel = $location['StockLevel'] ?? $location['Quantity'] ?? $location['Available'] ?? $location['Stock'] ?? 0;
-                        
+
                         $message->line("• **{$locationName}** - {$stockLevel} units available");
                     }
-                    
+
                     Log::channel('inventory')->info('Empty bay notification sent with location stock', [
                         'product_sku' => $this->product->sku,
                         'locations_with_stock' => count($locationsWithStock),
-                        'total_locations_checked' => count($locations)
+                        'total_locations_checked' => count($locations),
                     ]);
                 } else {
-                    $message->line("**No stock found at other locations.**");
-                    
+                    $message->line('**No stock found at other locations.**');
+
                     Log::channel('inventory')->info('Empty bay notification sent - no stock at other locations', [
                         'product_sku' => $this->product->sku,
-                        'total_locations_checked' => count($locations)
+                        'total_locations_checked' => count($locations),
                     ]);
                 }
             } else {
-                $message->line("**No stock found at other locations.**");
+                $message->line('**No stock found at other locations.**');
             }
         } catch (\Exception $e) {
             // If location lookup fails, continue without location info
-            $message->line("**Location stock information temporarily unavailable.**");
-            
+            $message->line('**Location stock information temporarily unavailable.**');
+
             Log::channel('inventory')->error('Failed to fetch location stock for empty bay notification', [
                 'product_sku' => $this->product->sku,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
         }
 

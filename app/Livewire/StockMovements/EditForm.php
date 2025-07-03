@@ -2,8 +2,6 @@
 
 namespace App\Livewire\StockMovements;
 
-use App\Models\Location;
-use App\Models\Product;
 use App\Models\StockMovement;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
@@ -28,6 +26,7 @@ class EditForm extends Component
     public $to_location_code;
 
     public $success_message = '';
+
     public $error_message = '';
 
     public function mount(StockMovement $movement)
@@ -55,12 +54,12 @@ class EditForm extends Component
 
             $this->success_message = 'Stock movement updated successfully!';
             $this->error_message = '';
-            
+
             // Redirect after a short delay
             $this->dispatch('movement-updated');
-            
+
         } catch (\Exception $e) {
-            $this->error_message = 'Failed to update movement: ' . $e->getMessage();
+            $this->error_message = 'Failed to update movement: '.$e->getMessage();
             $this->success_message = '';
         }
     }

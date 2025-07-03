@@ -15,7 +15,7 @@ return new class extends Migration
             // Add location tracking to scans
             $table->string('location_id')->nullable()->after('action'); // Linnworks location ID
             $table->string('location_code')->nullable()->after('location_id'); // For display/history
-            
+
             // Index for performance
             $table->index('location_id');
         });

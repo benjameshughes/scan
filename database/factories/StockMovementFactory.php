@@ -26,10 +26,10 @@ class StockMovementFactory extends Factory
             ['id' => 'loc-4', 'code' => '12B'],
             ['id' => 'default', 'code' => 'Default'],
         ];
-        
+
         $fromLocation = $this->faker->randomElement($locations);
-        $toLocation = $this->faker->randomElement(array_filter($locations, fn($loc) => $loc['id'] !== $fromLocation['id']));
-        
+        $toLocation = $this->faker->randomElement(array_filter($locations, fn ($loc) => $loc['id'] !== $fromLocation['id']));
+
         return [
             'product_id' => Product::factory(),
             'from_location_id' => $fromLocation['id'],

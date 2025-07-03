@@ -39,19 +39,19 @@ return [
     'pagination' => [
         // Default page size for most operations
         'default_page_size' => 200,
-        
+
         // Maximum page size allowed by Linnworks API
         'max_page_size' => 200,
-        
+
         // Page size for inventory operations
         'inventory_page_size' => 200,
-        
+
         // Page size for product search operations
         'search_page_size' => 200,
-        
+
         // Page size for sync operations
         'sync_page_size' => 200,
-        
+
         // Page size for manual sync operations
         'manual_sync_page_size' => 200,
     ],
@@ -62,7 +62,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | Configure how the sync process handles different types of changes.
-    | 
+    |
     | Auto-accepted changes are immediately applied to products but are still
     | logged in the pending_product_updates table with status 'auto_accepted'
     | for full audit trail and searchability.
@@ -70,18 +70,18 @@ return [
     | To modify these settings, add the corresponding environment variables
     | to your .env file:
     | - LINNWORKS_AUTO_ACCEPT_STOCK=true|false
-    | - LINNWORKS_AUTO_ACCEPT_NAMES=true|false  
+    | - LINNWORKS_AUTO_ACCEPT_NAMES=true|false
     | - LINNWORKS_AUTO_ACCEPT_BARCODES=true|false
     |
     */
     'sync_behavior' => [
         // Auto-accept stock level changes from Linnworks (still logged for audit)
         'auto_accept_stock_changes' => env('LINNWORKS_AUTO_ACCEPT_STOCK', true),
-        
+
         // Auto-accept product name changes from Linnworks
         'auto_accept_name_changes' => env('LINNWORKS_AUTO_ACCEPT_NAMES', false),
-        
-        // Auto-accept barcode changes from Linnworks  
+
+        // Auto-accept barcode changes from Linnworks
         'auto_accept_barcode_changes' => env('LINNWORKS_AUTO_ACCEPT_BARCODES', false),
     ],
 
@@ -96,10 +96,10 @@ return [
     'rate_limiting' => [
         // Delay between batch operations in microseconds (250ms = 250000)
         'batch_delay_microseconds' => 250000,
-        
+
         // Delay between batch operations in milliseconds
         'batch_delay_ms' => 250,
-        
+
         // Maximum concurrent requests (for future use)
         'max_concurrent_requests' => 1,
     ],
@@ -112,7 +112,7 @@ return [
     'stock_history' => [
         // Default page size for stock history requests
         'page_size' => 20,
-        
+
         // Maximum entries to fetch in one request
         'max_entries' => 100,
     ],
@@ -125,7 +125,7 @@ return [
     'cache' => [
         // Cache key for session tokens
         'session_token_key' => 'linnworks.session_token',
-        
+
         // Token cache TTL in minutes
         'token_ttl_minutes' => 60,
     ],
@@ -148,10 +148,10 @@ return [
     'logging' => [
         // Log channel for authentication operations
         'auth_channel' => 'lw_auth',
-        
+
         // Log channel for inventory operations
         'inventory_channel' => 'inventory',
-        
+
         // Enable detailed API request logging
         'log_requests' => env('LINNWORKS_LOG_REQUESTS', false),
     ],

@@ -22,7 +22,9 @@ class StockMovement extends Model
      * Movement types
      */
     const TYPE_BAY_REFILL = 'bay_refill';
+
     const TYPE_MANUAL_TRANSFER = 'manual_transfer';
+
     const TYPE_SCAN_ADJUSTMENT = 'scan_adjustment';
 
     /**
@@ -104,7 +106,7 @@ class StockMovement extends Model
     {
         $from = $this->from_location_code ?: 'Unknown';
         $to = $this->to_location_code ?: 'Unknown';
-        
+
         return "{$from} → {$to}";
     }
 
@@ -122,6 +124,6 @@ class StockMovement extends Model
     public function scopeForLocation($query, $locationId)
     {
         return $query->where('from_location_id', $locationId)
-                     ->orWhere('to_location_id', $locationId);
+            ->orWhere('to_location_id', $locationId);
     }
 }

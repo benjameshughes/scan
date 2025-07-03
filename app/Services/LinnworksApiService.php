@@ -177,13 +177,13 @@ class LinnworksApiService
             return json_decode($response->getBody()->getContents(), true);
         } catch (GuzzleException $e) {
             Log::channel('lw_auth')->error("API request failed: {$method} {$url} - ".$e->getMessage());
-            
+
             // Transform specific Linnworks error messages to user-friendly messages
             $errorMessage = $e->getMessage();
             if (str_contains($errorMessage, 'No items found with given filter')) {
-                throw new Exception("Product not found in Linnworks");
+                throw new Exception('Product not found in Linnworks');
             }
-            
+
             throw new Exception("API request failed: {$errorMessage}");
         }
     }
@@ -237,7 +237,7 @@ class LinnworksApiService
     public function getInventory(int $pageNumber = 1, ?int $entriesPerPage = null): array
     {
         $entriesPerPage = $entriesPerPage ?? config('linnworks.pagination.inventory_page_size');
-        
+
         $body = [
             'loadCompositeParents' => false,
             'loadVariationParents' => false,
@@ -261,42 +261,42 @@ class LinnworksApiService
         $token = $this->ensureAuthorized();
 
         try {
-            $response = $this->client->request('GET', $this->baseUrl . 'Inventory/GetInventoryItemsCount', [
+            $response = $this->client->request('GET', $this->baseUrl.'Inventory/GetInventoryItemsCount', [
                 'headers' => [
                     'Authorization' => $token,
                     'accept' => 'application/json',
                     'content-type' => 'application/json',
-                ]
+                ],
             ]);
 
             // This endpoint returns a plain number, not JSON
             $count = (int) $response->getBody()->getContents();
-            
+
             Log::info("Retrieved inventory count: {$count}");
-            
+
             return $count;
-            
+
         } catch (GuzzleException $e) {
-            Log::channel('lw_auth')->error("Failed to get inventory count: " . $e->getMessage());
-            
+            Log::channel('lw_auth')->error('Failed to get inventory count: '.$e->getMessage());
+
             // If we get a 401, try to refresh the token and retry once
             if (str_contains($e->getMessage(), '401')) {
                 Log::channel('lw_auth')->warning('Received 401 error, refreshing token and retrying inventory count');
                 Cache::forget($this->cacheKey);
                 $token = $this->authorizeByApplication();
 
-                $response = $this->client->request('GET', $this->baseUrl . 'Inventory/GetInventoryItemsCount', [
+                $response = $this->client->request('GET', $this->baseUrl.'Inventory/GetInventoryItemsCount', [
                     'headers' => [
                         'Authorization' => $token,
                         'accept' => 'application/json',
                         'content-type' => 'application/json',
-                    ]
+                    ],
                 ]);
 
                 return (int) $response->getBody()->getContents();
             }
-            
-            throw new Exception("Failed to get inventory count: " . $e->getMessage());
+
+            throw new Exception('Failed to get inventory count: '.$e->getMessage());
         }
     }
 
@@ -351,11 +351,12 @@ class LinnworksApiService
     {
         $entriesPerPage = $entriesPerPage ?? config('linnworks.stock_history.page_size');
         $locationId = config('linnworks.default_location_id');
-        
+
         $itemDetail = $this->getStockDetails($sku);
 
         if (empty($itemDetail)) {
             Log::channel(config('linnworks.logging.inventory_channel'))->warning("SKU not found: {$sku}");
+
             return [];
         }
 
@@ -369,32 +370,33 @@ class LinnworksApiService
 
         return $response;
     }
-    
+
     /**
      * Get all products from Linnworks with pagination
      */
     public function getAllProducts(int $page = 1, ?int $entriesPerPage = null): array
     {
         $entriesPerPage = $entriesPerPage ?? config('linnworks.pagination.sync_page_size');
-        
+
         // Use the existing searchStockItems method which already works
         try {
             $response = $this->searchStockItems('', $entriesPerPage, ['StockLevels'], ['SKU', 'Title', 'Barcode'], $page);
-            
+
             Log::info('getAllProducts response', [
                 'count' => count($response),
                 'page' => $page,
                 'entriesPerPage' => $entriesPerPage,
-                'sample' => array_slice($response, 0, 2)
+                'sample' => array_slice($response, 0, 2),
             ]);
-            
+
             return $response;
         } catch (\Exception $e) {
             Log::error('Failed to get all products from Linnworks', [
                 'error' => $e->getMessage(),
                 'page' => $page,
-                'entriesPerPage' => $entriesPerPage
+                'entriesPerPage' => $entriesPerPage,
             ]);
+
             return [];
         }
     }
@@ -409,28 +411,29 @@ class LinnworksApiService
             'Stock/GetStockLocationFull',
             'Stock/GetStockLocations',
             'Inventory/GetStockLocations',
-            'Locations'
+            'Locations',
         ];
-        
+
         foreach ($endpoints as $endpoint) {
             try {
                 $response = $this->makeAuthenticatedRequest('GET', $endpoint);
-                
+
                 Log::channel('inventory')->info('Successfully retrieved locations', [
                     'count' => count($response),
-                    'endpoint' => $endpoint
+                    'endpoint' => $endpoint,
                 ]);
-                
+
                 return $response;
-                
+
             } catch (\Exception $e) {
                 Log::channel('inventory')->warning("Endpoint {$endpoint} failed: {$e->getMessage()}");
+
                 continue;
             }
         }
-        
+
         // If all endpoints failed
-        throw new \Exception("Failed to retrieve locations from any of the tried endpoints: " . implode(', ', $endpoints));
+        throw new \Exception('Failed to retrieve locations from any of the tried endpoints: '.implode(', ', $endpoints));
     }
 
     /**
@@ -443,29 +446,29 @@ class LinnworksApiService
         $page = 1;
         $maxPages = 10; // Limit to prevent infinite loops
         $itemsPerPage = 50; // Get more items per page
-        
+
         Log::channel('inventory')->info('Starting comprehensive location extraction from inventory');
-        
+
         // Scan through multiple pages of inventory to find all locations
         while ($page <= $maxPages) {
             try {
                 $inventoryData = $this->getInventory($page, $itemsPerPage);
-                
+
                 if (empty($inventoryData)) {
                     Log::channel('inventory')->info("No more inventory data on page {$page}, stopping");
                     break;
                 }
-                
+
                 $newLocationsFound = 0;
-                
+
                 foreach ($inventoryData as $item) {
                     if (isset($item['StockLevels']) && is_array($item['StockLevels'])) {
                         foreach ($item['StockLevels'] as $stockLevel) {
                             if (isset($stockLevel['Location']['StockLocationId'])) {
                                 $locationId = $stockLevel['Location']['StockLocationId'];
-                                
+
                                 // Avoid duplicates
-                                if (!in_array($locationId, $locationIds)) {
+                                if (! in_array($locationId, $locationIds)) {
                                     $locationIds[] = $locationId;
                                     $locations[] = [
                                         'StockLocationId' => $locationId,
@@ -479,29 +482,29 @@ class LinnworksApiService
                         }
                     }
                 }
-                
-                Log::channel('inventory')->info("Page {$page}: Found {$newLocationsFound} new locations, total: " . count($locations));
-                
+
+                Log::channel('inventory')->info("Page {$page}: Found {$newLocationsFound} new locations, total: ".count($locations));
+
                 // If we didn't find any new locations on this page, we might have all of them
                 if ($newLocationsFound === 0 && count($locations) > 0) {
                     Log::channel('inventory')->info("No new locations found on page {$page}, stopping early");
                     break;
                 }
-                
+
                 $page++;
-                
+
             } catch (\Exception $e) {
-                Log::channel('inventory')->error("Error processing inventory page {$page}: " . $e->getMessage());
+                Log::channel('inventory')->error("Error processing inventory page {$page}: ".$e->getMessage());
                 break;
             }
         }
-        
+
         Log::channel('inventory')->info('Completed location extraction from inventory', [
             'total_locations' => count($locations),
             'pages_scanned' => $page - 1,
-            'location_ids' => $locationIds
+            'location_ids' => $locationIds,
         ]);
-        
+
         return $locations;
     }
 
@@ -513,14 +516,14 @@ class LinnworksApiService
         $results = [];
         $endpoints = [
             'Stock/GetStockLocationFull',
-            'Stock/GetStockLocations', 
+            'Stock/GetStockLocations',
             'Locations',
             'Locations/GetLocations',
             'Locations/GetLocation',
             'Inventory/GetStockLocations',
             'Inventory/GetInventoryLocations',
         ];
-        
+
         foreach ($endpoints as $endpoint) {
             try {
                 $response = $this->makeAuthenticatedRequest('GET', $endpoint);
@@ -528,18 +531,18 @@ class LinnworksApiService
                     'success' => true,
                     'count' => is_array($response) ? count($response) : 'non-array',
                     'sample' => is_array($response) ? array_slice($response, 0, 2) : $response,
-                    'all_keys' => is_array($response) && !empty($response) ? array_keys($response[0] ?? []) : []
+                    'all_keys' => is_array($response) && ! empty($response) ? array_keys($response[0] ?? []) : [],
                 ];
                 Log::channel('inventory')->info("Endpoint {$endpoint} succeeded", $results[$endpoint]);
             } catch (\Exception $e) {
                 $results[$endpoint] = [
                     'success' => false,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
                 ];
                 Log::channel('inventory')->error("Endpoint {$endpoint} failed", $results[$endpoint]);
             }
         }
-        
+
         // Also test the fallback method
         try {
             $fallbackLocations = $this->getLocationsFromInventory();
@@ -547,15 +550,15 @@ class LinnworksApiService
                 'success' => true,
                 'count' => count($fallbackLocations),
                 'sample' => array_slice($fallbackLocations, 0, 3),
-                'all_locations' => $fallbackLocations
+                'all_locations' => $fallbackLocations,
             ];
         } catch (\Exception $e) {
             $results['FALLBACK_METHOD'] = [
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ];
         }
-        
+
         return $results;
     }
 
@@ -566,27 +569,27 @@ class LinnworksApiService
     {
         try {
             $stockItem = $this->getStockDetails($sku);
-            
-            if (empty($stockItem) || !isset($stockItem['StockLevels'])) {
+
+            if (empty($stockItem) || ! isset($stockItem['StockLevels'])) {
                 return [];
             }
 
             // Filter to only locations with stock > 0
-            $locationsWithStock = array_filter($stockItem['StockLevels'], function($location) {
+            $locationsWithStock = array_filter($stockItem['StockLevels'], function ($location) {
                 return isset($location['StockLevel']) && $location['StockLevel'] > 0;
             });
 
             Log::channel('inventory')->info("Found stock locations for SKU: {$sku}", [
                 'locations_with_stock' => count($locationsWithStock),
-                'total_locations' => count($stockItem['StockLevels'])
+                'total_locations' => count($stockItem['StockLevels']),
             ]);
 
             return array_values($locationsWithStock);
         } catch (\Exception $e) {
             Log::channel('inventory')->error("Failed to get stock locations for SKU: {$sku}", [
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
-            
+
             throw new \Exception("Failed to retrieve stock locations: {$e->getMessage()}");
         }
     }
@@ -599,26 +602,26 @@ class LinnworksApiService
         try {
             // Get current stock levels for ALL locations (including those with 0 stock)
             $stockItem = $this->getStockDetails($sku);
-            
-            if (empty($stockItem) || !isset($stockItem['StockLevels'])) {
+
+            if (empty($stockItem) || ! isset($stockItem['StockLevels'])) {
                 throw new \Exception("No stock information found for SKU: {$sku}");
             }
-            
+
             $allLocations = $stockItem['StockLevels']; // Don't filter out 0 stock locations
             $sourceLocation = null;
             $defaultLocation = null;
             $defaultLocationId = config('linnworks.default_location_id');
-            
-            Log::channel('inventory')->info("Searching for locations in transfer", [
+
+            Log::channel('inventory')->info('Searching for locations in transfer', [
                 'sku' => $sku,
                 'source_location_id' => $sourceLocationId,
                 'default_location_id' => $defaultLocationId,
                 'total_locations' => count($allLocations),
-                'all_location_ids' => array_map(function($loc) {
+                'all_location_ids' => array_map(function ($loc) {
                     return $loc['Location']['StockLocationId'] ?? 'no-id';
-                }, $allLocations)
+                }, $allLocations),
             ]);
-            
+
             foreach ($allLocations as $location) {
                 $currentLocationId = $location['Location']['StockLocationId'] ?? null;
                 if ($currentLocationId === $sourceLocationId) {
@@ -627,27 +630,27 @@ class LinnworksApiService
                     $defaultLocation = $location;
                 }
             }
-            
-            if (!$sourceLocation) {
+
+            if (! $sourceLocation) {
                 throw new \Exception("Source location not found: {$sourceLocationId}");
             }
-            
-            if (!$defaultLocation) {
+
+            if (! $defaultLocation) {
                 throw new \Exception("Default location not found: {$defaultLocationId}");
             }
-            
+
             $sourceCurrentStock = $sourceLocation['StockLevel'] ?? 0;
             $defaultCurrentStock = $defaultLocation['StockLevel'] ?? 0;
-            
+
             // Calculate new stock levels
             $sourceNewStock = $sourceCurrentStock - $transferQuantity;
             $defaultNewStock = $defaultCurrentStock + $transferQuantity;
-            
+
             // Validate we have enough stock in source
             if ($sourceNewStock < 0) {
                 throw new \Exception("Insufficient stock in source location. Available: {$sourceCurrentStock}, Requested: {$transferQuantity}");
             }
-            
+
             // Perform both stock updates in one API call
             $body = [
                 'stockLevels' => [
@@ -664,7 +667,7 @@ class LinnworksApiService
                 ],
             ];
 
-            Log::channel('inventory')->info("Transferring stock from source to default location", [
+            Log::channel('inventory')->info('Transferring stock from source to default location', [
                 'sku' => $sku,
                 'source_location_id' => $sourceLocationId,
                 'default_location_id' => $defaultLocationId,
@@ -674,7 +677,7 @@ class LinnworksApiService
                 'default_old_stock' => $defaultCurrentStock,
                 'default_new_stock' => $defaultNewStock,
                 'request_body' => $body,
-                'json_body' => json_encode($body)
+                'json_body' => json_encode($body),
             ]);
 
             $response = $this->makeAuthenticatedRequest(
@@ -683,23 +686,23 @@ class LinnworksApiService
                 ['body' => json_encode($body)]
             );
 
-            Log::channel('inventory')->info("Stock transfer completed", [
+            Log::channel('inventory')->info('Stock transfer completed', [
                 'sku' => $sku,
                 'source_location_id' => $sourceLocationId,
                 'default_location_id' => $defaultLocationId,
                 'transfer_quantity' => $transferQuantity,
-                'response' => $response
+                'response' => $response,
             ]);
 
             return $response;
         } catch (\Exception $e) {
-            Log::channel('inventory')->error("Failed to transfer stock", [
+            Log::channel('inventory')->error('Failed to transfer stock', [
                 'sku' => $sku,
                 'source_location_id' => $sourceLocationId,
                 'transfer_quantity' => $transferQuantity,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
-            
+
             throw new \Exception("Failed to transfer stock: {$e->getMessage()}");
         }
     }

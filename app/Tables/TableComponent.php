@@ -17,11 +17,11 @@ abstract class TableComponent extends Component
     use HasSearch, WithPagination;
 
     public string $search = '';
-    
+
     protected int $searchMinLength = 2;
 
     public int $perPage = 10;
-    
+
     public array $perPageOptions = [1, 5, 10, 25, 50, 100, 250];
 
     public string $sortField = '';
@@ -47,13 +47,13 @@ abstract class TableComponent extends Component
     public array $bulkSelectedIds = [];
 
     public bool $selectAll = false;
-    
+
     public bool $isSelectingAll = false;
-    
+
     public int $totalRecordsCount = 0;
-    
+
     public bool $selectAllPages = false;
-    
+
     public array $processingRows = [];
 
     // Store custom action callbacks by their hash
@@ -91,12 +91,12 @@ abstract class TableComponent extends Component
     protected function getTable(): Table
     {
         $table = $this->table(Table::make());
-        
+
         // Set component ID for ActionsColumn instances and register callbacks
         foreach ($table->getColumns() as $column) {
             if ($column instanceof ActionsColumn) {
                 $column->setComponentId($this->getId());
-                
+
                 // Register custom action callbacks
                 foreach ($column->getActions() as $action) {
                     if ($action instanceof \App\Tables\Actions\CustomAction && $action->getActionCallback()) {
@@ -106,7 +106,7 @@ abstract class TableComponent extends Component
                 }
             }
         }
-        
+
         return $table;
     }
 
@@ -120,8 +120,8 @@ abstract class TableComponent extends Component
         }
 
         // Load saved per-page preference or use default
-        $this->perPage = session()->get('table_per_page_' . static::class, $table->getPerPage());
-        
+        $this->perPage = session()->get('table_per_page_'.static::class, $table->getPerPage());
+
         // Initialize total records count
         $this->totalRecordsCount = $this->getQuery()->count();
     }
@@ -203,31 +203,31 @@ abstract class TableComponent extends Component
 
         $this->resetPage();
     }
-    
+
     // Search handling with validation
     public function updatedSearch(): void
     {
         // Security: sanitize search input
         $this->search = trim(strip_tags($this->search));
-        
+
         // Reset page when search changes
         $this->resetPage();
     }
-    
+
     // Per page handling
     public function updatedPerPage(): void
     {
         $this->resetPage();
-        
+
         // Store preference in session
-        session()->put('table_per_page_' . static::class, $this->perPage);
+        session()->put('table_per_page_'.static::class, $this->perPage);
     }
 
     // Bulk selection
     public function updatedSelectAll(): void
     {
         $this->isSelectingAll = true;
-        
+
         if ($this->selectAll) {
             // Get IDs from current page only by default
             $query = $this->getQuery();
@@ -236,22 +236,22 @@ abstract class TableComponent extends Component
             $this->bulkSelectedIds = [];
             $this->selectAllPages = false;
         }
-        
+
         $this->isSelectingAll = false;
     }
-    
+
     public function selectAllAcrossPages(): void
     {
         $this->isSelectingAll = true;
         $this->selectAllPages = true;
-        
+
         // Get all IDs across all pages
         $this->bulkSelectedIds = $this->getQuery()->pluck('id')->toArray();
         $this->selectAll = true;
-        
+
         $this->isSelectingAll = false;
     }
-    
+
     public function clearSelection(): void
     {
         $this->bulkSelectedIds = [];
@@ -270,9 +270,9 @@ abstract class TableComponent extends Component
         // Update selectAll based on current page items
         $currentPageIds = $this->getQuery()->paginate($this->perPage)->pluck('id')->toArray();
         $selectedOnPage = array_intersect($this->bulkSelectedIds, $currentPageIds);
-        
+
         $this->selectAll = count($selectedOnPage) === count($currentPageIds) && count($currentPageIds) > 0;
-        
+
         // Reset select all pages if user manually deselects
         if (count($this->bulkSelectedIds) < count($currentPageIds)) {
             $this->selectAllPages = false;
@@ -283,13 +283,15 @@ abstract class TableComponent extends Component
     public function executeBulkAction(string $action): void
     {
         // Security: validate action name
-        if (!preg_match('/^[a-zA-Z0-9_-]+$/', $action)) {
+        if (! preg_match('/^[a-zA-Z0-9_-]+$/', $action)) {
             session()->flash('error', 'Invalid action name.');
+
             return;
         }
-        
+
         if (empty($this->bulkSelectedIds)) {
             session()->flash('error', 'No records selected.');
+
             return;
         }
 
@@ -297,6 +299,7 @@ abstract class TableComponent extends Component
         $validIds = array_filter($this->bulkSelectedIds, 'is_numeric');
         if (count($validIds) !== count($this->bulkSelectedIds)) {
             session()->flash('error', 'Invalid selection.');
+
             return;
         }
 
@@ -306,22 +309,22 @@ abstract class TableComponent extends Component
         if ($bulkActions->has($action)) {
             $bulkAction = $bulkActions->get($action);
             $selectedCount = count($this->bulkSelectedIds);
-            
+
             try {
                 // Execute the bulk action
                 $result = call_user_func($bulkAction['handle'], $this->bulkSelectedIds);
-                
+
                 // Show success message
-                $message = $result['message'] ?? "{$selectedCount} " . Str::plural('record', $selectedCount) . " updated successfully.";
+                $message = $result['message'] ?? "{$selectedCount} ".Str::plural('record', $selectedCount).' updated successfully.';
                 session()->flash('success', $message);
-                
+
                 // Clear selection after successful action
                 $this->clearSelection();
-                
+
                 // Refresh the table data
                 $this->resetPage();
             } catch (\Exception $e) {
-                session()->flash('error', 'Failed to execute bulk action: ' . $e->getMessage());
+                session()->flash('error', 'Failed to execute bulk action: '.$e->getMessage());
             }
         }
     }
@@ -388,23 +391,27 @@ abstract class TableComponent extends Component
         // Security: validate recordId is positive integer
         if ($recordId <= 0) {
             session()->flash('error', 'Invalid record ID.');
+
             return;
         }
-        
+
         // Security: validate actionId format
-        if (!is_string($actionId) || empty($actionId)) {
+        if (! is_string($actionId) || empty($actionId)) {
             session()->flash('error', 'Invalid action ID.');
+
             return;
         }
-        
-        if (!isset($this->customActionCallbacks[$actionId])) {
+
+        if (! isset($this->customActionCallbacks[$actionId])) {
             session()->flash('error', 'Action not found.');
+
             return;
         }
 
         $record = $this->model::find($recordId);
-        if (!$record) {
+        if (! $record) {
             session()->flash('error', 'Record not found.');
+
             return;
         }
 
@@ -416,7 +423,7 @@ abstract class TableComponent extends Component
             call_user_func($callback, $record, $this);
             session()->flash('success', 'Action completed successfully.');
         } catch (\Exception $e) {
-            session()->flash('error', 'Action failed: ' . $e->getMessage());
+            session()->flash('error', 'Action failed: '.$e->getMessage());
         } finally {
             // Remove from processing rows
             $this->processingRows = array_diff($this->processingRows, [$recordId]);
@@ -438,7 +445,7 @@ abstract class TableComponent extends Component
         $data = $query->paginate($this->perPage);
 
         // Update selectAll state based on current page
-        if ($this->selectAll && !$this->selectAllPages) {
+        if ($this->selectAll && ! $this->selectAllPages) {
             $currentPageIds = $data->pluck('id')->toArray();
             $selectedOnPage = array_intersect($this->bulkSelectedIds, $currentPageIds);
             $this->selectAll = count($selectedOnPage) === count($currentPageIds) && count($currentPageIds) > 0;
