@@ -1,19 +1,23 @@
 <div>
     <!-- Messages -->
     @if($success_message)
-        <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-6">
-            <div class="flex items-center gap-3">
-                <flux:icon.check-circle class="size-5 text-green-600 dark:text-green-400" />
-                <span class="text-sm text-green-700 dark:text-green-300">{{ $success_message }}</span>
+        <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md p-4 mb-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <flux:icon.check-circle class="size-5 text-green-600 dark:text-green-400" />
+                    <span class="text-sm text-green-700 dark:text-green-300">{{ $success_message }}</span>
+                </div>
             </div>
         </div>
     @endif
 
     @if($error_message)
-        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
-            <div class="flex items-center gap-3">
-                <flux:icon.exclamation-triangle class="size-5 text-red-600 dark:text-red-400" />
-                <span class="text-sm text-red-700 dark:text-red-300">{{ $error_message }}</span>
+        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-4 mb-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <flux:icon.exclamation-triangle class="size-5 text-red-600 dark:text-red-400" />
+                    <span class="text-sm text-red-700 dark:text-red-300">{{ $error_message }}</span>
+                </div>
             </div>
         </div>
     @endif
@@ -22,114 +26,119 @@
     <form wire:submit="save" class="space-y-6">
         
         <!-- Product Information (Read-only) -->
-        <div class="bg-zinc-50 dark:bg-zinc-900 rounded-md p-4">
-            <h3 class="text-sm font-medium text-gray-700 dark:text-gray-200 mb-3">Product Information</h3>
+        <div class="bg-zinc-50 dark:bg-zinc-900 rounded-md p-4 border border-zinc-200 dark:border-zinc-700">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-md flex items-center justify-center">
+                    <flux:icon.cube class="size-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                    <h3 class="text-sm font-medium text-gray-900 dark:text-gray-100">Product Information</h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Product cannot be changed after creation</p>
+                </div>
+            </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">SKU</label>
-                    <p class="text-sm text-gray-900 dark:text-gray-100 font-mono">{{ $movement->product->sku }}</p>
+                    <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">SKU</label>
+                    <div class="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-600 rounded-md px-3 py-2">
+                        <span class="text-sm text-gray-900 dark:text-gray-100 font-mono">{{ $movement->product->sku }}</span>
+                    </div>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Product Name</label>
-                    <p class="text-sm text-gray-900 dark:text-gray-100">{{ $movement->product->name ?: 'No name available' }}</p>
+                    <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Product Name</label>
+                    <div class="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-600 rounded-md px-3 py-2">
+                        <span class="text-sm text-gray-900 dark:text-gray-100">{{ $movement->product->name ?: 'No name available' }}</span>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Movement Details -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Movement Details Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             
-            <!-- Movement Type -->
-            <div>
-                <label for="type" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                    Movement Type <span class="text-red-500">*</span>
-                </label>
-                <select
-                    id="type"
-                    wire:model="type"
-                    class="w-full rounded-md border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                >
-                    @foreach($this->movementTypes as $value => $label)
-                        <option value="{{ $value }}">{{ $label }}</option>
-                    @endforeach
-                </select>
-                @error('type')
-                    <p class="text-xs text-red-600 dark:text-red-400 mt-1">{{ $message }}</p>
-                @enderror
+            <!-- Left Column -->
+            <div class="space-y-6">
+                
+                <!-- Movement Type -->
+                <div>
+                    <flux:label for="type" required>Movement Type</flux:label>
+                    <flux:select id="type" wire:model="type">
+                        @foreach($this->movementTypes as $value => $label)
+                            <flux:option value="{{ $value }}">{{ $label }}</flux:option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="type" />
+                </div>
+
+                <!-- Quantity -->
+                <div>
+                    <flux:label for="quantity" required>Quantity</flux:label>
+                    <flux:input
+                        type="number"
+                        id="quantity"
+                        wire:model="quantity"
+                        min="1"
+                        icon="calculator"
+                    />
+                    <flux:error name="quantity" />
+                </div>
+
+                <!-- Notes -->
+                <div>
+                    <flux:label for="notes">Notes</flux:label>
+                    <flux:textarea
+                        id="notes"
+                        wire:model="notes"
+                        rows="4"
+                        placeholder="Optional notes about this movement..."
+                        resize="vertical"
+                    />
+                    <flux:error name="notes" />
+                    <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">Maximum 500 characters</div>
+                </div>
             </div>
 
-            <!-- Quantity -->
-            <div>
-                <label for="quantity" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                    Quantity <span class="text-red-500">*</span>
-                </label>
-                <input
-                    type="number"
-                    id="quantity"
-                    wire:model="quantity"
-                    min="1"
-                    class="w-full rounded-md border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                />
-                @error('quantity')
-                    <p class="text-xs text-red-600 dark:text-red-400 mt-1">{{ $message }}</p>
-                @enderror
-            </div>
-        </div>
+            <!-- Right Column -->
+            <div class="space-y-6">
+                
+                <!-- Location Information Card -->
+                <div class="bg-zinc-50 dark:bg-zinc-900 rounded-md p-4 space-y-4">
+                    <h3 class="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                        <flux:icon.map-pin class="size-4" />
+                        Location Transfer
+                    </h3>
+                    
+                    <!-- From Location -->
+                    <div>
+                        <flux:label for="from_location_code">From Location</flux:label>
+                        <flux:input
+                            id="from_location_code"
+                            wire:model="from_location_code"
+                            placeholder="e.g., 12B-3"
+                            icon="arrow-up-tray"
+                        />
+                        <flux:error name="from_location_code" />
+                    </div>
 
-        <!-- Location Codes -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
-            <!-- From Location -->
-            <div>
-                <label for="from_location_code" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                    From Location Code
-                </label>
-                <input
-                    type="text"
-                    id="from_location_code"
-                    wire:model="from_location_code"
-                    placeholder="e.g., 12B-3"
-                    class="w-full rounded-md border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                />
-                @error('from_location_code')
-                    <p class="text-xs text-red-600 dark:text-red-400 mt-1">{{ $message }}</p>
-                @enderror
-            </div>
+                    <!-- Transfer Arrow -->
+                    <div class="flex justify-center">
+                        <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                            <flux:icon.arrow-down class="size-4 text-blue-600 dark:text-blue-400" />
+                        </div>
+                    </div>
 
-            <!-- To Location -->
-            <div>
-                <label for="to_location_code" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                    To Location Code
-                </label>
-                <input
-                    type="text"
-                    id="to_location_code"
-                    wire:model="to_location_code"
-                    placeholder="e.g., Default"
-                    class="w-full rounded-md border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                />
-                @error('to_location_code')
-                    <p class="text-xs text-red-600 dark:text-red-400 mt-1">{{ $message }}</p>
-                @enderror
+                    <!-- To Location -->
+                    <div>
+                        <flux:label for="to_location_code">To Location</flux:label>
+                        <flux:input
+                            id="to_location_code"
+                            wire:model="to_location_code"
+                            placeholder="e.g., Default"
+                            icon="arrow-down-tray"
+                        />
+                        <flux:error name="to_location_code" />
+                    </div>
+                </div>
             </div>
-        </div>
-
-        <!-- Notes -->
-        <div>
-            <label for="notes" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                Notes
-            </label>
-            <textarea
-                id="notes"
-                wire:model="notes"
-                rows="3"
-                placeholder="Optional notes about this movement..."
-                class="w-full rounded-md border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-vertical"
-            ></textarea>
-            @error('notes')
-                <p class="text-xs text-red-600 dark:text-red-400 mt-1">{{ $message }}</p>
-            @enderror
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Maximum 500 characters</p>
         </div>
 
         <!-- Form Actions -->
