@@ -155,11 +155,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('movements', function () {
                 return view('locations.movements');
             })->name('movements');
-            Route::get('movements/{movement}', function (App\Models\StockMovement $movement) {
-                return view('locations.movements.show', compact('movement'));
-            })->name('movements.show');
         });
-
+        
         Route::middleware('permission:create stock movements')->group(function () {
             Route::get('movements/create', function () {
                 // Debug logging to help diagnose the issue
@@ -176,6 +173,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('movements/{movement}/edit', function (App\Models\StockMovement $movement) {
                 return view('locations.movements.edit', compact('movement'));
             })->name('movements.edit');
+        });
+
+        Route::middleware('permission:view stock movements')->group(function () {
+            Route::get('movements/{movement}', function (App\Models\StockMovement $movement) {
+                return view('locations.movements.show', compact('movement'));
+            })->name('movements.show');
         });
 
         // Debug route to test location endpoints
