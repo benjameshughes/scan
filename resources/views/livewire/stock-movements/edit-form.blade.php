@@ -63,7 +63,7 @@
                     <flux:label for="type" required>Movement Type</flux:label>
                     <flux:select id="type" wire:model="type">
                         @foreach($this->movementTypes as $value => $label)
-                            <flux:option value="{{ $value }}">{{ $label }}</flux:option>
+                            <flux:select.option value="{{ $value }}">{{ $label }}</flux:select.option>
                         @endforeach
                     </flux:select>
                     <flux:error name="type" />
