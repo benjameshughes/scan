@@ -1,5 +1,5 @@
-<div class="space-y-2">
-    <div class="relative">
+<div class="space-y-2 relative">
+    <div>
         <flux:label for="product-search" :required="$required">{{ $label }}</flux:label>
         
         <div class="relative">
@@ -74,7 +74,7 @@
     
     <!-- Dropdown Results -->
     @if($showDropdown)
-        <div class="absolute z-50 w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-md shadow-lg max-h-64 overflow-y-auto">
+        <div class="absolute z-50 left-0 right-0 top-full mt-1 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg max-h-48 overflow-y-auto overflow-x-hidden">
             <!-- Search Results -->
             @if($searchResults->isNotEmpty())
                 <div class="p-2 border-b border-zinc-200 dark:border-zinc-700">

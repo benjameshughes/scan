@@ -1,5 +1,5 @@
 <div class="relative" x-data="{ open: @entangle('showDropdown') }">
-    <div class="relative">
+    <div>
         <flux:label for="location-search" :required="$required">{{ $label }}</flux:label>
         
         <div class="relative">
@@ -45,7 +45,7 @@
         x-transition:leave="transition ease-in duration-150"
         x-transition:leave-start="opacity-100 scale-100"
         x-transition:leave-end="opacity-0 scale-95"
-        class="absolute z-50 w-full mt-1 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg max-h-48 overflow-y-auto overflow-x-hidden"
+        class="absolute z-50 left-0 right-0 top-full mt-1 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg max-h-48 overflow-y-auto overflow-x-hidden"
         style="display: none;"
     >
         <!-- Smart Suggestions (when no search) -->
