@@ -49,7 +49,7 @@
     
     <!-- Dropdown Results -->
     @if($showDropdown && $product)
-        <div class="absolute z-50 w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+        <div class="absolute z-50 w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg max-h-48 overflow-y-auto">
             <!-- Product Locations with Stock -->
             @if($productLocations->isNotEmpty())
                 <div class="p-2">

@@ -1,46 +1,40 @@
 <div class="relative" x-data="{ open: @entangle('showDropdown') }">
-    <!-- Label -->
-    @if($label)
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-            {{ $label }}
-            @if($required)
-                <span class="text-red-500">*</span>
-            @endif
-        </label>
-    @endif
-
-    <!-- Input Field -->
     <div class="relative">
-        <input
-            wire:model.live.debounce.300ms="search"
-            wire:focus="showSuggestions"
-            wire:blur="hideSuggestions"
-            type="text"
-            placeholder="{{ $placeholder }}"
-            class="w-full border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 pr-10"
-            autocomplete="off"
-        />
+        <flux:label for="location-search" :required="$required">{{ $label }}</flux:label>
         
-        <!-- Clear Button -->
-        @if($selectedLocationId || $search)
-            <button
-                wire:click="clearSelection"
-                type="button"
-                class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
-            >
-                <flux:icon.x-mark class="size-4" />
-            </button>
-        @else
-            <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
-                <flux:icon.map-pin class="size-4 text-gray-400" />
-            </div>
-        @endif
-    </div>
+        <div class="relative">
+            <flux:input
+                id="location-search"
+                wire:model.live.debounce.300ms="search"
+                wire:focus="showSuggestions"
+                wire:blur="hideSuggestions"
+                :placeholder="$placeholder"
+                icon="map-pin"
+                autocomplete="off"
+                class="pr-10"
+            />
+            
+            <!-- Clear Button -->
+            @if($selectedLocationId || $search)
+                <button
+                    type="button"
+                    wire:click="clearSelection"
+                    class="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                    title="Clear selection"
+                >
+                    <flux:icon.x-mark class="size-4" />
+                </button>
+            @endif
+        </div>
 
-    <!-- Error Message -->
-    @if($errorMessage)
-        <p class="text-xs text-red-600 dark:text-red-400 mt-1">{{ $errorMessage }}</p>
-    @endif
+        @if($errorMessage)
+            <div class="text-xs text-red-600 dark:text-red-400 mt-1">{{ $errorMessage }}</div>
+        @endif
+        
+        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            Search locations or select from recent and popular
+        </div>
+    </div>
 
     <!-- Dropdown -->
     <div 
@@ -51,7 +45,7 @@
         x-transition:leave="transition ease-in duration-150"
         x-transition:leave-start="opacity-100 scale-100"
         x-transition:leave-end="opacity-0 scale-95"
-        class="absolute z-50 w-full mt-1 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-md shadow-lg max-h-64 overflow-y-auto"
+        class="absolute z-50 w-full mt-1 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg max-h-48 overflow-y-auto"
         style="display: none;"
     >
         <!-- Smart Suggestions (when no search) -->

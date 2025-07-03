@@ -142,11 +142,13 @@ class ProductLocationSelector extends Component
                     return isset($location['StockLevel']) && $location['StockLevel'] > 0;
                 })
                 ->map(function ($location) {
+                    $locationData = $location['Location'] ?? [];
                     return [
-                        'id' => $location['LocationId'] ?? $location['LocationName'],
-                        'code' => $location['LocationName'] ?? 'Unknown',
-                        'name' => $location['LocationName'] ?? 'Unknown',
+                        'id' => $locationData['StockLocationId'] ?? $locationData['LocationName'] ?? 'unknown',
+                        'code' => $locationData['LocationName'] ?? 'Unknown',
+                        'name' => $locationData['LocationName'] ?? 'Unknown', 
                         'quantity' => $location['StockLevel'] ?? 0,
+                        'available' => $location['Available'] ?? 0,
                     ];
                 })
                 ->sortByDesc('quantity')

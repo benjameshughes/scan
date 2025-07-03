@@ -298,7 +298,10 @@ class CreateForm extends Component
                 $stockLocations = $linnworksService->getStockLocationsByProduct($this->selected_product->sku);
                 
                 // Find the specific location
-                $locationStock = collect($stockLocations)->firstWhere('LocationName', $this->from_location_code);
+                $locationStock = collect($stockLocations)->first(function ($location) {
+                    $locationData = $location['Location'] ?? [];
+                    return ($locationData['LocationName'] ?? '') === $this->from_location_code;
+                });
                 
                 if ($locationStock) {
                     $this->currentStockLevel = $locationStock['StockLevel'] ?? 0;
