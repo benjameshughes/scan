@@ -142,6 +142,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('manage', function () {
             return view('locations.manage');
         })->name('manage');
+        Route::get('movements', function () {
+            return view('locations.movements');
+        })->name('movements');
+        Route::get('movements/create', function () {
+            return view('locations.movements.create');
+        })->name('movements.create');
+        Route::get('movements/{movement}', function (App\Models\StockMovement $movement) {
+            return view('locations.movements.show', compact('movement'));
+        })->name('movements.show');
+        Route::get('movements/{movement}/edit', function (App\Models\StockMovement $movement) {
+            return view('locations.movements.edit', compact('movement'));
+        })->name('movements.edit');
         
         // Debug route to test location endpoints
         Route::get('debug-endpoints', function () {

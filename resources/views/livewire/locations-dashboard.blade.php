@@ -15,8 +15,17 @@
                     
                     <div class="flex items-center gap-3">
                         <flux:button
-                            href="{{ route('locations.manage') }}"
+                            href="{{ route('locations.movements') }}"
                             variant="filled"
+                            icon="arrow-path"
+                            size="sm"
+                            wire:navigate
+                        >
+                            Stock Movements
+                        </flux:button>
+                        <flux:button
+                            href="{{ route('locations.manage') }}"
+                            variant="ghost"
                             icon="cog-6-tooth"
                             size="sm"
                             wire:navigate

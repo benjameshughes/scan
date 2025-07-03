@@ -8,6 +8,7 @@ use App\Jobs\EmptyBayJob;
 use App\Jobs\SyncBarcode;
 use App\Models\Product;
 use App\Models\Scan;
+use App\Models\StockMovement;
 use App\Rules\BarcodePrefixCheck;
 use App\Services\LinnworksApiService;
 use Illuminate\Support\Facades\Log;
@@ -567,6 +568,43 @@ class ProductScanner extends Component
                 'user_id' => auth()->id(),
                 'linnworks_response' => $response
             ]);
+
+            // Log the stock movement for historical tracking
+            try {
+                // Extract location code - try multiple possible fields
+                $locationCode = $selectedLocation['Location']['LocationCode'] ?? 
+                               $selectedLocation['LocationCode'] ?? 
+                               $selectedLocation['locationCode'] ?? 
+                               $selectedLocation['code'] ?? 
+                               $locationName; // Fallback to name if no code
+                
+                StockMovement::createBayRefill(
+                    $this->product,
+                    $this->selectedLocationId,
+                    $locationCode,
+                    $this->refillQuantity,
+                    auth()->id(),
+                    [
+                        'location_name' => $locationName,
+                        'stock_before' => $selectedLocation['StockLevel'] ?? $selectedLocation['stockLevel'] ?? $selectedLocation['stock'] ?? 0,
+                        'linnworks_response' => $response
+                    ]
+                );
+                
+                Log::channel('inventory')->info('Stock movement logged', [
+                    'product_sku' => $this->product->sku,
+                    'from_location' => $locationCode,
+                    'quantity' => $this->refillQuantity,
+                    'type' => 'bay_refill'
+                ]);
+            } catch (\Exception $e) {
+                // Log error but don't fail the transfer - movement logging is non-critical
+                Log::channel('inventory')->error('Failed to log stock movement', [
+                    'error' => $e->getMessage(),
+                    'product_sku' => $this->product->sku,
+                    'location_id' => $this->selectedLocationId
+                ]);
+            }
 
             // Reset everything back to scanner after successful transfer
             $this->resetScan();
