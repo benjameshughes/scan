@@ -14,6 +14,7 @@
                     </div>
                     
                     <div class="flex items-center gap-3">
+                        @can('create stock movements')
                         <flux:button
                             href="{{ route('locations.movements.create') }}"
                             variant="filled"
@@ -23,6 +24,8 @@
                         >
                             Create Movement
                         </flux:button>
+                        @endcan
+                        @can('view stock movements')
                         <flux:button
                             href="{{ route('locations.movements') }}"
                             variant="ghost"
@@ -32,6 +35,8 @@
                         >
                             View Movements
                         </flux:button>
+                        @endcan
+                        @can('manage locations')
                         <flux:button
                             href="{{ route('locations.manage') }}"
                             variant="ghost"
@@ -41,6 +46,7 @@
                         >
                             Manage Locations
                         </flux:button>
+                        @endcan
                     </div>
                 </div>
             </div>

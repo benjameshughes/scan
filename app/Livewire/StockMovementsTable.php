@@ -16,6 +16,14 @@ class StockMovementsTable extends TableComponent
     protected ?string $title = 'Stock Movement History';
     protected array $searchable = ['product.sku', 'product.name', 'from_location_code', 'to_location_code'];
 
+    public function mount()
+    {
+        // Check if user has permission to view stock movements
+        if (!auth()->user()->can('view stock movements')) {
+            abort(403, 'You do not have permission to view stock movements.');
+        }
+    }
+
     public function table(Table $table): Table
     {
         return parent::table($table)
@@ -84,13 +92,19 @@ class StockMovementsTable extends TableComponent
                             'icon' => 'eye',
                             'label' => 'View',
                             'variant' => 'ghost',
-                            'size' => 'xs'
+                            'size' => 'xs',
+                            'show' => function () {
+                                return auth()->user()->can('view stock movements');
+                            }
                         ],
                         'edit' => [
                             'icon' => 'pencil',
                             'label' => 'Edit', 
                             'variant' => 'ghost',
-                            'size' => 'xs'
+                            'size' => 'xs',
+                            'show' => function () {
+                                return auth()->user()->can('edit stock movements');
+                            }
                         ]
                     ]),
             ])
@@ -164,16 +178,28 @@ class StockMovementsTable extends TableComponent
 
     public function create(): void
     {
+        if (!auth()->user()->can('create stock movements')) {
+            abort(403, 'You do not have permission to create stock movements.');
+        }
+        
         $this->redirect(route('locations.movements.create'), navigate: true);
     }
 
     public function view(int $id): void
     {
+        if (!auth()->user()->can('view stock movements')) {
+            abort(403, 'You do not have permission to view stock movements.');
+        }
+        
         $this->redirect(route('locations.movements.show', $id), navigate: true);
     }
 
     public function edit(int $id): void
     {
+        if (!auth()->user()->can('edit stock movements')) {
+            abort(403, 'You do not have permission to edit stock movements.');
+        }
+        
         $this->redirect(route('locations.movements.edit', $id), navigate: true);
     }
 

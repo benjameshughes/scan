@@ -50,6 +50,8 @@ class Edit extends Component
             'users' => ['view users', 'create users', 'edit users', 'delete users'],
             'scans' => ['view scans', 'view scanner', 'create scans', 'edit scans', 'delete scans', 'sync scans'],
             'products' => ['view products', 'create products', 'edit products', 'delete products', 'import products', 'manage products', 'refill bays'],
+            'stock_movements' => ['view stock movements', 'create stock movements', 'edit stock movements', 'delete stock movements', 'approve stock movements', 'bulk stock movements', 'import stock movements', 'export stock movements', 'view stock reports'],
+            'locations' => ['view locations', 'create locations', 'edit locations', 'delete locations', 'activate locations', 'manage locations'],
             'invites' => ['view invites', 'create invites', 'edit invites', 'delete invites'],
             'notifications' => ['receive empty bay notifications'],
         ];

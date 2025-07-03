@@ -1,57 +1,18 @@
 <?php
 
-namespace Database\Seeders;
-
-use App\Models\User;
-use Illuminate\Database\Seeder;
+use Illuminate\Database\Migrations\Migration;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
-class RolesAndPermissionsSeeder extends Seeder
+return new class extends Migration
 {
     /**
-     * Run the database seeds.
+     * Run the migrations.
      */
-    public function run(): void
+    public function up(): void
     {
+        // Clear the cache to ensure fresh permissions
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
-
-        // User-related permissions
-        $userPermissions = [
-            'view users',
-            'create users',
-            'edit users',
-            'delete users',
-        ];
-
-        // Scan-related permissions
-        $scanPermissions = [
-            'view scans',
-            'view scanner',
-            'create scans',
-            'edit scans',
-            'delete scans',
-            'sync scans',
-        ];
-
-        // Product-related permissions
-        $productPermissions = [
-            'view products',
-            'create products',
-            'edit products',
-            'delete products',
-            'import products',
-            'manage products', // For admin product sync features
-            'refill bays', // For warehouse workers to refill empty bays
-        ];
-
-        // Invite-related permissions
-        $invitePermissions = [
-            'view invites',
-            'create invites',
-            'edit invites',
-            'delete invites',
-        ];
 
         // Stock Movement permissions - separate from bay refill
         $stockMovementPermissions = [
@@ -64,7 +25,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'import stock movements',      // Import movements from CSV/files
             'export stock movements',      // Export movement data
             'view stock reports',          // View detailed stock movement reports
-            'manage locations',            // Manage stock locations
         ];
 
         // Location management permissions
@@ -74,34 +34,34 @@ class RolesAndPermissionsSeeder extends Seeder
             'edit locations',              // Edit location details
             'delete locations',            // Delete locations
             'activate locations',          // Activate/deactivate locations
+            'manage locations',            // Manage stock locations (high level)
         ];
 
-        // Notification-related permissions
-        $notificationPermissions = [
-            'receive empty bay notifications',
-        ];
-
-        // Create all permissions
-        foreach (array_merge($userPermissions, $scanPermissions, $productPermissions, $invitePermissions, $stockMovementPermissions, $locationPermissions, $notificationPermissions) as $permission) {
+        // Create all new permissions
+        foreach (array_merge($stockMovementPermissions, $locationPermissions) as $permission) {
             Permission::findOrCreate($permission);
         }
 
-        // Create Roles
-        $adminRole = Role::findOrCreate('admin');
-        $adminRole->givePermissionTo(Permission::all());
+        // Create new roles with appropriate permissions
+        $this->createStockManagerRole($stockMovementPermissions, $locationPermissions);
+        $this->createSupervisorRole($stockMovementPermissions, $locationPermissions);
+        $this->createWarehouseWorkerRole($stockMovementPermissions, $locationPermissions);
 
-        // Create User Role (Basic Scanner User)
-        $userRole = Role::findOrCreate('user');
-        $userRole->givePermissionTo([
-            'view scanner',
-            'create scans',
-            'view scans',
-            'view products',
-        ]);
+        // Update admin role to have all new permissions (if it exists)
+        $adminRole = Role::where('name', 'admin')->first();
+        if ($adminRole) {
+            $adminRole->givePermissionTo(array_merge($stockMovementPermissions, $locationPermissions));
+        }
+    }
 
-        // Create Stock Manager Role
+    /**
+     * Create Stock Manager Role
+     */
+    private function createStockManagerRole(array $stockMovementPermissions, array $locationPermissions): void
+    {
         $stockManagerRole = Role::findOrCreate('stock_manager');
-        $stockManagerRole->givePermissionTo([
+        
+        $stockManagerPermissions = [
             // Basic user permissions
             'view scanner',
             'create scans',
@@ -120,11 +80,19 @@ class RolesAndPermissionsSeeder extends Seeder
             'edit locations',
             // Bay refill (keep existing)
             'refill bays',
-        ]);
+        ];
 
-        // Create Supervisor Role
+        $stockManagerRole->syncPermissions($stockManagerPermissions);
+    }
+
+    /**
+     * Create Supervisor Role
+     */
+    private function createSupervisorRole(array $stockMovementPermissions, array $locationPermissions): void
+    {
         $supervisorRole = Role::findOrCreate('supervisor');
-        $supervisorRole->givePermissionTo([
+        
+        $supervisorPermissions = [
             // All stock manager permissions
             'view scanner',
             'create scans',
@@ -151,11 +119,19 @@ class RolesAndPermissionsSeeder extends Seeder
             'view users',
             'create users',
             'edit users',
-        ]);
+        ];
 
-        // Create Warehouse Worker Role
+        $supervisorRole->syncPermissions($supervisorPermissions);
+    }
+
+    /**
+     * Create Warehouse Worker Role
+     */
+    private function createWarehouseWorkerRole(array $stockMovementPermissions, array $locationPermissions): void
+    {
         $warehouseWorkerRole = Role::findOrCreate('warehouse_worker');
-        $warehouseWorkerRole->givePermissionTo([
+        
+        $warehouseWorkerPermissions = [
             // Basic scanner permissions
             'view scanner',
             'create scans',
@@ -167,31 +143,43 @@ class RolesAndPermissionsSeeder extends Seeder
             'view locations',
             // Bay refill (keep existing)
             'refill bays',
-        ]);
+        ];
 
-        // Assign admin role to specific user if exists
-        $adminUser = User::where('email', 'ben@app.com')->first();
-        if ($adminUser) {
-            $adminUser->assignRole('admin');
-        }
-
-        // Assign random roles to other users with realistic distribution
-        $users = User::where('email', '!=', 'ben@app.com')->get();
-        foreach ($users as $user) {
-            $role = fake()->randomElement([
-                'user',            // 40% - Basic scanner users
-                'user',            
-                'user',            
-                'user',            
-                'warehouse_worker', // 30% - Warehouse workers
-                'warehouse_worker',
-                'warehouse_worker',
-                'stock_manager',   // 20% - Stock managers
-                'stock_manager',
-                'supervisor',      // 10% - Supervisors
-            ]);
-            $user->assignRole($role);
-        }
-
+        $warehouseWorkerRole->syncPermissions($warehouseWorkerPermissions);
     }
-}
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        // Clear the cache
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
+        // Remove the new roles
+        Role::where('name', 'stock_manager')->delete();
+        Role::where('name', 'supervisor')->delete();
+        Role::where('name', 'warehouse_worker')->delete();
+
+        // Remove the new permissions
+        $permissionsToRemove = [
+            'view stock movements',
+            'create stock movements',
+            'edit stock movements',
+            'delete stock movements',
+            'approve stock movements',
+            'bulk stock movements',
+            'import stock movements',
+            'export stock movements',
+            'view stock reports',
+            'view locations',
+            'create locations',
+            'edit locations',
+            'delete locations',
+            'activate locations',
+            'manage locations',
+        ];
+
+        Permission::whereIn('name', $permissionsToRemove)->delete();
+    }
+};

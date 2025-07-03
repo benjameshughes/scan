@@ -9,6 +9,14 @@ use Livewire\Component;
 
 class LocationsDashboard extends Component
 {
+    public function mount()
+    {
+        // Check if user has permission to view locations dashboard
+        if (!auth()->user()->can('view locations')) {
+            abort(403, 'You do not have permission to view the locations dashboard.');
+        }
+    }
+
     public function render()
     {
         // Get location statistics

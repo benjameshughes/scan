@@ -132,28 +132,45 @@ Route::middleware(['auth', 'verified'])->group(function () {
     | Location Management Routes
     |--------------------------------------------------------------------------
     */
-    Route::prefix('locations')->name('locations.')->middleware('permission:manage products')->group(function () {
-        Route::get('/', function () {
-            return view('locations.index');
-        })->name('index');
-        Route::get('dashboard', function () {
-            return view('locations.dashboard');
-        })->name('dashboard');
-        Route::get('manage', function () {
-            return view('locations.manage');
-        })->name('manage');
-        Route::get('movements', function () {
-            return view('locations.movements');
-        })->name('movements');
-        Route::get('movements/create', function () {
-            return view('locations.movements.create');
-        })->name('movements.create');
-        Route::get('movements/{movement}', function (App\Models\StockMovement $movement) {
-            return view('locations.movements.show', compact('movement'));
-        })->name('movements.show');
-        Route::get('movements/{movement}/edit', function (App\Models\StockMovement $movement) {
-            return view('locations.movements.edit', compact('movement'));
-        })->name('movements.edit');
+    Route::prefix('locations')->name('locations.')->group(function () {
+        // Location dashboard and management - require view locations permission
+        Route::middleware('permission:view locations')->group(function () {
+            Route::get('/', function () {
+                return view('locations.index');
+            })->name('index');
+            Route::get('dashboard', function () {
+                return view('locations.dashboard');
+            })->name('dashboard');
+        });
+        
+        // Location management - require manage locations permission
+        Route::middleware('permission:manage locations')->group(function () {
+            Route::get('manage', function () {
+                return view('locations.manage');
+            })->name('manage');
+        });
+        
+        // Stock movement routes - require stock movement permissions
+        Route::middleware('permission:view stock movements')->group(function () {
+            Route::get('movements', function () {
+                return view('locations.movements');
+            })->name('movements');
+            Route::get('movements/{movement}', function (App\Models\StockMovement $movement) {
+                return view('locations.movements.show', compact('movement'));
+            })->name('movements.show');
+        });
+        
+        Route::middleware('permission:create stock movements')->group(function () {
+            Route::get('movements/create', function () {
+                return view('locations.movements.create');
+            })->name('movements.create');
+        });
+        
+        Route::middleware('permission:edit stock movements')->group(function () {
+            Route::get('movements/{movement}/edit', function (App\Models\StockMovement $movement) {
+                return view('locations.movements.edit', compact('movement'));
+            })->name('movements.edit');
+        });
         
         // Debug route to test location endpoints
         Route::get('debug-endpoints', function () {
