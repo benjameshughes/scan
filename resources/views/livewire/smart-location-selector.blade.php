@@ -45,7 +45,7 @@
         x-transition:leave="transition ease-in duration-150"
         x-transition:leave-start="opacity-100 scale-100"
         x-transition:leave-end="opacity-0 scale-95"
-        class="absolute z-50 w-full mt-1 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg max-h-48 overflow-y-auto"
+        class="absolute z-50 w-full mt-1 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg max-h-48 overflow-y-auto overflow-x-hidden"
         style="display: none;"
     >
         <!-- Smart Suggestions (when no search) -->
@@ -59,27 +59,27 @@
                 <button
                     wire:click="selectLocation('{{ $location->location_id }}')"
                     type="button"
-                    class="w-full px-3 py-2 text-left hover:bg-zinc-50 dark:hover:bg-zinc-700 focus:bg-zinc-50 dark:focus:bg-zinc-700 focus:outline-none flex items-center justify-between group"
+                    class="w-full px-3 py-2 text-left hover:bg-zinc-50 dark:hover:bg-zinc-700 focus:bg-zinc-50 dark:focus:bg-zinc-700 focus:outline-none flex items-center justify-between group min-w-0"
                 >
-                    <div>
-                        <div class="text-sm text-gray-900 dark:text-gray-100 font-medium">
+                    <div class="flex-1 min-w-0 pr-2">
+                        <div class="text-sm text-gray-900 dark:text-gray-100 font-medium truncate">
                             {{ $location->code }}
                         </div>
                         @if($location->name && $location->name !== $location->code)
-                            <div class="text-xs text-gray-500 dark:text-gray-400">
+                            <div class="text-xs text-gray-500 dark:text-gray-400 truncate">
                                 {{ $location->name }}
                             </div>
                         @endif
                     </div>
-                    <div class="flex items-center gap-2 text-xs text-gray-400">
+                    <div class="flex items-center gap-2 text-xs text-gray-400 flex-shrink-0">
                         @if($location->use_count > 0)
-                            <span class="flex items-center gap-1">
+                            <span class="flex items-center gap-1 whitespace-nowrap">
                                 <flux:icon.arrow-trending-up class="size-3" />
                                 {{ $location->use_count }}
                             </span>
                         @endif
                         @if($location->last_used_at)
-                            <span title="{{ $location->last_used_at->format('M j, Y g:i A') }}">
+                            <span title="{{ $location->last_used_at->format('M j, Y g:i A') }}" class="whitespace-nowrap">
                                 {{ $location->last_used_at->diffForHumans() }}
                             </span>
                         @endif
@@ -99,21 +99,21 @@
                 <button
                     wire:click="selectLocation('{{ $location->location_id }}')"
                     type="button"
-                    class="w-full px-3 py-2 text-left hover:bg-zinc-50 dark:hover:bg-zinc-700 focus:bg-zinc-50 dark:focus:bg-zinc-700 focus:outline-none flex items-center justify-between group"
+                    class="w-full px-3 py-2 text-left hover:bg-zinc-50 dark:hover:bg-zinc-700 focus:bg-zinc-50 dark:focus:bg-zinc-700 focus:outline-none flex items-center justify-between group min-w-0"
                 >
-                    <div>
-                        <div class="text-sm text-gray-900 dark:text-gray-100 font-medium">
+                    <div class="flex-1 min-w-0 pr-2">
+                        <div class="text-sm text-gray-900 dark:text-gray-100 font-medium truncate">
                             {{ $location->code }}
                         </div>
                         @if($location->name && $location->name !== $location->code)
-                            <div class="text-xs text-gray-500 dark:text-gray-400">
+                            <div class="text-xs text-gray-500 dark:text-gray-400 truncate">
                                 {{ $location->name }}
                             </div>
                         @endif
                     </div>
-                    <div class="flex items-center gap-2 text-xs text-gray-400">
+                    <div class="flex items-center gap-2 text-xs text-gray-400 flex-shrink-0">
                         @if($location->use_count > 0)
-                            <span class="flex items-center gap-1">
+                            <span class="flex items-center gap-1 whitespace-nowrap">
                                 <flux:icon.arrow-trending-up class="size-3" />
                                 {{ $location->use_count }}
                             </span>

@@ -49,7 +49,7 @@
     
     <!-- Dropdown Results -->
     @if($showDropdown && $product)
-        <div class="absolute z-50 w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+        <div class="absolute z-50 w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg max-h-48 overflow-y-auto overflow-x-hidden">
             <!-- Product Locations with Stock -->
             @if($productLocations->isNotEmpty())
                 <div class="p-2">
@@ -60,18 +60,18 @@
                             wire:click="selectLocation('{{ $location['id'] }}', '{{ $location['code'] }}', {{ $location['quantity'] }})"
                             class="w-full text-left p-3 hover:bg-zinc-50 dark:hover:bg-zinc-700 rounded-md transition-colors border border-transparent hover:border-zinc-200 dark:hover:border-zinc-600"
                         >
-                            <div class="flex items-center justify-between">
-                                <div class="flex-1 min-w-0">
-                                    <div class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $location['code'] }}</div>
+                            <div class="flex items-center justify-between min-w-0">
+                                <div class="flex-1 min-w-0 pr-2">
+                                    <div class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{{ $location['code'] }}</div>
                                     @if($location['name'] && $location['name'] !== $location['code'])
                                         <div class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ $location['name'] }}</div>
                                     @endif
                                 </div>
-                                <div class="flex items-center gap-2 ml-3">
-                                    <div class="text-sm font-medium text-blue-600 dark:text-blue-400">
-                                        {{ $location['quantity'] }} units
+                                <div class="flex items-center gap-2 flex-shrink-0">
+                                    <div class="text-sm font-medium text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                                        {{ $location['quantity'] }}
                                     </div>
-                                    <div class="w-2 h-2 rounded-full {{ $location['quantity'] > 50 ? 'bg-green-500' : ($location['quantity'] > 10 ? 'bg-amber-500' : 'bg-red-500') }}"></div>
+                                    <div class="w-2 h-2 rounded-full flex-shrink-0 {{ $location['quantity'] > 50 ? 'bg-green-500' : ($location['quantity'] > 10 ? 'bg-amber-500' : 'bg-red-500') }}"></div>
                                 </div>
                             </div>
                         </button>
