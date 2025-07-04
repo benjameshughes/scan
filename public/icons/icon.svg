@@ -1,0 +1,38 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" rx="64" fill="#2563eb"/>
+  
+  <!-- Barcode icon -->
+  <g transform="translate(96, 128)">
+    <!-- Barcode lines -->
+    <rect x="0" y="0" width="8" height="256" fill="white"/>
+    <rect x="16" y="0" width="4" height="256" fill="white"/>
+    <rect x="28" y="0" width="12" height="256" fill="white"/>
+    <rect x="48" y="0" width="4" height="256" fill="white"/>
+    <rect x="60" y="0" width="8" height="256" fill="white"/>
+    <rect x="76" y="0" width="4" height="256" fill="white"/>
+    <rect x="88" y="0" width="16" height="256" fill="white"/>
+    <rect x="112" y="0" width="4" height="256" fill="white"/>
+    <rect x="124" y="0" width="8" height="256" fill="white"/>
+    <rect x="140" y="0" width="4" height="256" fill="white"/>
+    <rect x="152" y="0" width="12" height="256" fill="white"/>
+    <rect x="172" y="0" width="4" height="256" fill="white"/>
+    <rect x="184" y="0" width="8" height="256" fill="white"/>
+    <rect x="200" y="0" width="4" height="256" fill="white"/>
+    <rect x="212" y="0" width="16" height="256" fill="white"/>
+    <rect x="236" y="0" width="4" height="256" fill="white"/>
+    <rect x="248" y="0" width="8" height="256" fill="white"/>
+    <rect x="264" y="0" width="4" height="256" fill="white"/>
+    <rect x="276" y="0" width="12" height="256" fill="white"/>
+    <rect x="296" y="0" width="4" height="256" fill="white"/>
+    <rect x="308" y="0" width="8" height="256" fill="white"/>
+    <rect x="320" y="0" width="4" height="256" fill="white"/>
+  </g>
+  
+  <!-- Scanner beam effect -->
+  <rect x="0" y="240" width="512" height="32" fill="rgba(239, 68, 68, 0.8)"/>
+  
+  <!-- App name -->
+  <text x="256" y="440" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="36" font-weight="bold">STOCK</text>
+  <text x="256" y="480" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="24">SCANNER</text>
+</svg>
