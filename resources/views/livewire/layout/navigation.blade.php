@@ -56,9 +56,9 @@ new class extends Component {
                         </x-nav-link>
                     @endcan
                     @can('manage products')
-                        <x-nav-link :href="route('admin.pending-updates')" :active="request()->routeIs('admin.pending-updates')"
+                        <x-nav-link :href="route('admin.sync-dashboard')" :active="request()->routeIs('admin.sync-dashboard')"
                                     wire:navigate>
-                            {{ __('Sync Updates') }}
+                            {{ __('Sync Dashboard') }}
                         </x-nav-link>
                     @endcan
                 </div>
@@ -84,6 +84,9 @@ new class extends Component {
                             <flux:navmenu.item href="{{route('locations.manage')}}" icon="map-pin" wire:navigate>Manage Locations</flux:navmenu.item>
                             @endcan
                             @can('manage products')
+                            <flux:navmenu.item href="{{route('admin.sync-dashboard')}}" icon="chart-bar" wire:navigate>Sync Dashboard</flux:navmenu.item>
+                            <flux:navmenu.item href="{{route('admin.sync-queue')}}" icon="queue-list" wire:navigate>Sync Queue</flux:navmenu.item>
+                            <flux:navmenu.item href="{{route('admin.pending-updates')}}" icon="exclamation-triangle" wire:navigate>Sync Updates</flux:navmenu.item>
                             <flux:navmenu.item href="{{route('admin.manual-sync')}}" icon="arrow-path" wire:navigate>Manual Sync</flux:navmenu.item>
                             @endcan
                         </flux:menu.group>
@@ -139,9 +142,9 @@ new class extends Component {
                 </x-responsive-nav-link>
             @endcan
             @can('manage products')
-                <x-responsive-nav-link :href="route('admin.pending-updates')" :active="request()->routeIs('admin.pending-updates')"
+                <x-responsive-nav-link :href="route('admin.sync-dashboard')" :active="request()->routeIs('admin.sync-dashboard')"
                                        wire:navigate>
-                    {{ __('Sync Updates') }}
+                    {{ __('Sync Dashboard') }}
                 </x-responsive-nav-link>
             @endcan
         </div>

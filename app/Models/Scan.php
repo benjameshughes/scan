@@ -17,6 +17,9 @@ class Scan extends Model
 
     protected $casts = [
         'submitted_at' => 'datetime',
+        'last_sync_attempt' => 'datetime',
+        'synced_at' => 'datetime',
+        'sync_metadata' => 'array',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -63,5 +66,67 @@ class Scan extends Model
         return $this->created_at->format(
             $this->created_at->year === now()->year ? 'MMM d, h:mm a' : 'MMM d, YYYY'
         );
+    }
+    
+    /**
+     * Get a human-readable error type
+     */
+    public function getErrorTypeDisplayAttribute()
+    {
+        return match($this->sync_error_type) {
+            'network' => 'Network Error',
+            'auth' => 'Authentication Error',
+            'rate_limit' => 'Rate Limit Exceeded',
+            'product_not_found' => 'Product Not Found',
+            'api_error' => 'API Error',
+            'timeout' => 'Request Timeout',
+            'validation' => 'Validation Error',
+            default => ucfirst(str_replace('_', ' ', $this->sync_error_type ?? 'Unknown Error'))
+        };
+    }
+    
+    /**
+     * Get a user-friendly sync status with additional context
+     */
+    public function getSyncStatusDisplayAttribute()
+    {
+        return match($this->sync_status) {
+            'pending' => 'Pending Sync',
+            'synced' => 'Successfully Synced',
+            'failed' => 'Sync Failed',
+            default => ucfirst($this->sync_status ?? 'Unknown')
+        };
+    }
+    
+    /**
+     * Check if this scan has failed multiple times
+     */
+    public function hasMultipleFailures()
+    {
+        return $this->sync_attempts > 1 && $this->sync_status === 'failed';
+    }
+    
+    /**
+     * Get the next retry attempt number
+     */
+    public function getNextRetryAttempt()
+    {
+        return $this->sync_attempts + 1;
+    }
+    
+    /**
+     * Record a sync attempt with error information
+     */
+    public function recordSyncAttempt($status, $errorMessage = null, $errorType = null, $metadata = [])
+    {
+        $this->update([
+            'sync_status' => $status,
+            'sync_attempts' => $this->sync_attempts + 1,
+            'last_sync_attempt' => now(),
+            'sync_error_message' => $errorMessage,
+            'sync_error_type' => $errorType,
+            'sync_metadata' => array_merge($this->sync_metadata ?? [], $metadata),
+            'synced_at' => $status === 'synced' ? now() : null,
+        ]);
     }
 }

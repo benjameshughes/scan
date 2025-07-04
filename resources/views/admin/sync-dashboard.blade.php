@@ -1,0 +1,1 @@
+@livewire('admin.sync-dashboard')
