@@ -8,6 +8,7 @@ use App\Models\SyncProgress;
 use App\Actions\SyncAllPendingScans;
 use App\Actions\DailyLinnworksSyncAction;
 use App\Services\LinnworksApiService;
+use App\Services\SyncRetryService;
 use Livewire\Component;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
@@ -20,10 +21,12 @@ class SyncDashboard extends Component
     public $errorBreakdown = [];
     public $queueStatus = [];
     public $apiHealth = [];
+    public $retryRecommendations = [];
     
     public $refreshing = false;
     public $bulkSyncing = false;
     public $retryingFailed = false;
+    public $smartRetrying = false;
     
     public function mount()
     {
@@ -44,6 +47,7 @@ class SyncDashboard extends Component
         $this->errorBreakdown = $this->getErrorBreakdown();
         $this->queueStatus = $this->getQueueStatus();
         $this->apiHealth = $this->getApiHealth();
+        $this->retryRecommendations = $this->getRetryRecommendations();
         
         $this->refreshing = false;
     }
@@ -138,6 +142,34 @@ class SyncDashboard extends Component
             session()->flash('error', 'Failed to clear old sync history: ' . $e->getMessage());
         }
         
+        $this->loadDashboardData();
+    }
+    
+    public function smartRetryFailed()
+    {
+        $this->smartRetrying = true;
+        
+        try {
+            $retryService = app(SyncRetryService::class);
+            $results = $retryService->retryFailedScans([
+                'max_age_hours' => 24,
+                'max_attempts' => 5,
+            ]);
+            
+            if ($results['queued_for_retry'] > 0) {
+                session()->flash('success', 
+                    "Intelligently queued {$results['queued_for_retry']} scans for retry. " .
+                    "Skipped {$results['skipped']} scans that shouldn't be retried."
+                );
+            } else {
+                session()->flash('info', 'No scans found that should be retried at this time.');
+            }
+            
+        } catch (\Exception $e) {
+            session()->flash('error', 'Failed to smart retry scans: ' . $e->getMessage());
+        }
+        
+        $this->smartRetrying = false;
         $this->loadDashboardData();
     }
     
@@ -281,6 +313,16 @@ class SyncDashboard extends Component
                 ];
             }
         });
+    }
+    
+    protected function getRetryRecommendations()
+    {
+        try {
+            $retryService = app(SyncRetryService::class);
+            return $retryService->getRetryRecommendations();
+        } catch (\Exception $e) {
+            return [];
+        }
     }
     
     public function render()
