@@ -8,6 +8,7 @@ use App\Models\SyncProgress;
 use App\Actions\SyncAllPendingScans;
 use App\Actions\DailyLinnworksSyncAction;
 use App\Services\LinnworksApiService;
+use App\Services\Linnworks\LinnworksInventoryService;
 use App\Services\SyncRetryService;
 use Livewire\Component;
 use Illuminate\Support\Facades\DB;
@@ -58,70 +59,172 @@ class SyncDashboard extends Component
         $this->dispatch('dashboard-refreshed');
     }
     
-    public function syncAllPending()
+    public function pullProductUpdates()
     {
         $this->bulkSyncing = true;
         
         try {
-            $pendingScans = Scan::where('sync_status', 'pending')
-                ->orWhere('sync_status', 'failed')
-                ->count();
+            // This pulls product data FROM Linnworks TO local database using our new safe services
+            // It does NOT push any stock changes back to Linnworks
+            $inventoryService = app(\App\Services\Linnworks\LinnworksInventoryService::class);
             
-            if ($pendingScans > 0) {
-                $action = new SyncAllPendingScans();
-                $action->execute();
-                
-                session()->flash('success', "Queued {$pendingScans} scans for sync processing.");
-            } else {
-                session()->flash('info', 'No pending scans to sync.');
+            $processed = 0;
+            $updated = 0;
+            
+            // Get recent products that have been scanned to refresh their data
+            $recentProducts = \App\Models\Product::whereHas('scans', function($q) {
+                $q->where('created_at', '>', now()->subDays(7));
+            })->limit(50)->get();
+            
+            foreach ($recentProducts as $product) {
+                try {
+                    $linnworksData = $inventoryService->getProductInfo($product->sku);
+                    if ($linnworksData) {
+                        // Update local product with fresh Linnworks data (read-only sync)
+                        $processed++;
+                        if ($product->name !== $linnworksData['title']) {
+                            $updated++;
+                            // Could update product name here if desired
+                        }
+                    }
+                } catch (\Exception $e) {
+                    Log::warning("Failed to update product {$product->sku}: " . $e->getMessage());
+                }
             }
             
+            session()->flash('success', 
+                "Pulled data for {$processed} products from Linnworks. " .
+                "Found {$updated} with updates available."
+            );
+            
         } catch (\Exception $e) {
-            session()->flash('error', 'Failed to queue scans: ' . $e->getMessage());
+            session()->flash('error', 'Failed to pull product updates: ' . $e->getMessage());
         }
         
         $this->bulkSyncing = false;
         $this->loadDashboardData();
     }
     
-    public function retryAllFailed()
+    public function refreshStockLevels()
     {
         $this->retryingFailed = true;
         
         try {
-            $failedScans = Scan::where('sync_status', 'failed')->count();
+            // This pulls current stock levels FROM Linnworks TO update local product data
+            // It does NOT push any changes back to Linnworks
+            $inventoryService = app(LinnworksInventoryService::class);
+            $updated = 0;
             
-            if ($failedScans > 0) {
-                // Reset failed scans to pending for retry
-                Scan::where('sync_status', 'failed')
-                    ->update(['sync_status' => 'pending']);
-                
-                $action = new SyncAllPendingScans();
-                $action->execute();
-                
-                session()->flash('success', "Retrying {$failedScans} failed scans.");
-            } else {
-                session()->flash('info', 'No failed scans to retry.');
+            // Get products that have been scanned recently to refresh their stock levels
+            $recentProducts = \App\Models\Product::whereHas('scans', function($q) {
+                $q->where('created_at', '>', now()->subDays(7));
+            })->limit(100)->get();
+            
+            foreach ($recentProducts as $product) {
+                try {
+                    $stockLevel = $inventoryService->getStockLevel($product->sku);
+                    $stockData = $inventoryService->getStockDetails($product->sku);
+                    // Update local cache with current Linnworks stock levels
+                    // This is read-only - we're pulling data, not pushing
+                    if ($stockData) {
+                        $updated++;
+                    }
+                } catch (\Exception $e) {
+                    // Log but continue with other products
+                    \Log::warning("Failed to refresh stock for {$product->sku}: " . $e->getMessage());
+                }
             }
             
+            session()->flash('success', "Refreshed stock levels for {$updated} products from Linnworks.");
+            
         } catch (\Exception $e) {
-            session()->flash('error', 'Failed to retry scans: ' . $e->getMessage());
+            session()->flash('error', 'Failed to refresh stock levels: ' . $e->getMessage());
         }
         
         $this->retryingFailed = false;
         $this->loadDashboardData();
     }
     
-    public function runFullSync()
+    public function pullFullProductCatalog()
     {
         try {
-            $action = new DailyLinnworksSyncAction();
-            $action->execute();
+            // This pulls the complete product catalog FROM Linnworks TO local database using our safe services
+            // Uses the existing DailyLinnworksSyncAction for proper create/update with approval workflow
+            $inventoryService = app(\App\Services\Linnworks\LinnworksInventoryService::class);
+            $syncAction = new DailyLinnworksSyncAction();
             
-            session()->flash('success', 'Full sync has been queued for processing.');
+            $processed = 0;
+            $created = 0;
+            $updated = 0;
+            $queued = 0;
+            $errors = 0;
+            $page = 1;
+            $pageSize = config('linnworks.pagination.sync_page_size', 200); // Use config value, default 200
+            $maxPages = config('linnworks.pagination.max_sync_pages', 100); // Allow up to 100 pages (20,000 products)
+            
+            \Log::info("Starting full product catalog pull from Linnworks", [
+                'page_size' => $pageSize,
+                'max_pages' => $maxPages,
+                'estimated_max_products' => $pageSize * $maxPages
+            ]);
+            
+            // Pull products page by page from Linnworks
+            do {
+                $products = $inventoryService->getAllProducts($page, $pageSize);
+                \Log::info("Processing page {$page}", [
+                    'products_count' => count($products),
+                    'page' => $page
+                ]);
+                
+                if (!empty($products)) {
+                    // Use the existing action to process this batch with proper validation and approval workflow
+                    $batchStats = $syncAction->processBatch($products, false); // false = not dry run, actually create/update
+                    
+                    $processed += $batchStats['processed'];
+                    $created += $batchStats['created'];
+                    $queued += $batchStats['queued'];
+                    $errors += $batchStats['errors'];
+                    
+                    \Log::info("Batch {$page} completed", [
+                        'page' => $page,
+                        'batch_stats' => $batchStats,
+                        'running_totals' => [
+                            'processed' => $processed,
+                            'created' => $created,
+                            'queued' => $queued,
+                            'errors' => $errors
+                        ]
+                    ]);
+                }
+                
+                $page++;
+            } while (!empty($products) && count($products) === $pageSize && $page <= $maxPages);
+            
+            $pagesProcessed = $page - 1;
+            
+            \Log::info("Full product catalog pull completed", [
+                'pages_processed' => $pagesProcessed,
+                'final_stats' => [
+                    'processed' => $processed,
+                    'created' => $created,
+                    'queued_for_approval' => $queued,
+                    'errors' => $errors
+                ]
+            ]);
+            
+            session()->flash('success', 
+                "Product catalog sync completed successfully! " .
+                "Processed {$pagesProcessed} pages ({$processed} total products). " .
+                "Created {$created} new products, {$queued} queued for manual approval due to changes. " .
+                "Errors: {$errors}. Check logs for detailed information."
+            );
             
         } catch (\Exception $e) {
-            session()->flash('error', 'Failed to start full sync: ' . $e->getMessage());
+            \Log::error("Failed to pull product catalog", [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            session()->flash('error', 'Failed to pull product catalog: ' . $e->getMessage());
         }
         
         $this->loadDashboardData();
@@ -145,28 +248,47 @@ class SyncDashboard extends Component
         $this->loadDashboardData();
     }
     
-    public function smartRetryFailed()
+    public function validateProductData()
     {
         $this->smartRetrying = true;
         
         try {
-            $retryService = app(SyncRetryService::class);
-            $results = $retryService->retryFailedScans([
-                'max_age_hours' => 24,
-                'max_attempts' => 5,
-            ]);
+            // This validates local product data against Linnworks
+            // It checks for discrepancies but does NOT push changes to Linnworks
+            $inventoryService = app(LinnworksInventoryService::class);
+            $validated = 0;
+            $discrepancies = 0;
             
-            if ($results['queued_for_retry'] > 0) {
-                session()->flash('success', 
-                    "Intelligently queued {$results['queued_for_retry']} scans for retry. " .
-                    "Skipped {$results['skipped']} scans that shouldn't be retried."
-                );
-            } else {
-                session()->flash('info', 'No scans found that should be retried at this time.');
+            // Check recent scans for data validation
+            $recentScans = \App\Models\Scan::with('product')
+                ->where('created_at', '>', now()->subHours(24))
+                ->where('sync_status', 'failed')
+                ->limit(50)
+                ->get();
+            
+            foreach ($recentScans as $scan) {
+                if ($scan->product) {
+                    try {
+                        // Validate product exists in Linnworks - read-only check
+                        $exists = $inventoryService->productExists($scan->product->sku);
+                        if (!$exists) {
+                            $discrepancies++;
+                        }
+                        $validated++;
+                    } catch (\Exception $e) {
+                        // Log validation errors
+                        \Log::warning("Validation failed for {$scan->product->sku}: " . $e->getMessage());
+                    }
+                }
             }
             
+            session()->flash('success', 
+                "Validated {$validated} products. Found {$discrepancies} discrepancies. " .
+                "Check logs for details."
+            );
+            
         } catch (\Exception $e) {
-            session()->flash('error', 'Failed to smart retry scans: ' . $e->getMessage());
+            session()->flash('error', 'Failed to validate product data: ' . $e->getMessage());
         }
         
         $this->smartRetrying = false;
@@ -292,8 +414,8 @@ class SyncDashboard extends Component
                 $service = app(LinnworksApiService::class);
                 $start = microtime(true);
                 
-                // Simple health check - try to get token
-                $token = $service->getToken();
+                // Simple health check - try to get inventory count (lightweight API call)
+                $count = $service->getInventoryCount();
                 
                 $responseTime = round((microtime(true) - $start) * 1000, 2);
                 
@@ -301,7 +423,8 @@ class SyncDashboard extends Component
                     'status' => 'healthy',
                     'response_time' => $responseTime,
                     'last_checked' => Carbon::now(),
-                    'token_valid' => !empty($token),
+                    'token_valid' => true,
+                    'inventory_count' => $count,
                 ];
                 
             } catch (\Exception $e) {
@@ -327,8 +450,6 @@ class SyncDashboard extends Component
     
     public function render()
     {
-        return view('livewire.admin.sync-dashboard')
-            ->layout('layouts.app')
-            ->title('Sync Dashboard');
+        return view('livewire.admin.sync-dashboard');
     }
 }

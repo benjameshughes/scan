@@ -1,124 +1,96 @@
 <div class="w-full">
-    <div class="bg-white dark:bg-zinc-800 shadow-sm rounded-lg border border-zinc-200 dark:border-zinc-700">
-        <!-- Header -->
-        <div class="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Sync Dashboard</h1>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Monitor and manage Linnworks sync operations</p>
-                </div>
-                <div class="flex items-center gap-3">
-                    <button
-                        wire:click="refreshDashboard"
-                        wire:loading.attr="disabled"
-                        class="flex items-center gap-2 px-3 py-2 text-sm bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-zinc-900 dark:text-zinc-100 rounded-md transition-colors"
-                    >
-                        <flux:icon.arrow-path class="size-4 {{ $refreshing ? 'animate-spin' : '' }}" />
-                        <span wire:loading.remove wire:target="refreshDashboard">Refresh</span>
-                        <span wire:loading wire:target="refreshDashboard">Refreshing...</span>
-                    </button>
+    <x-card title="Sync Dashboard" subtitle="Monitor and manage Linnworks sync operations">
+        <x-slot name="headerActions">
+            <button
+                wire:click="refreshDashboard"
+                wire:loading.attr="disabled"
+                class="flex items-center gap-2 px-3 py-2 text-sm bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-zinc-900 dark:text-zinc-100 rounded-md transition-colors"
+            >
+                <flux:icon.arrow-path class="size-4 {{ $refreshing ? 'animate-spin' : '' }}" />
+                <span wire:loading.remove wire:target="refreshDashboard">Refresh</span>
+                <span wire:loading wire:target="refreshDashboard">Refreshing...</span>
+            </button>
+        </x-slot>
+
+        <!-- Status Messages -->
+        @if (session()->has('success'))
+            <div class="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                <div class="flex items-center gap-2">
+                    <flux:icon.check-circle class="size-5 text-green-600 dark:text-green-400" />
+                    <span class="text-sm text-green-800 dark:text-green-200">{{ session('success') }}</span>
                 </div>
             </div>
-        </div>
+        @endif
 
-        <div class="p-6">
-            <!-- Status Messages -->
-            @if (session()->has('success'))
-                <div class="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                    <div class="flex items-center gap-2">
-                        <flux:icon.check-circle class="size-5 text-green-600 dark:text-green-400" />
-                        <span class="text-sm text-green-800 dark:text-green-200">{{ session('success') }}</span>
-                    </div>
+        @if (session()->has('error'))
+            <div class="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                <div class="flex items-center gap-2">
+                    <flux:icon.exclamation-triangle class="size-5 text-red-600 dark:text-red-400" />
+                    <span class="text-sm text-red-800 dark:text-red-200">{{ session('error') }}</span>
                 </div>
-            @endif
+            </div>
+        @endif
 
-            @if (session()->has('error'))
-                <div class="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                    <div class="flex items-center gap-2">
-                        <flux:icon.exclamation-triangle class="size-5 text-red-600 dark:text-red-400" />
-                        <span class="text-sm text-red-800 dark:text-red-200">{{ session('error') }}</span>
-                    </div>
+        @if (session()->has('info'))
+            <div class="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                <div class="flex items-center gap-2">
+                    <flux:icon.information-circle class="size-5 text-blue-600 dark:text-blue-400" />
+                    <span class="text-sm text-blue-800 dark:text-blue-200">{{ session('info') }}</span>
                 </div>
-            @endif
+            </div>
+        @endif
 
-            @if (session()->has('info'))
-                <div class="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                    <div class="flex items-center gap-2">
-                        <flux:icon.information-circle class="size-5 text-blue-600 dark:text-blue-400" />
-                        <span class="text-sm text-blue-800 dark:text-blue-200">{{ session('info') }}</span>
-                    </div>
-                </div>
-            @endif
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left Column - Main Stats -->
+            <div class="lg:col-span-2 space-y-6">
+                
+                <!-- Sync Health Overview -->
+                <x-card title="Sync Health Overview">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Last Successful Sync -->
+                        <x-stat-card 
+                            title="Last Successful Sync"
+                            :value="$syncStats['last_successful_sync'] ? $syncStats['last_successful_sync']->diffForHumans() : 'Never'"
+                            icon="check-circle"
+                            color="green"
+                        />
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Left Column - Main Stats -->
-                <div class="lg:col-span-2 space-y-6">
-                    
-                    <!-- Sync Health Overview -->
-                    <div class="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-6">
-                        <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Sync Health Overview</h2>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- Last Successful Sync -->
-                            <div class="bg-white dark:bg-zinc-800 rounded-lg p-4 border border-zinc-200 dark:border-zinc-700">
-                                <div class="flex items-center justify-between">
-                                    <div>
-                                        <p class="text-sm text-gray-500 dark:text-gray-400">Last Successful Sync</p>
-                                        <p class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                                            @if($syncStats['last_successful_sync'])
-                                                {{ $syncStats['last_successful_sync']->diffForHumans() }}
-                                            @else
-                                                Never
-                                            @endif
-                                        </p>
-                                    </div>
-                                    <div class="w-10 h-10 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
-                                        <flux:icon.check-circle class="size-5 text-green-600 dark:text-green-400" />
-                                    </div>
-                                </div>
-                            </div>
+                        <!-- Pending Scans -->
+                        <x-stat-card 
+                            title="Pending Scans"
+                            :value="number_format($syncStats['pending_scans'])"
+                            icon="clock"
+                            :color="$syncStats['pending_scans'] > 10 ? 'amber' : 'default'"
+                        />
 
-                            <!-- Pending Scans -->
-                            <div class="bg-white dark:bg-zinc-800 rounded-lg p-4 border border-zinc-200 dark:border-zinc-700">
-                                <div class="flex items-center justify-between">
-                                    <div>
-                                        <p class="text-sm text-gray-500 dark:text-gray-400">Pending Scans</p>
-                                        <p class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                                            {{ number_format($syncStats['pending_scans']) }}
-                                        </p>
-                                    </div>
-                                    <div class="w-10 h-10 bg-amber-100 dark:bg-amber-900 rounded-lg flex items-center justify-center">
-                                        <flux:icon.clock class="size-5 text-amber-600 dark:text-amber-400" />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Success Rate Grid -->
-                            <div class="md:col-span-2">
-                                <div class="grid grid-cols-3 gap-4">
-                                    <div class="bg-white dark:bg-zinc-800 rounded-lg p-4 border border-zinc-200 dark:border-zinc-700 text-center">
-                                        <p class="text-sm text-gray-500 dark:text-gray-400">24h Success Rate</p>
-                                        <p class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ $syncStats['success_rate_24h'] }}%</p>
-                                        <p class="text-xs text-gray-400">{{ $syncStats['total_scans_24h'] }} scans</p>
-                                    </div>
-                                    <div class="bg-white dark:bg-zinc-800 rounded-lg p-4 border border-zinc-200 dark:border-zinc-700 text-center">
-                                        <p class="text-sm text-gray-500 dark:text-gray-400">7d Success Rate</p>
-                                        <p class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ $syncStats['success_rate_7d'] }}%</p>
-                                        <p class="text-xs text-gray-400">{{ $syncStats['total_scans_7d'] }} scans</p>
-                                    </div>
-                                    <div class="bg-white dark:bg-zinc-800 rounded-lg p-4 border border-zinc-200 dark:border-zinc-700 text-center">
-                                        <p class="text-sm text-gray-500 dark:text-gray-400">30d Success Rate</p>
-                                        <p class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ $syncStats['success_rate_30d'] }}%</p>
-                                        <p class="text-xs text-gray-400">{{ $syncStats['total_scans_30d'] }} scans</p>
-                                    </div>
-                                </div>
+                        <!-- Success Rate Grid -->
+                        <div class="md:col-span-2">
+                            <div class="grid grid-cols-3 gap-4">
+                                <x-stat-card 
+                                    title="24h Success Rate"
+                                    :value="$syncStats['success_rate_24h'] . '%'"
+                                    :subtitle="$syncStats['total_scans_24h'] . ' scans'"
+                                    :color="$syncStats['success_rate_24h'] >= 95 ? 'green' : ($syncStats['success_rate_24h'] >= 85 ? 'amber' : 'red')"
+                                />
+                                <x-stat-card 
+                                    title="7d Success Rate"
+                                    :value="$syncStats['success_rate_7d'] . '%'"
+                                    :subtitle="$syncStats['total_scans_7d'] . ' scans'"
+                                    :color="$syncStats['success_rate_7d'] >= 95 ? 'green' : ($syncStats['success_rate_7d'] >= 85 ? 'amber' : 'red')"
+                                />
+                                <x-stat-card 
+                                    title="30d Success Rate"
+                                    :value="$syncStats['success_rate_30d'] . '%'"
+                                    :subtitle="$syncStats['total_scans_30d'] . ' scans'"
+                                    :color="$syncStats['success_rate_30d'] >= 95 ? 'green' : ($syncStats['success_rate_30d'] >= 85 ? 'amber' : 'red')"
+                                />
                             </div>
                         </div>
                     </div>
+                </x-card>
 
-                    <!-- Recent Sync Activity -->
-                    <div class="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-6">
-                        <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Recent Sync Activity</h2>
+                <!-- Recent Sync Activity -->
+                <x-card title="Recent Sync Activity">
                         
                         <div class="space-y-3">
                             @forelse($recentActivity as $activity)
@@ -170,15 +142,14 @@
                                 </div>
                             @endforelse
                         </div>
-                    </div>
-                </div>
+                </x-card>
+            </div>
 
-                <!-- Right Column - Controls & Status -->
-                <div class="space-y-6">
-                    
-                    <!-- Quick Actions -->
-                    <div class="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-6">
-                        <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Quick Actions</h2>
+            <!-- Right Column - Controls & Status -->
+            <div class="space-y-6">
+                
+                <!-- Quick Actions -->
+                <x-card title="Quick Actions">
                         
                         <div class="space-y-3">
                             <button
@@ -232,12 +203,11 @@
                                 <span wire:loading wire:target="clearOldSyncHistory">Clearing...</span>
                             </button>
                         </div>
-                    </div>
+                </x-card>
 
-                    <!-- Error Breakdown -->
-                    @if(!empty($errorBreakdown))
-                        <div class="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-6">
-                            <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Error Breakdown (7 days)</h2>
+                <!-- Error Breakdown -->
+                @if(!empty($errorBreakdown))
+                    <x-card title="Error Breakdown (7 days)">
                             
                             <div class="space-y-3">
                                 @foreach($errorBreakdown as $errorType => $count)
@@ -250,12 +220,11 @@
                                     </div>
                                 @endforeach
                             </div>
-                        </div>
-                    @endif
+                    </x-card>
+                @endif
 
-                    <!-- Queue Status -->
-                    <div class="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-6">
-                        <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Queue Status</h2>
+                <!-- Queue Status -->
+                <x-card title="Queue Status">
                         
                         <div class="space-y-3">
                             <div class="flex items-center justify-between p-3 bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
@@ -356,5 +325,5 @@
                 </div>
             </div>
         </div>
-    </div>
+    </x-card>
 </div>

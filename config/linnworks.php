@@ -54,6 +54,9 @@ return [
 
         // Page size for manual sync operations
         'manual_sync_page_size' => 200,
+
+        // Maximum pages to process in full catalog sync (200 items * 100 pages = 20,000 products max)
+        'max_sync_pages' => 100,
     ],
 
     /*
