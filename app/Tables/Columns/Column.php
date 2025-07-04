@@ -10,7 +10,7 @@ class Column
 
     protected $renderCallback = null;
 
-    protected bool $sortable;
+    protected bool $sortable = false;
 
     protected string $alignment = 'left';
 
@@ -109,5 +109,15 @@ class Column
     public function getAlignment(): string
     {
         return $this->alignment;
+    }
+
+    public function isSortable(): bool
+    {
+        return $this->sortable;
+    }
+
+    public function getSortDirection(): string
+    {
+        return $this->sortDirection;
     }
 }

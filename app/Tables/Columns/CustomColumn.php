@@ -29,4 +29,10 @@ class CustomColumn extends Column
         // Custom columns are usually not searchable by default
         return $this;
     }
+    
+    public function sortable($sortable = true): static
+    {
+        $this->sortable = $sortable;
+        return $this;
+    }
 }
