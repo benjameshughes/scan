@@ -1,5 +1,5 @@
 // Service Worker for Stock Scanner PWA
-const CACHE_NAME = 'stock-scanner-v1';
+const CACHE_NAME = 'stock-scanner-v2';
 const urlsToCache = [
   '/',
   '/manifest.json',
