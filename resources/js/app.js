@@ -18,18 +18,31 @@ if ('serviceWorker' in navigator) {
 let deferredPrompt;
 
 window.addEventListener('beforeinstallprompt', (e) => {
-    console.log('beforeinstallprompt Event fired');
-    // Prevent Chrome 67 and earlier from automatically showing the prompt
-    e.preventDefault();
-    // Stash the event so it can be triggered later
+    console.log('beforeinstallprompt Event fired - PWA is installable!');
+    // Don't prevent default to allow Chrome to show install option
     deferredPrompt = e;
     
-    // Show the install button or trigger install
-    if (deferredPrompt) {
-        console.log('PWA install prompt available');
-    }
+    // Create install button dynamically if Chrome doesn't show menu option
+    const installButton = document.createElement('button');
+    installButton.textContent = 'Install App';
+    installButton.style.cssText = 'position:fixed;top:10px;right:10px;z-index:9999;background:#2563eb;color:white;border:none;padding:10px;border-radius:5px;';
+    installButton.onclick = () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult) => {
+                console.log('User choice:', choiceResult.outcome);
+                deferredPrompt = null;
+                installButton.remove();
+            });
+        }
+    };
+    document.body.appendChild(installButton);
+    
+    // Remove button after 10 seconds
+    setTimeout(() => installButton.remove(), 10000);
 });
 
 window.addEventListener('appinstalled', (evt) => {
     console.log('PWA was installed successfully');
+    deferredPrompt = null;
 });
