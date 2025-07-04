@@ -2,7 +2,7 @@
   "name": "Stock Scanner",
   "short_name": "Stock Scanner",
   "description": "Warehouse barcode scanning application for stock management",
-  "start_url": "/",
+  "start_url": "/dashboard",
   "display": "standalone",
   "background_color": "#18181b",
   "theme_color": "#2563eb",

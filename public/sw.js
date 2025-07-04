@@ -2,9 +2,10 @@
 const CACHE_NAME = 'stock-scanner-v2';
 const urlsToCache = [
   '/',
+  '/dashboard',
   '/manifest.json',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png'
+  '/icons/icon-192.png?v=2',
+  '/icons/icon-512.png?v=2'
 ];
 
 // Install event - cache essential files
