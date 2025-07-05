@@ -29,30 +29,19 @@ class SyncsTable extends TableComponent
                 deleteAction: null
             )
             ->columns([
-                TextColumn::make('id')->label('ID')->sortable(),
                 TextColumn::make('barcode')->label('Barcode')->sortable()->searchable(),
                 TextColumn::make('quantity')->label('Quantity')->sortable(),
                 TextColumn::make('action')->label('Action')
                     ->value(function (Scan $scan) {
                         return ucfirst($scan->action ?? 'decrease');
                     }),
-                CustomColumn::make('sync_status')->label('Sync Status')->sortable()->searchable()
-                    ->view('tables.columns.sync-status'),
-                CustomColumn::make('sync_error')->label('Error Details')->sortable(false)
-                    ->view('tables.columns.sync-error'),
-                TextColumn::make('sync_attempts')->label('Attempts')
-                    ->value(function (Scan $scan) {
-                        return $scan->sync_attempts > 0 ? $scan->sync_attempts : '-';
-                    })
-                    ->sortable(),
-                DateColumn::make('last_sync_attempt')->label('Last Attempt')->diffForHumans()->sortable(),
                 BadgeColumn::make('submitted')->label('Submitted')
                     ->colors([
                         '1' => 'green',
                         '0' => 'yellow',
                     ])
                     ->value(function (Scan $scan) {
-                        return $scan->submitted ? '1' : '0';
+                        return $scan->submitted ? 'Submitted' : 'Not Submitted';
                     }),
                 DateColumn::make('created_at')->label('Scan Date')->diffForHumans()->sortable(),
                 ActionsColumn::make('actions')->view('scans.show')->delete(),

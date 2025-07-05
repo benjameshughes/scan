@@ -87,7 +87,7 @@ final class SyncBarcodeAction implements Action
                 'scan_id' => $this->scan->id,
                 'barcode' => $this->scan->barcode,
                 'exception_class' => get_class($exception),
-                'trace_hash' => md5($exception->getTraceAsString()),
+                'trace_hash' => hash('sha256',$exception->getTraceAsString()),
             ];
             
             // Add product context if available

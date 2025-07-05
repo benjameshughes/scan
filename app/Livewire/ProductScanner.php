@@ -35,7 +35,7 @@ class ProductScanner extends Component
     public ?string $barcode = null;
 
     #[Validate('required|integer|min:1')]
-    public int $quantity = 1;
+    public ?int $quantity = 1;
 
     public bool $barcodeScanned = false;
 
@@ -54,7 +54,7 @@ class ProductScanner extends Component
     public string $selectedLocationId = '';
 
     #[Validate('required|integer|min:1')]
-    public int $refillQuantity = 1;
+    public ?int $refillQuantity = 1;
 
     public array $availableLocations = [];
 
@@ -66,6 +66,13 @@ class ProductScanner extends Component
 
     // Email workflow state
     public bool $isEmailRefill = false;
+
+    public function messages(): array
+    {
+        return [
+            'quantity.integer' => 'Quantity must be an integer.',
+        ];
+    }
 
     public function mount()
     {

@@ -304,7 +304,6 @@
                             inputmode="numeric"
                             required
                         />
-                        <flux:error name="barcode"/>
                         <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                             Enter the barcode manually or use the camera scanner above
                         </p>
@@ -340,9 +339,10 @@
                             />
                             
                             <div class="flex-1 text-center">
-                                <div class="text-2xl font-bold text-gray-900 dark:text-gray-100 bg-zinc-50 dark:bg-zinc-700 rounded-md py-3 border border-zinc-200 dark:border-zinc-600">
-                                    {{ $quantity }}
-                                </div>
+{{--                                <div class="text-2xl font-bold text-gray-900 dark:text-gray-100 bg-zinc-50 dark:bg-zinc-700 rounded-md py-3 border border-zinc-200 dark:border-zinc-600">--}}
+{{--                                    {{ $quantity }}--}}
+{{--                                </div>--}}
+                                <flux:input type="number" inputmode="numeric" min="1" wire:model.live="quantity" />
                             </div>
                             
                             <flux:button
