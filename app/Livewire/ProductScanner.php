@@ -301,7 +301,6 @@ class ProductScanner extends Component
             $this->refillQuantity = $maxStock;
             $this->addError('refillQuantity', "Maximum available quantity is {$maxStock} units.");
         } elseif ($this->refillQuantity < 1) {
-            $this->refillQuantity = 1;
             $this->addError('refillQuantity', 'Minimum quantity is 1 unit.');
         } else {
             $this->resetValidation(['refillQuantity']);

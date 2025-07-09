@@ -541,7 +541,7 @@
                                     <div class="flex-1">
                                         <flux:input
                                             type="number"
-                                            wire:model.live="refillQuantity"
+                                            wire:model.live.1s="refillQuantity"
                                             min="1"
                                             max="{{ $this->maxRefillStock }}"
                                             class="text-center text-xl font-bold"
