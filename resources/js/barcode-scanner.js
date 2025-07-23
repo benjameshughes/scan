@@ -11,6 +11,7 @@ class BarcodeScanner {
         this.cameraIsActive = false;
         this.isInitialized = false;
         this.selectedDeviceId = null;
+        this.livewireListeners = [];
         
         this.init();
     }
@@ -43,7 +44,7 @@ class BarcodeScanner {
         return new Promise((resolve, reject) => {
             const checkForVideo = () => {
                 const video = document.getElementById('video');
-                if (video) {
+                if (video && video.isConnected) { // Ensure element is actually in DOM
                     resolve(video);
                 } else {
                     setTimeout(checkForVideo, 50);
@@ -56,13 +57,22 @@ class BarcodeScanner {
     }
 
     setupLivewireListeners() {
+        // Store references for proper cleanup
+        this.livewireListeners = [];
+        
+        // Helper to register listeners
+        const addListener = (event, callback) => {
+            const cleanupFn = Livewire.on(event, callback);
+            this.livewireListeners.push(cleanupFn);
+        };
+
         // Legacy camera toggle (for compatibility)
-        Livewire.on("camera", () => {
+        addListener("camera", () => {
             this.stopScanning();
         });
 
         // New camera state management
-        Livewire.on("camera-state-changed", (isScanning) => {
+        addListener("camera-state-changed", (isScanning) => {
             if (isScanning) {
                 this.startScanning();
             } else {
@@ -71,21 +81,21 @@ class BarcodeScanner {
         });
 
         // Resume scanning event
-        Livewire.on("resume-scanning", () => {
+        addListener("resume-scanning", () => {
             this.startScanning();
         });
 
         // Stop scan event  
-        Livewire.on("stop-scan", () => {
+        addListener("stop-scan", () => {
             this.stopScanning();
         });
 
         // Torch toggle events
-        Livewire.on("torch", () => {
+        addListener("torch", () => {
             this.toggleTorch();
         });
 
-        Livewire.on("torch-state-changed", (enabled) => {
+        addListener("torch-state-changed", (enabled) => {
             this.setTorchState(enabled);
         });
     }
@@ -335,12 +345,29 @@ class BarcodeScanner {
 
     destroy() {
         this.stopScanning();
+        
+        // Clean up Livewire listeners
+        if (this.livewireListeners) {
+            this.livewireListeners.forEach(cleanup => {
+                if (typeof cleanup === 'function') cleanup();
+            });
+            this.livewireListeners = [];
+        }
+        
         this.isInitialized = false;
+        this.videoElement = null;
+        this.selectedDeviceId = null;
+        console.log('Barcode scanner destroyed');
     }
 }
 
-// Initialize when Livewire is ready
-window.addEventListener("livewire:initialized", function () {
+// Initialize scanner function
+function initializeBarcodeScanner() {
+    // Only initialize if we're on a page with a video element (scanner page)
+    if (!document.getElementById('video')) {
+        return;
+    }
+    
     // Prevent multiple initializations
     if (window.barcodeScanner) {
         window.barcodeScanner.destroy();
@@ -348,6 +375,23 @@ window.addEventListener("livewire:initialized", function () {
     
     // Initialize scanner
     window.barcodeScanner = new BarcodeScanner();
+    console.log('Barcode scanner initialized/reinitialized');
+}
+
+// Initialize when Livewire is ready (initial page load)
+window.addEventListener("livewire:initialized", initializeBarcodeScanner);
+
+// Reinitialize after each navigation (for Livewire navigate)
+window.addEventListener("livewire:navigated", function() {
+    // Small delay to ensure DOM is fully rendered
+    setTimeout(initializeBarcodeScanner, 100);
+});
+
+// Cleanup before navigation
+window.addEventListener("livewire:navigating", function () {
+    if (window.barcodeScanner) {
+        window.barcodeScanner.destroy();
+    }
 });
 
 // Cleanup on page unload
