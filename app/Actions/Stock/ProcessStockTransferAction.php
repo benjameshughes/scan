@@ -29,13 +29,26 @@ class ProcessStockTransferAction
                 'reason' => $reason,
             ]);
 
-            // Execute the transfer via Linnworks API using the generic method
-            $result = $this->linnworksService->transferStockBetweenLocations(
-                $product->sku,
-                $fromLocationId,
-                $toLocationId,
-                $quantity
-            );
+            // Execute the transfer via Linnworks API
+            // Use different methods based on whether we're transferring to default location
+            $defaultLocationId = config('linnworks.default_location_id');
+            
+            if ($toLocationId === $defaultLocationId) {
+                // Use the specialized method for transfers to default location (handles null GUID)
+                $result = $this->linnworksService->transferStockToDefaultLocation(
+                    $product->sku,
+                    $fromLocationId,
+                    $quantity
+                );
+            } else {
+                // Use generic method for transfers between specific locations
+                $result = $this->linnworksService->transferStockBetweenLocations(
+                    $product->sku,
+                    $fromLocationId,
+                    $toLocationId,
+                    $quantity
+                );
+            }
 
             Log::channel('inventory')->info('Stock transfer completed successfully', [
                 'product_sku' => $product->sku,
