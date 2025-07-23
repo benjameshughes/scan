@@ -489,19 +489,11 @@ class ProductScanner extends Component
 
             $this->availableLocations = $locations;
 
-            // Auto-selection logic
+            // Auto-selection logic for refill bay (transfer FROM other locations TO default)
             $defaultLocationId = config('linnworks.default_location_id');
             $floorLocationId = config('linnworks.floor_location_id'); // Assuming floor location ID is configured
             
-            // Find default location stock level
-            $defaultLocation = collect($locations)->first(function ($location) use ($defaultLocationId) {
-                $locationId = $location['Location']['StockLocationId'] ?? null;
-                return $locationId === $defaultLocationId;
-            });
-            
-            $defaultLocationStock = $defaultLocation ? ($defaultLocation['StockLevel'] ?? 0) : 0;
-            
-            // Find floor location
+            // Find floor location first (priority source for refill)
             $floorLocation = collect($locations)->first(function ($location) use ($floorLocationId) {
                 $locationId = $location['Location']['StockLocationId'] ?? null;
                 $locationName = $location['Location']['LocationName'] ?? '';
@@ -513,44 +505,51 @@ class ProductScanner extends Component
             
             $floorLocationStock = $floorLocation ? ($floorLocation['StockLevel'] ?? 0) : 0;
             
-            // Priority 1: Auto-select default location if it has stock > 0
-            if ($defaultLocationStock > 0 && $defaultLocation) {
-                $this->selectedLocationId = $defaultLocation['Location']['StockLocationId'] ?? '';
-                
-                Log::channel('inventory')->info('Auto-selected default location (has stock)', [
-                    'product_sku' => $this->product->sku,
-                    'auto_selected_location' => $this->selectedLocationId,
-                    'location_name' => $defaultLocation['Location']['LocationName'] ?? 'Unknown',
-                    'default_stock' => $defaultLocationStock,
-                ]);
-            }
-            // Priority 2: Auto-select floor location if default has no stock but floor has stock
-            elseif ($defaultLocationStock === 0 && $floorLocationStock > 0 && $floorLocation) {
+            // Get all non-default locations with stock
+            $nonDefaultLocations = array_filter($locations, function ($location) use ($defaultLocationId) {
+                $locationId = $location['Location']['StockLocationId'] ?? null;
+                $stockLevel = $location['StockLevel'] ?? 0;
+                return $locationId !== $defaultLocationId && $stockLevel > 0;
+            });
+            
+            // Priority 1: Auto-select floor location if it has stock > 0 (preferred source for refill)
+            if ($floorLocationStock > 0 && $floorLocation) {
                 $this->selectedLocationId = $floorLocation['Location']['StockLocationId'] ?? '';
                 
-                Log::channel('inventory')->info('Auto-selected floor location (main bay empty)', [
+                Log::channel('inventory')->info('Auto-selected floor location for refill', [
                     'product_sku' => $this->product->sku,
                     'auto_selected_location' => $this->selectedLocationId,
                     'location_name' => $floorLocation['Location']['LocationName'] ?? 'Unknown',
                     'floor_stock' => $floorLocationStock,
-                    'main_bay_stock' => $defaultLocationStock,
                 ]);
             }
-            // Priority 3: Fall back to original logic - auto-select if only one location besides default
-            else {
-                $nonDefaultLocations = array_filter($locations, function ($location) use ($defaultLocationId) {
-                    $locationId = $location['Location']['StockLocationId'] ?? null;
-                    return $locationId !== $defaultLocationId;
-                });
+            // Priority 2: Auto-select any single non-default location with stock
+            elseif (count($nonDefaultLocations) === 1) {
+                $singleLocation = array_values($nonDefaultLocations)[0];
+                $this->selectedLocationId = $singleLocation['Location']['StockLocationId'] ?? '';
 
-                if (count($nonDefaultLocations) === 1) {
-                    $singleLocation = array_values($nonDefaultLocations)[0];
-                    $this->selectedLocationId = $singleLocation['Location']['StockLocationId'] ?? '';
+                Log::channel('inventory')->info('Auto-selected single non-default location for refill', [
+                    'product_sku' => $this->product->sku,
+                    'auto_selected_location' => $this->selectedLocationId,
+                    'location_name' => $singleLocation['Location']['LocationName'] ?? 'Unknown',
+                    'stock_level' => $singleLocation['StockLevel'] ?? 0,
+                ]);
+            }
+            // Priority 3: If multiple non-default locations, prioritize the one with most stock
+            elseif (count($nonDefaultLocations) > 1) {
+                $locationWithMostStock = collect($nonDefaultLocations)->sortByDesc(function ($location) {
+                    return $location['StockLevel'] ?? 0;
+                })->first();
+                
+                if ($locationWithMostStock) {
+                    $this->selectedLocationId = $locationWithMostStock['Location']['StockLocationId'] ?? '';
 
-                    Log::channel('inventory')->info('Auto-selected single location (fallback)', [
+                    Log::channel('inventory')->info('Auto-selected location with most stock for refill', [
                         'product_sku' => $this->product->sku,
                         'auto_selected_location' => $this->selectedLocationId,
-                        'location_name' => $singleLocation['Location']['LocationName'] ?? 'Unknown',
+                        'location_name' => $locationWithMostStock['Location']['LocationName'] ?? 'Unknown',
+                        'stock_level' => $locationWithMostStock['StockLevel'] ?? 0,
+                        'total_locations_available' => count($nonDefaultLocations),
                     ]);
                 }
             }
