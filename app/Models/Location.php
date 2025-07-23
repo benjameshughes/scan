@@ -39,7 +39,7 @@ class Location extends Model
     /**
      * Search locations by code or name
      */
-    public function scopeSearch(Builder $query, string $search): Builder
+    public function scopeLocationSearch(Builder $query, string $search): Builder
     {
         return $query->where(function ($q) use ($search) {
             $q->where('code', 'LIKE', "%{$search}%")

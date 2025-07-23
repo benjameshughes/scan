@@ -53,7 +53,7 @@ class SmartLocationSelector extends Component
     public function searchLocations()
     {
         // Search in local database first
-        $localResults = Location::search($this->search)
+        $localResults = Location::locationSearch($this->search)
             ->frecencyOrder()
             ->limit(5)
             ->get();
