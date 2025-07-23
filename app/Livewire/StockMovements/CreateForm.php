@@ -2,6 +2,7 @@
 
 namespace App\Livewire\StockMovements;
 
+use App\Actions\Stock\ExecuteStockTransferAction;
 use App\Models\Location;
 use App\Models\Product;
 use App\Models\StockMovement;
@@ -20,8 +21,6 @@ class CreateForm extends Component
     #[Validate('nullable|string|max:500')]
     public $notes;
 
-    #[Validate('required|in:manual_transfer,scan_adjustment')]
-    public $type = 'manual_transfer';
 
     #[Validate('nullable|string|max:255')]
     public $from_location_code;
@@ -68,24 +67,28 @@ class CreateForm extends Component
         $this->validate();
 
         try {
-            $movement = StockMovement::create([
-                'product_id' => $this->product_id,
-                'from_location_id' => $this->from_location_id,
-                'from_location_code' => $this->from_location_code,
-                'to_location_id' => $this->to_location_id,
-                'to_location_code' => $this->to_location_code,
-                'quantity' => $this->quantity,
-                'type' => $this->type,
-                'user_id' => auth()->id(),
-                'moved_at' => now(),
-                'notes' => $this->notes,
-                'metadata' => [
-                    'manually_created' => true,
-                    'created_by' => auth()->user()->name,
-                ],
-            ]);
+            // Get the product for the action
+            $product = Product::findOrFail($this->product_id);
 
-            $this->success_message = 'Stock movement created successfully!';
+            // Execute the stock transfer using the consolidated action (dispatches job)
+            $result = app(ExecuteStockTransferAction::class)->handle(
+                user: auth()->user(),
+                product: $product,
+                quantity: $this->quantity,
+                operationType: 'refill',
+                fromLocationId: $this->from_location_id,
+                toLocationId: $this->to_location_id,
+                notes: $this->notes,
+                autoSelectSource: false, // User already selected source
+                additionalMetadata: [
+                    'created_via_form' => true,
+                    'form_session_id' => session()->getId(),
+                ]
+            );
+            
+            $movement = $result['stock_movement'];
+
+            $this->success_message = $result['message'];
             $this->error_message = '';
 
             // Redirect to the new movement using Livewire redirect
@@ -197,13 +200,6 @@ class CreateForm extends Component
         $this->recently_used_locations = array_slice($this->recently_used_locations, 0, 5);
     }
 
-    public function getMovementTypesProperty()
-    {
-        return [
-            StockMovement::TYPE_MANUAL_TRANSFER => 'Manual Transfer',
-            StockMovement::TYPE_SCAN_ADJUSTMENT => 'Scan Adjustment',
-        ];
-    }
 
     public function getAvailableLocationsProperty()
     {

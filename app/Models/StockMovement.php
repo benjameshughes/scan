@@ -16,6 +16,8 @@ class StockMovement extends Model
         'metadata' => 'array',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'last_sync_attempt_at' => 'datetime',
+        'processed_at' => 'datetime',
     ];
 
     /**

@@ -595,6 +595,117 @@ class LinnworksApiService
     }
 
     /**
+     * Transfer stock between any two locations
+     */
+    public function transferStockBetweenLocations(string $sku, string $sourceLocationId, string $targetLocationId, int $transferQuantity): array
+    {
+        try {
+            // Get current stock levels for ALL locations (including those with 0 stock)
+            $stockItem = $this->getStockDetails($sku);
+            if (empty($stockItem) || ! isset($stockItem['StockLevels'])) {
+                throw new \Exception("No stock information found for SKU: {$sku}");
+            }
+            
+            $allLocations = $stockItem['StockLevels'];
+            $sourceLocation = null;
+            $targetLocation = null;
+            
+            Log::channel('inventory')->info('Searching for locations in generic transfer', [
+                'sku' => $sku,
+                'source_location_id' => $sourceLocationId,
+                'target_location_id' => $targetLocationId,
+                'total_locations' => count($allLocations),
+                'all_location_ids' => array_map(function ($loc) {
+                    return $loc['Location']['StockLocationId'] ?? 'no-id';
+                }, $allLocations),
+            ]);
+            
+            foreach ($allLocations as $location) {
+                $currentLocationId = $location['Location']['StockLocationId'] ?? null;
+                if ($currentLocationId === $sourceLocationId) {
+                    $sourceLocation = $location;
+                } elseif ($currentLocationId === $targetLocationId) {
+                    $targetLocation = $location;
+                }
+            }
+            
+            if (! $sourceLocation) {
+                throw new \Exception("Source location not found: {$sourceLocationId}");
+            }
+            if (! $targetLocation) {
+                throw new \Exception("Target location not found: {$targetLocationId}");
+            }
+            
+            $sourceCurrentStock = $sourceLocation['StockLevel'] ?? 0;
+            $targetCurrentStock = $targetLocation['StockLevel'] ?? 0;
+            
+            // Calculate new stock levels
+            $sourceNewStock = $sourceCurrentStock - $transferQuantity;
+            $targetNewStock = $targetCurrentStock + $transferQuantity;
+            
+            // Validate we have enough stock in source
+            if ($sourceNewStock < 0) {
+                throw new \Exception("Insufficient stock in source location. Available: {$sourceCurrentStock}, Requested: {$transferQuantity}");
+            }
+            
+            // Perform both stock updates in one API call
+            $body = [
+                'stockLevels' => [
+                    [
+                        'SKU' => $sku,
+                        'LocationId' => $sourceLocationId,
+                        'Level' => $sourceNewStock,
+                    ],
+                    [
+                        'SKU' => $sku,
+                        'LocationId' => $targetLocationId,
+                        'Level' => $targetNewStock,
+                    ],
+                ],
+            ];
+            
+            Log::channel('inventory')->info('Transferring stock between locations', [
+                'sku' => $sku,
+                'source_location_id' => $sourceLocationId,
+                'target_location_id' => $targetLocationId,
+                'transfer_quantity' => $transferQuantity,
+                'source_old_stock' => $sourceCurrentStock,
+                'source_new_stock' => $sourceNewStock,
+                'target_old_stock' => $targetCurrentStock,
+                'target_new_stock' => $targetNewStock,
+                'request_body' => $body,
+            ]);
+            
+            $response = $this->makeAuthenticatedRequest(
+                'POST',
+                'Stock/SetStockLevel',
+                ['body' => json_encode($body)]
+            );
+            
+            Log::channel('inventory')->info('Generic stock transfer completed', [
+                'sku' => $sku,
+                'source_location_id' => $sourceLocationId,
+                'target_location_id' => $targetLocationId,
+                'transfer_quantity' => $transferQuantity,
+                'response' => $response,
+            ]);
+            
+            return $response;
+            
+        } catch (\Exception $e) {
+            Log::channel('inventory')->error('Failed to transfer stock between locations', [
+                'sku' => $sku,
+                'source_location_id' => $sourceLocationId,
+                'target_location_id' => $targetLocationId,
+                'transfer_quantity' => $transferQuantity,
+                'error' => $e->getMessage(),
+            ]);
+            
+            throw $e;
+        }
+    }
+
+    /**
      * Adjust stock level at a specific location
      */
     public function transferStockToDefaultLocation(string $sku, string $sourceLocationId, int $transferQuantity): array

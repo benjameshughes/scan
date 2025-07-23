@@ -2,8 +2,8 @@
     <!-- Header -->
     <div class="bg-white dark:bg-zinc-800 shadow-sm rounded-lg border border-zinc-200 dark:border-zinc-700 mb-6">
         <div class="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700">
-            <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Create Stock Movement</h1>
-            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Transfer products between locations with smart suggestions and validation</p>
+            <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Transfer Stock</h1>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Move products between warehouse locations via Linnworks</p>
         </div>
     </div>
 
@@ -57,21 +57,10 @@
             <div class="space-y-4">
                 <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
                     <flux:icon.cog-6-tooth class="size-5" />
-                    Movement Details
+                    Transfer Details
                 </h3>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Movement Type -->
-                    <div>
-                        <flux:label for="type" required>Movement Type</flux:label>
-                        <flux:select id="type" wire:model="type">
-                            @foreach($this->movementTypes as $value => $label)
-                                <flux:select.option value="{{ $value }}">{{ $label }}</flux:select.option>
-                            @endforeach
-                        </flux:select>
-                        <flux:error name="type" />
-                    </div>
-
+                <div class="grid grid-cols-1 gap-4">
                     <!-- Quantity -->
                     <div>
                         <flux:label for="quantity" required>Quantity</flux:label>
@@ -221,8 +210,8 @@
                 wire:target="save"
                 :disabled="!$selected_product || !$from_location_code || !$to_location_code || !$quantity"
             >
-                <span wire:loading.remove wire:target="save">Create Movement</span>
-                <span wire:loading wire:target="save">Creating...</span>
+                <span wire:loading.remove wire:target="save">Transfer Stock</span>
+                <span wire:loading wire:target="save">Processing Transfer...</span>
             </flux:button>
         </div>
         </form>
