@@ -24,6 +24,8 @@ class SmartLocationSelector extends Component
 
     public string $errorMessage = '';
 
+    public string $type = 'from';
+
     // Component properties
     public Collection $smartSuggestions;
 
@@ -86,7 +88,7 @@ class SmartLocationSelector extends Component
         $this->errorMessage = '';
 
         // Emit event for parent components - include location code for stock movement form
-        $this->dispatch('locationSelected', $this->selectedLocationId, $code ?? $this->search, 'from');
+        $this->dispatch('locationSelected', $this->selectedLocationId, $code ?? $this->search, $this->type);
     }
 
     public function createLocation(string $code)

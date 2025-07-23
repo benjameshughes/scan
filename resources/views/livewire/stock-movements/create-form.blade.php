@@ -167,7 +167,8 @@
                             'label' => 'To Location (Destination)',
                             'placeholder' => 'Search and select destination...',
                             'selectedLocationId' => $selectedToLocationId,
-                            'required' => true
+                            'required' => true,
+                            'type' => 'to'
                         ], key('to-location'))
                         <flux:error name="to_location_code" />
                     </div>
