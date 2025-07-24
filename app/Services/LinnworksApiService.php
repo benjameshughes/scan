@@ -563,7 +563,7 @@ class LinnworksApiService
     }
 
     /**
-     * Get stock levels for a product across all locations
+     * Get stock levels for a product across all locations (only locations with stock > 0)
      */
     public function getStockLocationsByProduct(string $sku): array
     {
@@ -591,6 +591,35 @@ class LinnworksApiService
             ]);
 
             throw new \Exception("Failed to retrieve stock locations: {$e->getMessage()}");
+        }
+    }
+
+    /**
+     * Get ALL stock locations for a product (including locations with 0 stock)
+     */
+    public function getAllStockLocationsByProduct(string $sku): array
+    {
+        try {
+            $stockItem = $this->getStockDetails($sku);
+
+            if (empty($stockItem) || ! isset($stockItem['StockLevels'])) {
+                return [];
+            }
+
+            // Return ALL locations, regardless of stock level
+            $allLocations = $stockItem['StockLevels'];
+
+            Log::channel('inventory')->info("Found all stock locations for SKU: {$sku}", [
+                'total_locations' => count($allLocations),
+            ]);
+
+            return array_values($allLocations);
+        } catch (\Exception $e) {
+            Log::channel('inventory')->error("Failed to get all stock locations for SKU: {$sku}", [
+                'error' => $e->getMessage(),
+            ]);
+
+            throw new \Exception("Failed to retrieve all stock locations: {$e->getMessage()}");
         }
     }
 
@@ -629,11 +658,28 @@ class LinnworksApiService
                 }
             }
             
+            // If source location not found, it means it has 0 stock - create a virtual location entry
             if (! $sourceLocation) {
-                throw new \Exception("Source location not found: {$sourceLocationId}");
+                Log::channel('inventory')->info("Source location not found in stock levels, treating as 0 stock", [
+                    'source_location_id' => $sourceLocationId,
+                    'sku' => $sku,
+                ]);
+                $sourceLocation = [
+                    'Location' => ['StockLocationId' => $sourceLocationId],
+                    'StockLevel' => 0
+                ];
             }
+            
+            // If target location not found, it means it has 0 stock - create a virtual location entry  
             if (! $targetLocation) {
-                throw new \Exception("Target location not found: {$targetLocationId}");
+                Log::channel('inventory')->info("Target location not found in stock levels, treating as 0 stock", [
+                    'target_location_id' => $targetLocationId,
+                    'sku' => $sku,
+                ]);
+                $targetLocation = [
+                    'Location' => ['StockLocationId' => $targetLocationId],
+                    'StockLevel' => 0
+                ];
             }
             
             $sourceCurrentStock = $sourceLocation['StockLevel'] ?? 0;
@@ -742,12 +788,28 @@ class LinnworksApiService
                 }
             }
 
+            // If source location not found, it means it has 0 stock - create a virtual location entry
             if (! $sourceLocation) {
-                throw new \Exception("Source location not found: {$sourceLocationId}");
+                Log::channel('inventory')->info("Source location not found in stock levels, treating as 0 stock", [
+                    'source_location_id' => $sourceLocationId,
+                    'sku' => $sku,
+                ]);
+                $sourceLocation = [
+                    'Location' => ['StockLocationId' => $sourceLocationId],
+                    'StockLevel' => 0
+                ];
             }
 
+            // If default location not found, it means it has 0 stock - create a virtual location entry
             if (! $defaultLocation) {
-                throw new \Exception("Default location not found: {$defaultLocationId}");
+                Log::channel('inventory')->info("Default location not found in stock levels, treating as 0 stock", [
+                    'default_location_id' => $defaultLocationId,
+                    'sku' => $sku,
+                ]);
+                $defaultLocation = [
+                    'Location' => ['StockLocationId' => $defaultLocationId],
+                    'StockLevel' => 0
+                ];
             }
 
             $sourceCurrentStock = $sourceLocation['StockLevel'] ?? 0;

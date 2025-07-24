@@ -12,14 +12,22 @@ class GetProductStockLocationsAction
         private LinnworksApiService $linnworksService
     ) {}
 
-    public function handle(Product $product): array
+    public function handle(Product $product, bool $includeZeroStock = false): array
     {
         try {
-            $locations = $this->linnworksService->getStockLocationsByProduct($product->sku);
+            // Choose method based on whether to include locations with 0 stock
+            if ($includeZeroStock) {
+                $locations = $this->linnworksService->getAllStockLocationsByProduct($product->sku);
+                $logMessage = 'Fetched all stock locations for product (including 0 stock)';
+            } else {
+                $locations = $this->linnworksService->getStockLocationsByProduct($product->sku);
+                $logMessage = 'Fetched stock locations for product (stock > 0 only)';
+            }
 
-            Log::channel('inventory')->info('Fetched stock locations for product', [
+            Log::channel('inventory')->info($logMessage, [
                 'product_sku' => $product->sku,
                 'locations_count' => count($locations),
+                'include_zero_stock' => $includeZeroStock,
                 'sample_location' => !empty($locations) ? $locations[0] : 'no locations',
             ]);
 
@@ -27,6 +35,7 @@ class GetProductStockLocationsAction
         } catch (\Exception $e) {
             Log::channel('inventory')->error('Failed to fetch stock locations', [
                 'product_sku' => $product->sku,
+                'include_zero_stock' => $includeZeroStock,
                 'error' => $e->getMessage(),
             ]);
 

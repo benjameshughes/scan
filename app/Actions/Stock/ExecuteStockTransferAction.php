@@ -36,7 +36,10 @@ class ExecuteStockTransferAction
             $toLocationId, $notes, $autoSelectSource, $additionalMetadata
         ) {
             // Step 1: Get available stock locations
-            $stockLocations = $this->getStockLocationsAction->handle($product);
+            // For refill operations, only show locations with stock > 0
+            // For manual transfers, show all locations regardless of stock level
+            $includeZeroStock = ($operationType !== 'refill');
+            $stockLocations = $this->getStockLocationsAction->handle($product, $includeZeroStock);
             
             if (empty($stockLocations)) {
                 throw ValidationException::withMessages([
@@ -168,7 +171,6 @@ class ExecuteStockTransferAction
         
         $movementType = match ($operationType) {
             'refill' => StockMovement::TYPE_BAY_REFILL,
-            'transfer' => StockMovement::TYPE_MANUAL_TRANSFER,
             'adjustment' => StockMovement::TYPE_SCAN_ADJUSTMENT,
             default => StockMovement::TYPE_MANUAL_TRANSFER,
         };
@@ -179,7 +181,7 @@ class ExecuteStockTransferAction
                 $user,
                 $quantity,
                 $sourceLocation['name'],
-                $targetLocation['name'] ?? 'MAIN',
+                $targetLocation['name'] ?? 'Default',
                 $sourceLocation['id'],
                 $targetLocationId,
                 $metadata
