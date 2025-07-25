@@ -280,6 +280,34 @@
                     }, 500);
                 </script>
             @endif
+
+            <!-- Vibration Trigger - Independent of sound -->
+            @if($triggerVibration)
+                @php
+                    $userSettings = auth()->user()->settings;
+                    $vibrationPattern = \App\Enums\VibrationPattern::fromValue($userSettings['vibration_pattern'] ?? 'medium');
+                @endphp
+                <script>
+                    console.log('🎯 Livewire $triggerVibration is TRUE - dispatching event');
+                    console.log('⚙️ User vibration pattern: {{ $vibrationPattern->value }} ({{ $vibrationPattern->label() }})');
+                    
+                    // Trigger vibration via JavaScript with pattern data
+                    Livewire.dispatch('trigger-vibration', {
+                        pattern: {!! json_encode($vibrationPattern->pattern()) !!},
+                        label: '{{ $vibrationPattern->label() }}'
+                    });
+                    
+                    // Reset vibration flag after 100ms
+                    setTimeout(() => {
+                        console.log('🔄 Resetting vibration flag');
+                        Livewire.dispatch('reset-vibration-flag');
+                    }, 100);
+                </script>
+            @else
+                <script>
+                    console.log('🚫 Livewire $triggerVibration is FALSE - no vibration');
+                </script>
+            @endif
             <div class="bg-white dark:bg-zinc-800 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-700 mb-4">
                 <div class="px-4 py-3 border-b border-zinc-200 dark:border-zinc-700">
                     <h3 class="text-base font-medium text-gray-900 dark:text-gray-100">

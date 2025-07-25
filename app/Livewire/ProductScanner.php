@@ -6,6 +6,7 @@ use App\Actions\GetProductFromScannedBarcode;
 use App\Actions\Stock\ExecuteStockTransferAction;
 use App\Actions\Stock\GetProductStockLocationsAction;
 use App\DTOs\EmptyBayDTO;
+use App\Enums\VibrationPattern;
 use App\Jobs\EmptyBayJob;
 use App\Jobs\SyncBarcode;
 use App\Models\Product;
@@ -40,6 +41,8 @@ class ProductScanner extends Component
     public bool $barcodeScanned = false;
 
     public bool $playSuccessSound = false;
+
+    public bool $triggerVibration = false;
 
     public bool $scanAction = false;
     
@@ -155,9 +158,12 @@ class ProductScanner extends Component
                 $this->isScanning = false;
                 $this->dispatch('camera-state-changed', false); // Stop camera
 
-                // Set sound flag for manual entry if product found (check user settings)
+                // Set sound and vibration flags for manual entry if product found (check user settings)
                 $userSettings = auth()->user()->settings;
                 $this->playSuccessSound = ($userSettings['scan_sound'] ?? true) && !!$this->product;
+                
+                $vibrationPattern = VibrationPattern::fromValue($userSettings['vibration_pattern'] ?? 'medium');
+                $this->triggerVibration = $vibrationPattern->isEnabled() && !!$this->product;
             } catch (\Illuminate\Validation\ValidationException $e) {
                 // Invalid barcode - keep scanning, don't switch view
                 $this->barcodeScanned = false;
@@ -243,9 +249,12 @@ class ProductScanner extends Component
             $this->validateOnly('barcode');
             $this->product = new GetProductFromScannedBarcode($this->barcode)->handle();
             
-            // Play success sound when product is found (check user settings)
+            // Play success sound and trigger vibration when product is found (check user settings)
             $userSettings = auth()->user()->settings;
             $this->playSuccessSound = ($userSettings['scan_sound'] ?? true) && !!$this->product;
+            
+            $vibrationPattern = VibrationPattern::fromValue($userSettings['vibration_pattern'] ?? 'medium');
+            $this->triggerVibration = $vibrationPattern->isEnabled() && !!$this->product;
             
             // Auto-submit if enabled and product found (future feature)
             if ($this->autoSubmitEnabled && $this->product) {
@@ -256,6 +265,7 @@ class ProductScanner extends Component
             $this->barcodeScanned = false;
             $this->product = null;
             $this->playSuccessSound = false;
+            $this->triggerVibration = false;
         }
     }
 
@@ -374,6 +384,7 @@ class ProductScanner extends Component
         $this->cameraError = '';
         $this->isEmailRefill = false;
         $this->playSuccessSound = false;
+        $this->triggerVibration = false;
         $this->resetRefillForm();
         $this->resetValidation();
     }
@@ -446,6 +457,13 @@ class ProductScanner extends Component
     {
         // Reset after a brief delay to allow sound to play
         $this->playSuccessSound = false;
+    }
+
+    #[On('reset-vibration-flag')]
+    public function resetVibrationFlag()
+    {
+        // Reset after a brief delay to allow vibration to trigger
+        $this->triggerVibration = false;
     }
 
     /**

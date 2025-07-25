@@ -114,6 +114,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'dark_mode' => false,
             'auto_submit' => false,
             'scan_sound' => true,
+            'vibration_pattern' => 'medium',
             'theme_color' => 'blue',
         ]);
 

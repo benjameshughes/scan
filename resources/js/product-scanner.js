@@ -12,6 +12,8 @@ class ProductScanner {
         this.isScanning = false;
         this.torchEnabled = false;
         this.selectedDeviceId = null;
+        this.hasUserInteraction = false;
+        this.vibrationSupported = null;
         
         this.init();
     }
@@ -24,6 +26,12 @@ class ProductScanner {
             
             // Set up Livewire listeners
             this.setupLivewireListeners();
+            
+            // Set up user interaction tracking
+            this.setupUserInteractionTracking();
+            
+            // Test vibration support
+            this.testVibrationSupport();
             
             // Initialize camera
             await this.initializeCamera();
@@ -80,6 +88,19 @@ class ProductScanner {
         // Listen for resume scanning
         Livewire.on('resume-scanning', () => {
             this.resumeScanning();
+        });
+
+        // Listen for vibration triggers from Livewire
+        Livewire.on('trigger-vibration', (data) => {
+            console.log('📳 Livewire triggered vibration event');
+            
+            if (data && data.pattern) {
+                console.log('🎵 Using custom pattern:', data.pattern, `(${data.label || 'unknown'})`);
+                this.triggerVibrationWithPattern(data.pattern, data.label);
+            } else {
+                console.log('🎵 Using default pattern');
+                this.triggerVibration();
+            }
         });
     }
 
@@ -275,12 +296,11 @@ class ProductScanner {
     }
 
     handleBarcodeResult(result) {
-        console.log('Barcode detected:', result.text);
+        console.log('🔍 Barcode detected:', result.text);
         
-        // Vibrate if supported
-        if (navigator.vibrate) {
-            navigator.vibrate(300);
-        }
+        // Trigger vibration immediately (automatic scan detection)
+        console.log('📳 Triggering vibration from barcode detection...');
+        this.triggerVibration();
         
         // Pause scanning but keep camera stream active
         this.pauseScanning();
@@ -317,6 +337,119 @@ class ProductScanner {
         
         this.isScanning = true;
         console.log('Scanning resumed');
+    }
+
+    setupUserInteractionTracking() {
+        // Track user interactions to enable vibration API
+        const events = ['click', 'touchstart', 'keydown', 'pointerdown'];
+        
+        const handleInteraction = () => {
+            this.hasUserInteraction = true;
+            console.log('👆 User interaction detected - vibration API enabled');
+            console.log('🔧 Vibration API status:', {
+                supported: this.vibrationSupported,
+                userInteraction: this.hasUserInteraction
+            });
+            
+            // Remove listeners after first interaction
+            events.forEach(event => {
+                document.removeEventListener(event, handleInteraction, { passive: true });
+            });
+        };
+        
+        events.forEach(event => {
+            document.addEventListener(event, handleInteraction, { passive: true });
+        });
+    }
+
+    testVibrationSupport() {
+        // Check if vibration API exists
+        const apiExists = !!navigator.vibrate;
+        
+        // Check if we're on a device that actually has vibration hardware
+        const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        
+        // More conservative detection - API must exist AND device should have vibration hardware
+        this.vibrationSupported = apiExists && (isMobile || isTouchDevice);
+        
+        console.log('🔍 Vibration API detection:', {
+            apiExists,
+            isMobile,
+            isTouchDevice,
+            userAgent: navigator.userAgent.substring(0, 50),
+            finalSupported: this.vibrationSupported
+        });
+        
+        if (this.vibrationSupported) {
+            console.log('✅ Vibration API supported (mobile device with vibration hardware)');
+        } else if (apiExists && !isMobile) {
+            console.log('⚠️ Vibration API exists but this appears to be a desktop device (no vibration hardware)');
+        } else {
+            console.log('❌ Vibration API not supported');
+        }
+        
+        // Report support to Livewire
+        Livewire.dispatch('onVibrationSupportDetected', [this.vibrationSupported]);
+    }
+
+    triggerVibration() {
+        // Default fallback pattern
+        this.triggerVibrationWithPattern([100, 50, 200], 'Medium (Default)');
+    }
+
+    triggerVibrationWithPattern(pattern, label = 'Custom') {
+        console.log('📳 triggerVibrationWithPattern() called');
+        console.log('🔧 Current vibration state:', {
+            supported: this.vibrationSupported,
+            userInteraction: this.hasUserInteraction,
+            navigatorVibrate: !!navigator.vibrate,
+            userAgent: navigator.userAgent.substring(0, 100),
+            pattern: pattern,
+            label: label
+        });
+        
+        // Check all requirements for vibration
+        if (!this.vibrationSupported) {
+            console.log('❌ Vibration skipped: API not supported');
+            return;
+        }
+        
+        if (!this.hasUserInteraction) {
+            console.log('❌ Vibration skipped: No user interaction yet');
+            console.log('💡 Try tapping the screen first to enable vibration');
+            return;
+        }
+
+        // Skip if pattern is empty (off setting)
+        if (!pattern || pattern.length === 0) {
+            console.log('🔇 Vibration skipped: Pattern is "off"');
+            return;
+        }
+        
+        try {
+            console.log(`📳 Attempting ${label} vibration with pattern:`, pattern);
+            
+            const success = navigator.vibrate(pattern);
+            
+            if (success) {
+                console.log(`✅ ${label} vibration triggered successfully!`);
+                
+                // Log pattern description
+                const description = pattern.map((duration, index) => {
+                    if (index % 2 === 0) {
+                        return `${duration}ms buzz`;
+                    } else {
+                        return `${duration}ms pause`;
+                    }
+                }).join(' → ');
+                console.log('📱 Pattern:', description);
+            } else {
+                console.log('❌ navigator.vibrate() returned false');
+            }
+        } catch (error) {
+            console.error('💥 Vibration error:', error);
+        }
     }
 
     destroy() {
