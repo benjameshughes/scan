@@ -1,5 +1,5 @@
-<div class="bg-white dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700 shadow-sm">
-    <nav class="px-4 py-3">
+<div class="relative w-full bg-white dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700 shadow-sm">
+    <nav class="max-w-7xl mx-auto px-4 py-3">
         <div class="flex items-center justify-between">
             <!-- Left side - Greeting -->
             <div class="flex items-center space-x-3">
