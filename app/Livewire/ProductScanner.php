@@ -415,6 +415,11 @@ class ProductScanner extends Component
     {
         $emptyBayDTO = new EmptyBayDTO($this->barcode);
         EmptyBayJob::dispatch($emptyBayDTO);
+        
+        // Dispatch success message and reset form to stage one
+        $this->dispatch('empty-bay-submitted');
+        
+        $this->resetScan();
     }
 
     public function save()

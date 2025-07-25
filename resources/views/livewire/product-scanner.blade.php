@@ -17,6 +17,17 @@
                 </span>
             </div>
         </div>
+        
+        <!-- Action Messages -->
+        <div class="mt-3">
+            <x-action-message 
+                class="text-base font-medium flex items-center justify-center gap-2 text-green-600 dark:text-green-400"
+                on="empty-bay-submitted"
+            >
+                <flux:icon.check-circle class="w-5 h-5" />
+                Empty Bay Notification Submitted
+            </x-action-message>
+        </div>
     </div>
 
     <!-- Email Refill Context Banner -->
