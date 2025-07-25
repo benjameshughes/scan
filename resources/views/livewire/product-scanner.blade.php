@@ -467,12 +467,6 @@
                             aria-label="Back to scanner"
                         />
                     </div>
-                    @if($product)
-                        <div class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                            <p class="font-medium">{{ $product->name }}</p>
-                            <p class="font-mono text-xs">{{ $product->sku }}</p>
-                        </div>
-                    @endif
                 </div>
 
                 <!-- Form Body -->
