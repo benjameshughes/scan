@@ -21,14 +21,14 @@
 
     <!-- Email Refill Context Banner -->
     @if($isEmailRefill)
-        <div class="bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800 px-4 py-3 sm:px-6">
+        <div class="bg-accent-50 border-b border-accent-200 px-4 py-3 sm:px-6">
             <div class="flex items-center gap-3">
-                <flux:icon.envelope class="size-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                <flux:icon.envelope class="size-5 text-accent flex-shrink-0" />
                 <div class="flex-1">
-                    <p class="text-sm font-medium text-blue-800 dark:text-blue-200">
+                    <p class="text-sm font-medium text-accent-content">
                         Email Refill Request
                     </p>
-                    <p class="text-xs text-blue-600 dark:text-blue-300 mt-0.5">
+                    <p class="text-xs text-accent mt-0.5">
                         You've been directed here from an empty bay notification email
                     </p>
                 </div>
@@ -36,7 +36,7 @@
                     wire:click="resetScan"
                     variant="ghost"
                     size="sm"
-                    class="text-blue-600 dark:text-blue-400"
+                    class="text-accent"
                 >
                     Normal Scanning
                 </flux:button>
@@ -178,7 +178,7 @@
                         </h3>
                         <button 
                             wire:click="startNewScan" 
-                            class="text-xs px-3 py-1 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800 text-blue-800 dark:text-blue-200 rounded-full font-medium transition-colors duration-200"
+                            class="text-xs px-3 py-1 bg-accent-100 hover:bg-accent-200 text-accent-content rounded-full font-medium transition-colors duration-200"
                         >
                             Scan Another
                         </button>
@@ -197,7 +197,7 @@
                             </div>
                             <div>
                                 <label class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Barcode</label>
-                                <p class="text-sm font-mono text-blue-600 dark:text-blue-400 mt-1">{{ $barcode }}</p>
+                                <p class="text-sm font-mono text-accent mt-1">{{ $barcode }}</p>
                             </div>
                         </div>
                     </div>
@@ -213,7 +213,7 @@
                         </h3>
                         <button 
                             wire:click="startNewScan" 
-                            class="text-xs px-3 py-1 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800 text-blue-800 dark:text-blue-200 rounded-full font-medium transition-colors duration-200"
+                            class="text-xs px-3 py-1 bg-accent-100 hover:bg-accent-200 text-accent-content rounded-full font-medium transition-colors duration-200"
                         >
                             Scan Another
                         </button>
@@ -228,7 +228,7 @@
                         <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">
                             No product matches barcode: <span class="font-mono">{{ $barcode }}</span>
                         </p>
-                        <p class="text-xs text-blue-600 dark:text-blue-400">
+                        <p class="text-xs text-accent">
                             You can still submit this scan for inventory tracking
                         </p>
                     </div>
@@ -387,8 +387,7 @@
                             <div class="flex justify-center">
                                 <flux:button
                                     type="submit"
-                                    variant="filled"
-                                    color="green"
+                                    variant="primary"
                                     icon="check"
                                     class="w-full sm:w-auto px-8"
                                 >
@@ -480,7 +479,7 @@
                                         No locations with stock found for this product.
                                     </p>
                                 @elseif($selectedLocationId && count($this->smartLocationSelectorData) === 1)
-                                    <p class="text-xs text-blue-600 dark:text-blue-400">
+                                    <p class="text-xs text-accent">
                                         <flux:icon.information-circle class="inline w-3 h-3 mr-1" />
                                         Auto-selected - only one transfer location available.
                                     </p>
@@ -546,7 +545,7 @@
                                 </flux:button>
                                 <flux:button
                                     type="submit"
-                                    variant="filled"
+                                    variant="primary"
                                     :icon="$isProcessingRefill ? 'arrow-path' : 'arrow-right'"
                                     class="flex-1"
                                     :disabled="$isProcessingRefill || !$selectedLocationId"

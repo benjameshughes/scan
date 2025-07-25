@@ -26,6 +26,8 @@ class UserProfile extends Component
 
     public bool $scanSound = true;
 
+    public string $themeColor = 'blue';
+
     public function mount()
     {
         $user = auth()->user();
@@ -36,6 +38,7 @@ class UserProfile extends Component
         $settings = $user->settings ?: [];
         $this->autoSubmit = $settings['auto_submit'] ?? false;
         $this->scanSound = $settings['scan_sound'] ?? true;
+        $this->themeColor = $settings['theme_color'] ?? 'blue';
     }
 
     public function updateProfile()
@@ -92,6 +95,7 @@ class UserProfile extends Component
         $settings = [
             'auto_submit' => $this->autoSubmit,
             'scan_sound' => $this->scanSound,
+            'theme_color' => $this->themeColor,
         ];
 
         $user->update([
@@ -111,6 +115,13 @@ class UserProfile extends Component
     public function updatedScanSound($value)
     {
         $this->updateSettings();
+    }
+    
+    // Handle live theme color updates
+    public function updatedThemeColor($value)
+    {
+        $this->updateSettings();
+        $this->dispatch('theme-changed', $value);
     }
 
     public function render()

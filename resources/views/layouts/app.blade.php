@@ -57,6 +57,43 @@
 @livewireScripts
 @fluxScripts
 
+@auth
+<script>
+// Accent color management similar to Flux dark mode
+window.StockScan = window.StockScan || {};
+
+window.StockScan.applyThemeColor = function(color) {
+    // Remove all theme classes
+    const themeClasses = ['theme-blue', 'theme-green', 'theme-purple', 'theme-orange', 'theme-red', 
+                         'theme-pink', 'theme-indigo', 'theme-teal', 'theme-emerald', 'theme-amber', 'theme-rose'];
+    document.documentElement.classList.remove(...themeClasses);
+    
+    // Add new theme class (blue is default, no class needed)
+    if (color && color !== 'blue') {
+        document.documentElement.classList.add('theme-' + color);
+    }
+    
+    // Store in localStorage for persistence
+    localStorage.setItem('stockscan.theme-color', color);
+};
+
+window.StockScan.getStoredThemeColor = function() {
+    return localStorage.getItem('stockscan.theme-color') || @json(auth()->user()->settings['theme_color'] ?? 'blue');
+};
+
+// Apply on initial load
+document.addEventListener('DOMContentLoaded', function() {
+    const themeColor = window.StockScan.getStoredThemeColor();
+    window.StockScan.applyThemeColor(themeColor);
+});
+
+// Re-apply on Livewire navigate (like Flux does for dark mode)
+document.addEventListener('livewire:navigated', function() {
+    const themeColor = window.StockScan.getStoredThemeColor();
+    window.StockScan.applyThemeColor(themeColor);
+});
+</script>
+@endauth
 
 </body>
 </html>

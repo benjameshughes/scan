@@ -6,16 +6,200 @@
 @source "../views";
 
 @theme {
-    --color-accent: var(--color-green-600);
-    --color-accent-content: var(--color-green-600);
+    --color-accent: var(--color-blue-600);
+    --color-accent-content: var(--color-blue-600);
     --color-accent-foreground: var(--color-white);
 }
 
 @layer theme {
     .dark {
+        --color-accent: var(--color-blue-600);
+        --color-accent-content: var(--color-blue-400);
+        --color-accent-foreground: var(--color-white);
+    }
+
+    /* Theme Color Variants */
+    .theme-blue {
+        --color-accent: var(--color-blue-600);
+        --color-accent-content: var(--color-blue-600);
+        --color-accent-foreground: var(--color-white);
+    }
+    
+    .dark.theme-blue {
+        --color-accent: var(--color-blue-600);
+        --color-accent-content: var(--color-blue-400);
+        --color-accent-foreground: var(--color-white);
+    }
+
+    .theme-green {
+        --color-accent: var(--color-green-600);
+        --color-accent-content: var(--color-green-600);
+        --color-accent-foreground: var(--color-white);
+    }
+    
+    .dark.theme-green {
         --color-accent: var(--color-green-600);
         --color-accent-content: var(--color-green-400);
         --color-accent-foreground: var(--color-white);
+    }
+
+    .theme-purple {
+        --color-accent: var(--color-purple-600);
+        --color-accent-content: var(--color-purple-600);
+        --color-accent-foreground: var(--color-white);
+    }
+    
+    .dark.theme-purple {
+        --color-accent: var(--color-purple-600);
+        --color-accent-content: var(--color-purple-400);
+        --color-accent-foreground: var(--color-white);
+    }
+
+    .theme-orange {
+        --color-accent: var(--color-orange-600);
+        --color-accent-content: var(--color-orange-600);
+        --color-accent-foreground: var(--color-white);
+    }
+    
+    .dark.theme-orange {
+        --color-accent: var(--color-orange-600);
+        --color-accent-content: var(--color-orange-400);
+        --color-accent-foreground: var(--color-white);
+    }
+
+    .theme-red {
+        --color-accent: var(--color-red-600);
+        --color-accent-content: var(--color-red-600);
+        --color-accent-foreground: var(--color-white);
+    }
+    
+    .dark.theme-red {
+        --color-accent: var(--color-red-600);
+        --color-accent-content: var(--color-red-400);
+        --color-accent-foreground: var(--color-white);
+    }
+
+    .theme-pink {
+        --color-accent: var(--color-pink-600);
+        --color-accent-content: var(--color-pink-600);
+        --color-accent-foreground: var(--color-white);
+    }
+    
+    .dark.theme-pink {
+        --color-accent: var(--color-pink-600);
+        --color-accent-content: var(--color-pink-400);
+        --color-accent-foreground: var(--color-white);
+    }
+
+    .theme-indigo {
+        --color-accent: var(--color-indigo-600);
+        --color-accent-content: var(--color-indigo-600);
+        --color-accent-foreground: var(--color-white);
+    }
+    
+    .dark.theme-indigo {
+        --color-accent: var(--color-indigo-600);
+        --color-accent-content: var(--color-indigo-400);
+        --color-accent-foreground: var(--color-white);
+    }
+
+    .theme-teal {
+        --color-accent: var(--color-teal-600);
+        --color-accent-content: var(--color-teal-600);
+        --color-accent-foreground: var(--color-white);
+    }
+    
+    .dark.theme-teal {
+        --color-accent: var(--color-teal-600);
+        --color-accent-content: var(--color-teal-400);
+        --color-accent-foreground: var(--color-white);
+    }
+
+    .theme-emerald {
+        --color-accent: var(--color-emerald-600);
+        --color-accent-content: var(--color-emerald-600);
+        --color-accent-foreground: var(--color-white);
+    }
+    
+    .dark.theme-emerald {
+        --color-accent: var(--color-emerald-600);
+        --color-accent-content: var(--color-emerald-400);
+        --color-accent-foreground: var(--color-white);
+    }
+
+    .theme-amber {
+        --color-accent: var(--color-amber-600);
+        --color-accent-content: var(--color-amber-600);
+        --color-accent-foreground: var(--color-white);
+    }
+    
+    .dark.theme-amber {
+        --color-accent: var(--color-amber-600);
+        --color-accent-content: var(--color-amber-400);
+        --color-accent-foreground: var(--color-white);
+    }
+
+    .theme-rose {
+        --color-accent: var(--color-rose-600);
+        --color-accent-content: var(--color-rose-600);
+        --color-accent-foreground: var(--color-white);
+    }
+    
+    .dark.theme-rose {
+        --color-accent: var(--color-rose-600);
+        --color-accent-content: var(--color-rose-400);
+        --color-accent-foreground: var(--color-white);
+    }
+}
+
+/* Accent Color Utilities */
+@layer utilities {
+    /* Background accent utilities */
+    .bg-accent {
+        background-color: var(--color-accent);
+    }
+    
+    .bg-accent-50 {
+        background-color: color-mix(in oklab, var(--color-accent) 10%, transparent);
+    }
+    
+    .bg-accent-100 {
+        background-color: color-mix(in oklab, var(--color-accent) 20%, white);
+    }
+    
+    .dark .bg-accent-100 {
+        background-color: color-mix(in oklab, var(--color-accent) 20%, var(--color-zinc-900));
+    }
+    
+    /* Text accent utilities */
+    .text-accent {
+        color: var(--color-accent);
+    }
+    
+    .text-accent-content {
+        color: var(--color-accent-content);
+    }
+    
+    /* Border accent utilities */
+    .border-accent {
+        border-color: var(--color-accent);
+    }
+    
+    .border-accent-200 {
+        border-color: color-mix(in oklab, var(--color-accent) 30%, white);
+    }
+    
+    .dark .border-accent-200 {
+        border-color: color-mix(in oklab, var(--color-accent) 30%, var(--color-zinc-800));
+    }
+    
+    /* Hover states */
+    .hover\:bg-accent-200:hover {
+        background-color: color-mix(in oklab, var(--color-accent) 30%, white);
+    }
+    
+    .dark .hover\:bg-accent-200:hover {
+        background-color: color-mix(in oklab, var(--color-accent) 30%, var(--color-zinc-800));
     }
 }
 

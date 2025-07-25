@@ -194,6 +194,48 @@
                         <flux:switch wire:model.live="scanSound" />
                     </div>
 
+                    <div class="p-3 bg-zinc-50 dark:bg-zinc-700 rounded-md border border-zinc-200 dark:border-zinc-600">
+                        <div class="mb-3">
+                            <label class="text-sm font-medium text-gray-700 dark:text-gray-200">
+                                Theme Color
+                            </label>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                Personalize your interface with your favorite color
+                            </p>
+                        </div>
+                        <div class="grid grid-cols-5 gap-3">
+                            @foreach([
+                                ['blue', 'bg-blue-600', 'border-blue-700'],
+                                ['green', 'bg-green-600', 'border-green-700'],
+                                ['purple', 'bg-purple-600', 'border-purple-700'],
+                                ['orange', 'bg-orange-600', 'border-orange-700'],
+                                ['red', 'bg-red-600', 'border-red-700'],
+                                ['pink', 'bg-pink-600', 'border-pink-700'],
+                                ['indigo', 'bg-indigo-600', 'border-indigo-700'],
+                                ['teal', 'bg-teal-600', 'border-teal-700'],
+                                ['emerald', 'bg-emerald-600', 'border-emerald-700'],
+                                ['amber', 'bg-amber-600', 'border-amber-700'],
+                            ] as [$color, $bgClass, $borderClass])
+                                <label class="cursor-pointer" title="{{ ucfirst($color) }}">
+                                    <input 
+                                        type="radio" 
+                                        name="themeColor" 
+                                        value="{{ $color }}" 
+                                        wire:model.live="themeColor"
+                                        class="sr-only"
+                                    />
+                                    <div class="w-10 h-10 rounded-lg border-2 transition-all duration-200 flex items-center justify-center {{ $bgClass }} {{ $borderClass }}
+                                        {{ $themeColor === $color ? 'ring-2 ring-offset-2 ring-zinc-400 dark:ring-zinc-500 dark:ring-offset-zinc-800 scale-110' : 'hover:scale-105' }}
+                                    ">
+                                        @if($themeColor === $color)
+                                            <flux:icon.check class="w-5 h-5 text-white" />
+                                        @endif
+                                    </div>
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
+
                     <div class="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
                         <div class="flex items-start gap-3">
                             <flux:icon.information-circle class="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
@@ -253,3 +295,15 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Listen for Livewire theme color updates
+    Livewire.on('theme-changed', function(color) {
+        // Use the global theme color system
+        if (window.StockScan && window.StockScan.applyThemeColor) {
+            window.StockScan.applyThemeColor(color);
+        }
+    });
+});
+</script>
