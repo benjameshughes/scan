@@ -3,7 +3,8 @@
 use App\Livewire\Actions\Logout;
 use Livewire\Volt\Component;
 
-new class extends Component {
+new class extends Component
+{
     /**
      * Log the current user out of the application.
      */
@@ -68,29 +69,39 @@ new class extends Component {
             <div class="hidden sm:flex sm:items-center sm:ms-6">
                 <flux:button x-data x-on:click="$flux.dark = ! $flux.dark" icon="moon" variant="subtle"
                              aria-label="Toggle dark mode"/>
-                <flux:dropdown position="bottom" align="end">
+                <flux:dropdown position="bottom" align="end"
+                    x-data="{ currentTheme: '{{ auth()->user()->settings['theme_color'] ?? 'blue' }}' }"
+                    @theme-color-changed.window="currentTheme = $event.detail.color"
+                >
                     <flux:profile
-                            initials="{{ auth()->user()->initials() }}"
-                            color="auto"
+                        initials="{{ auth()->user()->initials() }}"
+                        name="{{ auth()->user()->name }}"
+                        x-bind:color="currentTheme"
                     />
 
                     <flux:navmenu>
-                        <flux:menu.group heading="Signed in as">
+                        <flux:menu.group heading="Signed in as {{ auth()->user()->email }}">
                             <flux:navmenu.item href="{{route('profile')}}" icon="user" wire:navigate>{{__('My Profile')}}</flux:navmenu.item>
-                            @can('import products')
-                            <flux:navmenu.item href="{{route('products.import')}}" icon="import" wire:navigate>Import</flux:navmenu.item>
-                            @endcan
-                            @can('manage locations')
-                            <flux:navmenu.item href="{{route('locations.manage')}}" icon="map-pin" wire:navigate>Manage Locations</flux:navmenu.item>
-                            @endcan
-                            @can('manage products')
-                            <flux:navmenu.item href="{{route('admin.sync-dashboard')}}" icon="chart-bar" wire:navigate>Sync Dashboard</flux:navmenu.item>
-                            <flux:navmenu.item href="{{route('admin.sync-queue')}}" icon="queue-list" wire:navigate>Sync Queue</flux:navmenu.item>
-                            <flux:navmenu.item href="{{route('admin.pending-updates')}}" icon="exclamation-triangle" wire:navigate>Sync Updates</flux:navmenu.item>
-                            <flux:navmenu.item href="{{route('admin.manual-sync')}}" icon="arrow-path" wire:navigate>Manual Sync</flux:navmenu.item>
-                            @endcan
                         </flux:menu.group>
-                        <flux:navmenu.item wire:click="logout" icon="trash" variant="danger">Logout</flux:navmenu.item>
+
+                        @canany(['import products', 'manage locations', 'manage products'])
+                            <flux:menu.group heading="Admin Tools">
+                                @can('import products')
+                                <flux:navmenu.item href="{{route('products.import')}}" icon="import" wire:navigate>Import Products</flux:navmenu.item>
+                                @endcan
+                                @can('manage locations')
+                                <flux:navmenu.item href="{{route('locations.manage')}}" icon="map-pin" wire:navigate>Manage Locations</flux:navmenu.item>
+                                @endcan
+                                @can('manage products')
+                                <flux:navmenu.item href="{{route('admin.sync-dashboard')}}" icon="chart-bar" wire:navigate>Sync Dashboard</flux:navmenu.item>
+                                <flux:navmenu.item href="{{route('admin.sync-queue')}}" icon="queue-list" wire:navigate>Sync Queue</flux:navmenu.item>
+                                <flux:navmenu.item href="{{route('admin.pending-updates')}}" icon="exclamation-triangle" wire:navigate>Sync Updates</flux:navmenu.item>
+                                <flux:navmenu.item href="{{route('admin.manual-sync')}}" icon="arrow-path" wire:navigate>Manual Sync</flux:navmenu.item>
+                                @endcan
+                            </flux:menu.group>
+                        @endcanany
+
+                        <flux:navmenu.item wire:click="logout" icon="arrow-right-end-on-rectangle" variant="danger">Sign Out</flux:navmenu.item>
                     </flux:navmenu>
                 </flux:dropdown>
             </div>

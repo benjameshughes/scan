@@ -5,7 +5,11 @@
             <div class="flex items-center space-x-3">
                 @auth
                     <div class="flex items-center space-x-2">
-                        <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                        <div 
+                            x-data="{ currentTheme: '{{ auth()->user()->settings['theme_color'] ?? 'blue' }}' }"
+                            @theme-color-changed.window="currentTheme = $event.detail.color"
+                            :class="`w-8 h-8 rounded-full flex items-center justify-center bg-${currentTheme}-600`"
+                        >
                             <span class="text-sm font-medium text-white">{{ substr(auth()->user()->name, 0, 1) }}</span>
                         </div>
                         <div>
