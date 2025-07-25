@@ -168,16 +168,16 @@
                         <flux:switch x-data x-on:click="$flux.dark = ! $flux.dark" x-bind:checked="$flux.dark" />
                     </div>
 
-                    <div class="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-700 rounded-md border border-zinc-200 dark:border-zinc-600">
+                    <div class="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-700 rounded-md border border-zinc-200 dark:border-zinc-600 opacity-50">
                         <div>
-                            <label for="autoSubmit" class="text-sm font-medium text-gray-700 dark:text-gray-200 cursor-pointer">
+                            <label for="autoSubmit" class="text-sm font-medium text-gray-700 dark:text-gray-200">
                                 Auto-Submit Scans
                             </label>
                             <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                Automatically submit scans without confirmation
+                                Coming soon - automatically submit scans without confirmation
                             </p>
                         </div>
-                        <flux:switch wire:model.live="autoSubmit" />
+                        <flux:switch wire:model.live="autoSubmit" disabled />
                     </div>
                 </div>
 
