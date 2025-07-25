@@ -12,6 +12,6 @@ class ScanLayout extends Component
      */
     public function render(): View
     {
-        return view('layouts.scanner');
+        return view('layouts.app');
     }
 }

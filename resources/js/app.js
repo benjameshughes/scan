@@ -1,6 +1,70 @@
 import './bootstrap';
 import './flashmessage';
 
+// Alpine.js Theme Store
+document.addEventListener('alpine:init', () => {
+    Alpine.store('theme', {
+        // Available theme colors
+        colors: [
+            // Classic Blues
+            'blue', 'sky', 'cyan', 'indigo', 'navy',
+            // Nature Greens
+            'green', 'emerald', 'teal', 'lime', 'forest',
+            // Warm Colors
+            'red', 'orange', 'amber', 'yellow', 'coral',
+            // Cool Purples & Pinks
+            'purple', 'violet', 'pink', 'rose', 'fuchsia',
+            // Neutrals & Earthy
+            'slate', 'gray', 'stone', 'zinc', 'neutral'
+        ],
+
+        // Current theme color
+        current: 'blue',
+
+        // Initialize theme from localStorage
+        init() {
+            const stored = localStorage.getItem('stockscan.theme-color');
+            if (stored && this.colors.includes(stored)) {
+                this.current = stored;
+            }
+            this.apply();
+        },
+
+        // Apply theme color to DOM
+        apply() {
+            // Remove all existing theme classes
+            const classList = document.documentElement.classList;
+            this.colors.forEach(color => {
+                classList.remove(`theme-${color}`);
+            });
+
+            // Add current theme class (blue is default, no class needed)
+            if (this.current !== 'blue') {
+                classList.add(`theme-${this.current}`);
+            }
+        },
+
+        // Set new theme color
+        set(color) {
+            if (this.colors.includes(color)) {
+                this.current = color;
+                localStorage.setItem('stockscan.theme-color', color);
+                this.apply();
+                
+                // Dispatch event for other components
+                window.dispatchEvent(new CustomEvent('theme-color-changed', {
+                    detail: { color }
+                }));
+            }
+        },
+
+        // Get current theme
+        get() {
+            return this.current;
+        }
+    });
+});
+
 // Register Service Worker for PWA
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {

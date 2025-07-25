@@ -150,6 +150,190 @@
         --color-accent-content: var(--color-rose-400);
         --color-accent-foreground: var(--color-white);
     }
+
+    /* New Extended Color Palette */
+    
+    /* Sky Blue */
+    .theme-sky {
+        --color-accent: var(--color-sky-600);
+        --color-accent-content: var(--color-sky-600);
+        --color-accent-foreground: var(--color-white);
+    }
+    
+    .dark.theme-sky {
+        --color-accent: var(--color-sky-600);
+        --color-accent-content: var(--color-sky-400);
+        --color-accent-foreground: var(--color-white);
+    }
+
+    /* Cyan */
+    .theme-cyan {
+        --color-accent: var(--color-cyan-600);
+        --color-accent-content: var(--color-cyan-600);
+        --color-accent-foreground: var(--color-white);
+    }
+    
+    .dark.theme-cyan {
+        --color-accent: var(--color-cyan-600);
+        --color-accent-content: var(--color-cyan-400);
+        --color-accent-foreground: var(--color-white);
+    }
+
+    /* Navy Blue */
+    .theme-navy {
+        --color-accent: var(--color-blue-800);
+        --color-accent-content: var(--color-blue-800);
+        --color-accent-foreground: var(--color-white);
+    }
+    
+    .dark.theme-navy {
+        --color-accent: var(--color-blue-800);
+        --color-accent-content: var(--color-blue-300);
+        --color-accent-foreground: var(--color-white);
+    }
+
+    /* Lime */
+    .theme-lime {
+        --color-accent: var(--color-lime-600);
+        --color-accent-content: var(--color-lime-600);
+        --color-accent-foreground: var(--color-white);
+    }
+    
+    .dark.theme-lime {
+        --color-accent: var(--color-lime-600);
+        --color-accent-content: var(--color-lime-400);
+        --color-accent-foreground: var(--color-white);
+    }
+
+    /* Forest Green */
+    .theme-forest {
+        --color-accent: var(--color-green-800);
+        --color-accent-content: var(--color-green-800);
+        --color-accent-foreground: var(--color-white);
+    }
+    
+    .dark.theme-forest {
+        --color-accent: var(--color-green-800);
+        --color-accent-content: var(--color-green-300);
+        --color-accent-foreground: var(--color-white);
+    }
+
+    /* Yellow */
+    .theme-yellow {
+        --color-accent: var(--color-yellow-600);
+        --color-accent-content: var(--color-yellow-600);
+        --color-accent-foreground: var(--color-white);
+    }
+    
+    .dark.theme-yellow {
+        --color-accent: var(--color-yellow-600);
+        --color-accent-content: var(--color-yellow-400);
+        --color-accent-foreground: var(--color-white);
+    }
+
+    /* Coral */
+    .theme-coral {
+        --color-accent: var(--color-orange-500);
+        --color-accent-content: var(--color-orange-500);
+        --color-accent-foreground: var(--color-white);
+    }
+    
+    .dark.theme-coral {
+        --color-accent: var(--color-orange-600);
+        --color-accent-content: var(--color-orange-300);
+        --color-accent-foreground: var(--color-white);
+    }
+
+    /* Violet */
+    .theme-violet {
+        --color-accent: var(--color-violet-600);
+        --color-accent-content: var(--color-violet-600);
+        --color-accent-foreground: var(--color-white);
+    }
+    
+    .dark.theme-violet {
+        --color-accent: var(--color-violet-600);
+        --color-accent-content: var(--color-violet-400);
+        --color-accent-foreground: var(--color-white);
+    }
+
+    /* Fuchsia */
+    .theme-fuchsia {
+        --color-accent: var(--color-fuchsia-600);
+        --color-accent-content: var(--color-fuchsia-600);
+        --color-accent-foreground: var(--color-white);
+    }
+    
+    .dark.theme-fuchsia {
+        --color-accent: var(--color-fuchsia-600);
+        --color-accent-content: var(--color-fuchsia-400);
+        --color-accent-foreground: var(--color-white);
+    }
+
+    /* Slate */
+    .theme-slate {
+        --color-accent: var(--color-slate-600);
+        --color-accent-content: var(--color-slate-600);
+        --color-accent-foreground: var(--color-white);
+    }
+    
+    .dark.theme-slate {
+        --color-accent: var(--color-slate-600);
+        --color-accent-content: var(--color-slate-400);
+        --color-accent-foreground: var(--color-white);
+    }
+
+    /* Gray */
+    .theme-gray {
+        --color-accent: var(--color-gray-600);
+        --color-accent-content: var(--color-gray-600);
+        --color-accent-foreground: var(--color-white);
+    }
+    
+    .dark.theme-gray {
+        --color-accent: var(--color-gray-600);
+        --color-accent-content: var(--color-gray-400);
+        --color-accent-foreground: var(--color-white);
+    }
+
+    /* Stone */
+    .theme-stone {
+        --color-accent: var(--color-stone-600);
+        --color-accent-content: var(--color-stone-600);
+        --color-accent-foreground: var(--color-white);
+    }
+    
+    .dark.theme-stone {
+        --color-accent: var(--color-stone-600);
+        --color-accent-content: var(--color-stone-400);
+        --color-accent-foreground: var(--color-white);
+    }
+
+    /* Zinc */
+    .theme-zinc {
+        --color-accent: var(--color-zinc-600);
+        --color-accent-content: var(--color-zinc-600);
+        --color-accent-foreground: var(--color-white);
+    }
+    
+    .dark.theme-zinc {
+        --color-accent: var(--color-zinc-600);
+        --color-accent-content: var(--color-zinc-400);
+        --color-accent-foreground: var(--color-white);
+    }
+
+    /* Neutral */
+    .theme-neutral {
+        --color-accent: var(--color-neutral-600);
+        --color-accent-content: var(--color-neutral-600);
+        --color-accent-foreground: var(--color-white);
+    }
+    
+    .dark.theme-neutral {
+        --color-accent: var(--color-neutral-600);
+        --color-accent-content: var(--color-neutral-400);
+        --color-accent-foreground: var(--color-white);
+    }
 }
 
 /* Accent Color Utilities */

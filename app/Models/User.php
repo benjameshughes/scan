@@ -110,30 +110,33 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function getSettingsAttribute($value)
     {
-        $defaults = [
+        $defaults = collect([
             'dark_mode' => false,
             'auto_submit' => false,
             'scan_sound' => true,
             'theme_color' => 'blue',
-        ];
+        ]);
 
         if (! $value) {
-            return $defaults;
+            return $defaults->toArray(); // Return array for compatibility
         }
 
-        $settings = json_decode($value, true);
+        $settings = collect(json_decode($value, true));
         
-        if (! $settings) {
-            return $defaults;
+        if ($settings->isEmpty()) {
+            return $defaults->toArray();
         }
         
-        // Only use defaults for missing keys, preserve existing values (including false)
-        $result = [];
-        foreach ($defaults as $key => $defaultValue) {
-            $result[$key] = array_key_exists($key, $settings) ? $settings[$key] : $defaultValue;
-        }
-        
-        return $result;
+        // Merge defaults with user settings, user settings take precedence
+        return $defaults->merge($settings)->toArray();
+    }
+
+    /**
+     * Get settings as a Collection (for modern usage)
+     */
+    public function getSettingsCollectionAttribute()
+    {
+        return collect($this->settings);
     }
 
     public function invite(): HasOne

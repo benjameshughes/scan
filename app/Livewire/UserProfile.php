@@ -121,7 +121,7 @@ class UserProfile extends Component
     public function updatedThemeColor($value)
     {
         $this->updateSettings();
-        $this->dispatch('theme-changed', $value);
+        $this->dispatch('theme-color-changed', color: $value);
     }
 
     public function render()

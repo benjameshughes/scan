@@ -1,21 +1,45 @@
-<div class="relative w-full dark:bg-zinc-800">
-    <nav class="max-w-7xl mx-auto flex flex-1 justify-between items-center">
-        <div class="justify-start">
-            @auth
-                <span class="text-zinc-900 dark:text-white">{{ (now()->hour < 12 ? 'Good Morning' : 'Good Evening') . ', ' . auth()->user()->name }}</span>
-            @endauth
-        </div>
-        <div class="justify-end">
-            <!-- Dark mode toggle -->
+<div class="bg-white dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700 shadow-sm">
+    <nav class="px-4 py-3">
+        <div class="flex items-center justify-between">
+            <!-- Left side - Greeting -->
+            <div class="flex items-center space-x-3">
+                @auth
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                            <span class="text-sm font-medium text-white">{{ substr(auth()->user()->name, 0, 1) }}</span>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                {{ now()->hour < 12 ? 'Good Morning' : (now()->hour < 18 ? 'Good Afternoon' : 'Good Evening') }}
+                            </p>
+                            <p class="text-xs text-gray-600 dark:text-gray-400">{{ auth()->user()->name }}</p>
+                        </div>
+                    </div>
+                @endauth
+            </div>
 
-            <flux:button x-data x-on:click="$flux.dark = ! $flux.dark" icon="moon" variant="subtle"
-                         aria-label="Toggle dark mode" class="mr-2"/>
-            <a
+            <!-- Right side - Actions -->
+            <div class="flex items-center space-x-2">
+                <!-- Dark mode toggle -->
+                <flux:button 
+                    x-data 
+                    x-on:click="$flux.dark = ! $flux.dark" 
+                    icon="moon" 
+                    variant="ghost"
+                    size="sm"
+                    aria-label="Toggle dark mode"
+                />
+                
+                <!-- Dashboard link -->
+                <flux:button 
                     href="{{ url('/dashboard') }}"
-                    class="rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20] dark:text-white dark:hover:text-white/80 dark:focus-visible:ring-white"
-            >
-                Dashboard
-            </a>
+                    variant="primary"
+                    size="sm"
+                    icon="home"
+                >
+                    Dashboard
+                </flux:button>
+            </div>
         </div>
     </nav>
 </div>

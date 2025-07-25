@@ -1,4 +1,5 @@
-<div class="w-full space-y-6">
+<div class="w-full space-y-6" 
+     @theme-color-changed.window="$store.theme.set($event.detail.color)">
     <!-- Profile Information -->
     <div class="bg-white dark:bg-zinc-800 shadow-sm rounded-lg border border-zinc-200 dark:border-zinc-700">
         <div class="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700">
@@ -203,31 +204,20 @@
                                 Personalize your interface with your favorite color
                             </p>
                         </div>
-                        <div class="grid grid-cols-5 gap-3">
-                            @foreach([
-                                ['blue', 'bg-blue-600', 'border-blue-700'],
-                                ['green', 'bg-green-600', 'border-green-700'],
-                                ['purple', 'bg-purple-600', 'border-purple-700'],
-                                ['orange', 'bg-orange-600', 'border-orange-700'],
-                                ['red', 'bg-red-600', 'border-red-700'],
-                                ['pink', 'bg-pink-600', 'border-pink-700'],
-                                ['indigo', 'bg-indigo-600', 'border-indigo-700'],
-                                ['teal', 'bg-teal-600', 'border-teal-700'],
-                                ['emerald', 'bg-emerald-600', 'border-emerald-700'],
-                                ['amber', 'bg-amber-600', 'border-amber-700'],
-                            ] as [$color, $bgClass, $borderClass])
-                                <label class="cursor-pointer" title="{{ ucfirst($color) }}">
+                        <div class="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3">
+                            @foreach(\App\Enums\ThemeColor::collection() as $colorEnum)
+                                <label class="cursor-pointer" title="{{ $colorEnum->label() }} - {{ $colorEnum->description() }}">
                                     <input 
                                         type="radio" 
                                         name="themeColor" 
-                                        value="{{ $color }}" 
+                                        value="{{ $colorEnum->value }}" 
                                         wire:model.live="themeColor"
                                         class="sr-only"
                                     />
-                                    <div class="w-10 h-10 rounded-lg border-2 transition-all duration-200 flex items-center justify-center {{ $bgClass }} {{ $borderClass }}
-                                        {{ $themeColor === $color ? 'ring-2 ring-offset-2 ring-zinc-400 dark:ring-zinc-500 dark:ring-offset-zinc-800 scale-110' : 'hover:scale-105' }}
+                                    <div class="w-10 h-10 rounded-lg border-2 transition-all duration-200 flex items-center justify-center {{ $colorEnum->backgroundClass() }} border-transparent
+                                        {{ $themeColor === $colorEnum->value ? 'ring-2 ring-offset-2 ring-zinc-400 dark:ring-zinc-500 dark:ring-offset-zinc-800 scale-110' : 'hover:scale-105' }}
                                     ">
-                                        @if($themeColor === $color)
+                                        @if($themeColor === $colorEnum->value)
                                             <flux:icon.check class="w-5 h-5 text-white" />
                                         @endif
                                     </div>
@@ -296,14 +286,3 @@
     </div>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Listen for Livewire theme color updates
-    Livewire.on('theme-changed', function(color) {
-        // Use the global theme color system
-        if (window.StockScan && window.StockScan.applyThemeColor) {
-            window.StockScan.applyThemeColor(color);
-        }
-    });
-});
-</script>
