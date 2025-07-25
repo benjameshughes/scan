@@ -184,7 +184,7 @@
             <div class="bg-white dark:bg-zinc-800 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-700 mb-4">
                 <div class="px-4 py-3 border-b border-zinc-200 dark:border-zinc-700">
                     <div class="flex items-center justify-between">
-                        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+                        <h3 class="text-base font-medium text-gray-900 dark:text-gray-100">
                             Product Found
                         </h3>
                         <button 
@@ -195,21 +195,23 @@
                         </button>
                     </div>
                 </div>
-                <div class="p-4">
-                    <div class="space-y-3">
-                        <div>
-                            <label class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Product Name</label>
-                            <p class="text-base font-medium text-gray-900 dark:text-gray-100 mt-1">{{ $product->name }}</p>
+                <div class="p-3">
+                    <div class="space-y-2">
+                        <!-- Product Name and SKU -->
+                        <div class="flex gap-3">
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-accent truncate">{{ $product->name }}</p>
+                            </div>
+                            <div class="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
+                                <flux:icon.identification class="w-3 h-3 flex-shrink-0" />
+                                <span class="font-mono">{{ $product->sku }}</span>
+                            </div>
                         </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                                <label class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">SKU</label>
-                                <p class="text-sm font-mono text-gray-700 dark:text-gray-200 mt-1">{{ $product->sku }}</p>
-                            </div>
-                            <div>
-                                <label class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Barcode</label>
-                                <p class="text-sm font-mono text-accent mt-1">{{ $barcode }}</p>
-                            </div>
+                        
+                        <!-- Barcode -->
+                        <div class="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
+                            <flux:icon.bars-3-bottom-left class="w-3 h-3 flex-shrink-0" />
+                            <span class="font-mono">{{ $barcode }}</span>
                         </div>
                     </div>
                 </div>
@@ -600,21 +602,5 @@
             </div>
         @endif
 
-        <!-- Scan Instructions (only show when no barcode scanned and not in refill mode) -->
-        @if(!$barcodeScanned && !$showRefillForm)
-            <div class="bg-white dark:bg-zinc-800 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-700 mb-4">
-                <div class="p-6 text-center">
-                    <svg class="w-16 h-16 mx-auto text-gray-400 dark:text-gray-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h4m-4 0h.01M12 16V8l4 4-4 4z"/>
-                    </svg>
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-                        Ready to Scan
-                    </h3>
-                    <p class="text-sm text-gray-600 dark:text-gray-300 max-w-sm mx-auto">
-                        Point your camera at a barcode or enter it manually above. Make sure the barcode is clearly visible and well-lit.
-                    </p>
-                </div>
-            </div>
-        @endif
     </div>
 </div>
