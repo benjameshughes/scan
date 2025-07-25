@@ -21,12 +21,34 @@ document.addEventListener('alpine:init', () => {
         // Current theme color
         current: 'blue',
 
-        // Initialize theme from localStorage
+        // Initialize theme from user settings or localStorage
         init() {
+            // Try to get user theme from DOM (passed from PHP in blade templates)
+            const themeElements = document.querySelectorAll('[x-data*="currentTheme"]');
+            let userTheme = null;
+            
+            // Extract theme from Alpine.js components that have currentTheme
+            if (themeElements.length > 0) {
+                const firstElement = themeElements[0];
+                const xDataAttr = firstElement.getAttribute('x-data');
+                const match = xDataAttr?.match(/currentTheme:\s*'([^']+)'/);
+                if (match) {
+                    userTheme = match[1];
+                }
+            }
+            
             const stored = localStorage.getItem('stockscan.theme-color');
-            if (stored && this.colors.includes(stored)) {
+            
+            if (userTheme && this.colors.includes(userTheme)) {
+                // Prioritize database settings for logged-in users
+                this.current = userTheme;
+                // Sync to localStorage to persist across page loads
+                localStorage.setItem('stockscan.theme-color', userTheme);
+            } else if (stored && this.colors.includes(stored)) {
+                // Fall back to localStorage for guests or if no user theme
                 this.current = stored;
             }
+            
             this.apply();
         },
 
