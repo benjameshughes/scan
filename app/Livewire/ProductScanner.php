@@ -10,9 +10,7 @@ use App\Jobs\EmptyBayJob;
 use App\Jobs\SyncBarcode;
 use App\Models\Product;
 use App\Models\Scan;
-use App\Models\StockMovement;
 use App\Rules\BarcodePrefixCheck;
-use App\Services\LinnworksApiService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\On;
@@ -41,11 +39,11 @@ class ProductScanner extends Component
 
     public bool $barcodeScanned = false;
 
-    public bool $showSuccessMessage = false;
-
-    public string $successMessage = '';
+    public bool $playSuccessSound = false;
 
     public bool $scanAction = false;
+    
+    public bool $autoSubmitEnabled = false;
 
     public ?Product $product = null;
 
@@ -89,6 +87,10 @@ class ProductScanner extends Component
 
         $this->loadingCamera = false; // Start with video element visible
         $this->isScanning = false;
+        
+        // Initialize user settings
+        $userSettings = auth()->user()->settings;
+        $this->autoSubmitEnabled = $userSettings['auto_submit'] ?? false;
 
         // Handle direct email navigation to refill bay
         $action = request('action');
@@ -113,13 +115,11 @@ class ProductScanner extends Component
 
             // Validate barcode and find product
             $this->validateOnly('barcode');
-            $this->product = (new GetProductFromScannedBarcode($this->barcode))->handle();
+            $this->product = new GetProductFromScannedBarcode($this->barcode)->handle();
 
             if ($this->product) {
                 // Product found - set up for refill workflow
                 $this->barcodeScanned = true;
-                $this->successMessage = "Refilling bay for: {$this->product->name}";
-                $this->showSuccessMessage = true;
 
                 // Check if user has refill permission before showing form
                 if (auth()->user()->can('refill bays')) {
@@ -130,8 +130,6 @@ class ProductScanner extends Component
                 }
             } else {
                 // Product not found
-                $this->successMessage = 'Product not found for this barcode';
-                $this->showSuccessMessage = true;
                 $this->isEmailRefill = false; // Reset email mode
             }
 
@@ -157,23 +155,18 @@ class ProductScanner extends Component
                 $this->isScanning = false;
                 $this->dispatch('camera-state-changed', false); // Stop camera
 
-                if (! $this->product) {
-                    $this->successMessage = 'No Product Found With That Barcode - You can still submit the scan';
-                    $this->showSuccessMessage = true;
-                }
+                // Set sound flag for manual entry if product found (check user settings)
+                $userSettings = auth()->user()->settings;
+                $this->playSuccessSound = ($userSettings['scan_sound'] ?? true) && !!$this->product;
             } catch (\Illuminate\Validation\ValidationException $e) {
                 // Invalid barcode - keep scanning, don't switch view
                 $this->barcodeScanned = false;
                 $this->product = null;
-                $this->showSuccessMessage = false;
-                $this->successMessage = '';
             }
         } else {
             // Barcode was cleared - reset the scan state
             $this->barcodeScanned = false;
             $this->product = null;
-            $this->showSuccessMessage = false;
-            $this->successMessage = '';
             $this->resetValidation('barcode');
         }
     }
@@ -249,16 +242,20 @@ class ProductScanner extends Component
         try {
             $this->validateOnly('barcode');
             $this->product = new GetProductFromScannedBarcode($this->barcode)->handle();
-            if (! $this->product) {
-                $this->successMessage = 'No Product Found With That Barcode - You can still submit the scan';
-                $this->showSuccessMessage = true;
+            
+            // Play success sound when product is found (check user settings)
+            $userSettings = auth()->user()->settings;
+            $this->playSuccessSound = ($userSettings['scan_sound'] ?? true) && !!$this->product;
+            
+            // Auto-submit if enabled and product found (future feature)
+            if ($this->autoSubmitEnabled && $this->product) {
+                $this->handleAutoSubmit();
             }
         } catch (\Illuminate\Validation\ValidationException $e) {
             // Invalid barcode - keep scanning, don't switch view
             $this->barcodeScanned = false;
             $this->product = null;
-            $this->showSuccessMessage = false;
-            $this->successMessage = '';
+            $this->playSuccessSound = false;
         }
     }
 
@@ -372,12 +369,11 @@ class ProductScanner extends Component
     {
         $this->barcode = null;
         $this->barcodeScanned = false;
-        $this->showSuccessMessage = false;
-        $this->successMessage = '';
         $this->product = null;
         $this->quantity = 1;
         $this->cameraError = '';
         $this->isEmailRefill = false;
+        $this->playSuccessSound = false;
         $this->resetRefillForm();
         $this->resetValidation();
     }
@@ -408,9 +404,6 @@ class ProductScanner extends Component
     {
         $emptyBayDTO = new EmptyBayDTO($this->barcode);
         EmptyBayJob::dispatch($emptyBayDTO);
-
-        $this->showSuccessMessage = true;
-        $this->successMessage = 'Empty bay notification sent';
     }
 
     public function save()
@@ -435,10 +428,6 @@ class ProductScanner extends Component
         // Reset form first
         $this->resetScan();
 
-        // Then show success message for next scan
-        $this->successMessage = 'Scan saved successfully! Ready for next item.';
-        $this->showSuccessMessage = true;
-
         // Auto-resume scanning for next item
         $this->isScanning = true;
         $this->dispatch('camera-state-changed', true); // Start camera
@@ -450,6 +439,16 @@ class ProductScanner extends Component
     }
 
     /**
+     * Reset sound flag after playing (called via JS timeout)
+     */
+    #[On('reset-sound-flag')]
+    public function resetSoundFlag()
+    {
+        // Reset after a brief delay to allow sound to play
+        $this->playSuccessSound = false;
+    }
+
+    /**
      * Show the refill bay form for the current product
      */
     public function showRefillBayForm(): void
@@ -457,11 +456,13 @@ class ProductScanner extends Component
         // Check permission
         if (! auth()->user()->can('refill bays')) {
             $this->refillError = 'You do not have permission to refill bays.';
+
             return;
         }
 
         if (! $this->product) {
             $this->refillError = 'No product selected for refill.';
+
             return;
         }
 
@@ -475,6 +476,7 @@ class ProductScanner extends Component
             if (empty($locations)) {
                 $this->refillError = 'No locations with stock found for this product.';
                 $this->isProcessingRefill = false;
+
                 return;
             }
 
@@ -496,7 +498,7 @@ class ProductScanner extends Component
             // Auto-select source location using the new action
             $defaultLocationId = config('linnworks.default_location_id');
             $preferredLocationId = config('linnworks.floor_location_id');
-            
+
             $autoSelected = app(\App\Actions\Stock\AutoSelectLocationAction::class)->handle(
                 $locations,
                 $defaultLocationId,
@@ -506,7 +508,7 @@ class ProductScanner extends Component
 
             if ($autoSelected) {
                 $this->selectedLocationId = $autoSelected['id'];
-                
+
                 Log::channel('inventory')->info('Auto-selected location for refill', [
                     'product_sku' => $this->product->sku,
                     'auto_selected_location' => $this->selectedLocationId,
@@ -572,10 +574,6 @@ class ProductScanner extends Component
             // Reset everything back to scanner after successful transfer
             $this->resetScan();
 
-            // Show success message and restart scanning
-            $this->showSuccessMessage = true;
-            $this->successMessage = $this->refillSuccess;
-
             // Auto-resume scanning for next item
             $this->isScanning = true;
             $this->dispatch('camera-state-changed', true);
@@ -635,6 +633,34 @@ class ProductScanner extends Component
         if ($this->refillQuantity > 1) {
             $this->refillQuantity--;
         }
+    }
+
+    /**
+     * Handle auto-submit functionality (future implementation)
+     * This method will automatically submit scans when auto-submit is enabled
+     */
+    private function handleAutoSubmit(): void
+    {
+        // TODO: Implement auto-submit logic
+        // This should:
+        // 1. Validate the current scan data
+        // 2. Use default quantity (1) and action (decrease)
+        // 3. Call the save() method automatically
+        // 4. Show a brief confirmation message
+        // 5. Auto-resume scanning for next item
+        
+        // For now, this is just a placeholder structure
+        // When implementing, consider:
+        // - User feedback (brief notification that scan was auto-submitted)
+        // - Error handling for failed auto-submissions
+        // - Option to undo last auto-submission
+        // - Integration with sound feedback
+        
+        \Log::info('Auto-submit triggered', [
+            'barcode' => $this->barcode,
+            'product_found' => !!$this->product,
+            'user_id' => auth()->id(),
+        ]);
     }
 
     public function render()

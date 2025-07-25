@@ -16,14 +16,14 @@ describe('LinnworksApiService', function () {
             'auth_url' => 'https://auth.linnworks.net/',
             'base_url' => 'https://api.linnworks.net/',
             'cache' => [
-                'session_token_key' => 'linnworks_session_token'
+                'session_token_key' => 'linnworks_session_token',
             ],
             'pagination' => [
                 'inventory_page_size' => 100,
                 'search_page_size' => 50,
-                'sync_page_size' => 200
+                'sync_page_size' => 200,
             ],
-            'default_location_id' => 'test-location-id'
+            'default_location_id' => 'test-location-id',
         ]);
 
         Cache::flush();

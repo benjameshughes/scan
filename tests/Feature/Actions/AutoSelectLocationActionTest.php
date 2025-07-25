@@ -1,7 +1,6 @@
 <?php
 
 use App\Actions\Stock\AutoSelectLocationAction;
-use Illuminate\Support\Facades\Log;
 
 beforeEach(function () {
     $this->mockLocations = [
@@ -181,7 +180,7 @@ it('calculates correct max transfer quantity', function () {
         'stock_level' => 30,
     ];
 
-    $action = new AutoSelectLocationAction();
+    $action = new AutoSelectLocationAction;
 
     // Requested quantity is less than available
     $maxQuantity = $action->getMaxTransferQuantity($location, 20);
@@ -203,7 +202,7 @@ it('handles missing stock level in max quantity calculation', function () {
         // Missing stock_level
     ];
 
-    $action = new AutoSelectLocationAction();
+    $action = new AutoSelectLocationAction;
     $maxQuantity = $action->getMaxTransferQuantity($locationWithNoStock, 10);
 
     expect($maxQuantity)->toBe(0);

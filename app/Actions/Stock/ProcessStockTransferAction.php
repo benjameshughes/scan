@@ -20,7 +20,7 @@ class ProcessStockTransferAction
         string $reason = 'Stock transfer'
     ): array {
         try {
-            
+
             Log::channel('inventory')->info('Processing stock transfer via Linnworks', [
                 'product_sku' => $product->sku,
                 'from_location_id' => $fromLocationId,
@@ -32,7 +32,7 @@ class ProcessStockTransferAction
             // Execute the transfer via Linnworks API
             // Use different methods based on whether we're transferring to default location
             $defaultLocationId = config('linnworks.default_location_id');
-            
+
             if ($toLocationId === $defaultLocationId) {
                 // Use the specialized method for transfers to default location (handles null GUID)
                 $result = $this->linnworksService->transferStockToDefaultLocation(
@@ -75,7 +75,7 @@ class ProcessStockTransferAction
 
             return [
                 'success' => false,
-                'message' => 'Transfer failed: ' . $e->getMessage(),
+                'message' => 'Transfer failed: '.$e->getMessage(),
                 'error' => $e->getMessage(),
             ];
         }

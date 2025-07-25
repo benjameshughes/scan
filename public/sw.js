@@ -74,3 +74,12 @@ self.addEventListener('fetch', event => {
       })
   );
 });
+
+// Basic PWA functionality only - push notifications removed
+
+// Handle service worker messages
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});

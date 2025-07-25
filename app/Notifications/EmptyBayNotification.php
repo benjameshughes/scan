@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Services\LinnworksApiService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Log;
@@ -31,7 +32,14 @@ class EmptyBayNotification extends Notification implements ShouldQueue
      */
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        // Check if user has permission to receive bay refill notifications
+        // Only users who can refill bays should receive empty bay notifications
+        if (!$notifiable->can('refill bays')) {
+            return [];
+        }
+
+        // All permitted users get database and mail notifications
+        return ['database', 'mail'];
     }
 
     /**
@@ -116,14 +124,56 @@ class EmptyBayNotification extends Notification implements ShouldQueue
     }
 
     /**
+     * Get the database representation of the notification.
+     */
+    public function toDatabase(object $notifiable): array
+    {
+        return [
+            'type' => 'empty_bay',
+            'title' => 'Bay Empty Alert',
+            'message' => "The bay for {$this->product->name} ({$this->product->sku}) is now empty and requires immediate refill",
+            'product_id' => $this->product->id,
+            'product_sku' => $this->product->sku,
+            'product_name' => $this->product->name,
+            'barcode' => $this->product->barcode,
+            'action_url' => route('scan.scan', [
+                'action' => 'refill',
+                'barcode' => $this->product->barcode,
+            ]),
+            'severity' => 'high',
+        ];
+    }
+
+    /**
      * Get the array representation of the notification.
      *
      * @return array<string, mixed>
      */
     public function toArray(object $notifiable): array
     {
-        return [
-            //
-        ];
+        return $this->toDatabase($notifiable);
+    }
+
+    /**
+     * Get the broadcast representation of the notification.
+     */
+    public function toBroadcast(object $notifiable): BroadcastMessage
+    {
+        return new BroadcastMessage([
+            'type' => 'empty_bay',
+            'title' => 'Bay Empty Alert',
+            'message' => "The bay for {$this->product->name} ({$this->product->sku}) is now empty and requires immediate refill",
+            'product_id' => $this->product->id,
+            'product_sku' => $this->product->sku,
+            'product_name' => $this->product->name,
+            'barcode' => $this->product->barcode,
+            'action_url' => route('scan.scan', [
+                'action' => 'refill',
+                'barcode' => $this->product->barcode,
+            ]),
+            'severity' => 'high',
+            'timestamp' => now()->toISOString(),
+            'icon' => '📦',
+        ]);
     }
 }

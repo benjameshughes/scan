@@ -32,7 +32,7 @@ class ExecuteStockTransferAction
         array $additionalMetadata = []
     ): array {
         return DB::transaction(function () use (
-            $user, $product, $quantity, $operationType, $fromLocationId, 
+            $user, $product, $quantity, $operationType, $fromLocationId,
             $toLocationId, $notes, $autoSelectSource, $additionalMetadata
         ) {
             // Step 1: Get available stock locations
@@ -40,10 +40,10 @@ class ExecuteStockTransferAction
             // For manual transfers, show all locations regardless of stock level
             $includeZeroStock = ($operationType !== 'refill');
             $stockLocations = $this->getStockLocationsAction->handle($product, $includeZeroStock);
-            
+
             if (empty($stockLocations)) {
                 throw ValidationException::withMessages([
-                    'product' => ['No stock locations found for this product.']
+                    'product' => ['No stock locations found for this product.'],
                 ]);
             }
 
@@ -54,8 +54,8 @@ class ExecuteStockTransferAction
             if ($operationType === 'refill') {
                 // For refill operations, target is default location
                 $targetLocationId = $toLocationId ?? $this->processTransferAction->getDefaultTargetLocationId();
-                
-                if ($autoSelectSource && !$fromLocationId) {
+
+                if ($autoSelectSource && ! $fromLocationId) {
                     $preferredSourceId = $this->processTransferAction->getPreferredSourceLocationId();
                     $sourceLocation = $this->autoSelectAction->handle(
                         $stockLocations,
@@ -63,31 +63,31 @@ class ExecuteStockTransferAction
                         $preferredSourceId,
                         $quantity
                     );
-                    
-                    if (!$sourceLocation) {
+
+                    if (! $sourceLocation) {
                         throw ValidationException::withMessages([
-                            'location' => ['No suitable source location found for refill operation.']
+                            'location' => ['No suitable source location found for refill operation.'],
                         ]);
                     }
-                    
+
                     $fromLocationId = $sourceLocation['id'];
                 } else {
                     $sourceLocation = collect($stockLocations)->firstWhere('id', $fromLocationId);
                 }
             } else {
                 // For manual transfers, both locations must be specified
-                if (!$fromLocationId || !$toLocationId) {
+                if (! $fromLocationId || ! $toLocationId) {
                     throw ValidationException::withMessages([
-                        'location' => ['Both source and destination locations are required for manual transfers.']
+                        'location' => ['Both source and destination locations are required for manual transfers.'],
                     ]);
                 }
-                
+
                 $sourceLocation = collect($stockLocations)->firstWhere('id', $fromLocationId);
             }
 
-            if (!$sourceLocation) {
+            if (! $sourceLocation) {
                 throw ValidationException::withMessages([
-                    'location' => ['Invalid source location selected.']
+                    'location' => ['Invalid source location selected.'],
                 ]);
             }
 
@@ -103,7 +103,7 @@ class ExecuteStockTransferAction
 
             // Step 4: Calculate actual transfer quantity
             $maxQuantity = $this->autoSelectAction->getMaxTransferQuantity($sourceLocation, $quantity);
-            
+
             if ($maxQuantity < $quantity) {
                 Log::channel('inventory')->warning('Adjusting transfer quantity due to stock constraints', [
                     'requested' => $quantity,
@@ -168,7 +168,7 @@ class ExecuteStockTransferAction
         array $metadata
     ): StockMovement {
         $targetLocation = collect($allLocations)->firstWhere('id', $targetLocationId);
-        
+
         $movementType = match ($operationType) {
             'refill' => StockMovement::TYPE_BAY_REFILL,
             'adjustment' => StockMovement::TYPE_SCAN_ADJUSTMENT,

@@ -45,9 +45,9 @@ return new class extends Migration
         // Ensure basic permissions exist (they should from the seeder)
         $basicPermissions = [
             'view scanner', 'create scans', 'view scans', 'view products', 'refill bays',
-            'view users', 'create users', 'edit users'
+            'view users', 'create users', 'edit users',
         ];
-        
+
         foreach ($basicPermissions as $permission) {
             Permission::findOrCreate($permission);
         }

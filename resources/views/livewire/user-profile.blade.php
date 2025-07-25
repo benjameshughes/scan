@@ -149,58 +149,25 @@
                 Application Settings
             </h3>
             <p class="text-sm text-gray-600 dark:text-gray-400">
-                Customize your scanning and notification preferences.
+                Settings are saved automatically when changed.
             </p>
         </div>
 
-        <form wire:submit.prevent="updateSettings" class="p-6 space-y-6">
-            @if (session('settings-message'))
-                <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md p-4">
-                    <div class="flex items-center gap-3">
-                        <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                        </svg>
-                        <p class="text-sm text-green-700 dark:text-green-300">{{ session('settings-message') }}</p>
-                    </div>
-                </div>
-            @endif
-
+        <div class="p-6 space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="space-y-4">
                     <div class="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-700 rounded-md border border-zinc-200 dark:border-zinc-600">
                         <div>
-                            <label for="notifications" class="text-sm font-medium text-gray-700 dark:text-gray-200 cursor-pointer">
-                                Email Notifications
-                            </label>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                Receive email updates about your account activity
-                            </p>
-                        </div>
-                        <flux:checkbox 
-                            wire:model="notifications"
-                            id="notifications"
-                            name="notifications"
-                        />
-                    </div>
-
-                    <div class="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-700 rounded-md border border-zinc-200 dark:border-zinc-600">
-                        <div>
-                            <label for="darkMode" class="text-sm font-medium text-gray-700 dark:text-gray-200 cursor-pointer">
+                            <label class="text-sm font-medium text-gray-700 dark:text-gray-200 cursor-pointer">
                                 Dark Mode
                             </label>
                             <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                                 Use dark theme across the application
                             </p>
                         </div>
-                        <flux:switch 
-                            wire:model="darkMode"
-                            id="darkMode"
-                            name="darkMode"
-                        />
+                        <flux:switch x-data x-on:click="$flux.dark = ! $flux.dark" x-bind:checked="$flux.dark" />
                     </div>
-                </div>
 
-                <div class="space-y-4">
                     <div class="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-700 rounded-md border border-zinc-200 dark:border-zinc-600">
                         <div>
                             <label for="autoSubmit" class="text-sm font-medium text-gray-700 dark:text-gray-200 cursor-pointer">
@@ -210,13 +177,11 @@
                                 Automatically submit scans without confirmation
                             </p>
                         </div>
-                        <flux:switch 
-                            wire:model="autoSubmit"
-                            id="autoSubmit"
-                            name="autoSubmit"
-                        />
+                        <flux:switch wire:model.live="autoSubmit" />
                     </div>
+                </div>
 
+                <div class="space-y-4">
                     <div class="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-700 rounded-md border border-zinc-200 dark:border-zinc-600">
                         <div>
                             <label for="scanSound" class="text-sm font-medium text-gray-700 dark:text-gray-200 cursor-pointer">
@@ -226,23 +191,24 @@
                                 Play sound when scanning barcodes
                             </p>
                         </div>
-                        <flux:switch 
-                            wire:model="scanSound"
-                            id="scanSound"
-                            name="scanSound"
-                        />
+                        <flux:switch wire:model.live="scanSound" />
+                    </div>
+
+                    <div class="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
+                        <div class="flex items-start gap-3">
+                            <flux:icon.information-circle class="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                            <div>
+                                <h5 class="text-sm font-medium text-blue-900 dark:text-blue-200">System Notifications</h5>
+                                <p class="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                                    Critical system notifications are automatically enabled based on your user permissions and cannot be disabled.
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="flex items-center justify-between pt-4 border-t border-zinc-200 dark:border-zinc-700">
-                <div></div>
-                <flux:button type="submit" variant="primary">
-                    <flux:icon.cog class="size-4" />
-                    Update Settings
-                </flux:button>
-            </div>
-        </form>
+        </div>
     </div>
 
     <!-- Current Permissions & Roles -->

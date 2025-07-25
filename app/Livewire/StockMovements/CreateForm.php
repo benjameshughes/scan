@@ -5,7 +5,6 @@ namespace App\Livewire\StockMovements;
 use App\Actions\Stock\ExecuteStockTransferAction;
 use App\Models\Location;
 use App\Models\Product;
-use App\Models\StockMovement;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
@@ -20,7 +19,6 @@ class CreateForm extends Component
 
     #[Validate('nullable|string|max:500')]
     public $notes;
-
 
     #[Validate('nullable|string|max:255')]
     public $from_location_code;
@@ -45,13 +43,16 @@ class CreateForm extends Component
     public $show_location_suggestions = true;
 
     public $recently_used_locations = [];
-    
+
     // Smart selector properties
     public $selectedProductId = '';
+
     public $selectedFromLocationId = '';
+
     public $selectedToLocationId = '';
-    
+
     public $maxQuantity = null;
+
     public $currentStockLevel = null;
 
     public function mount()
@@ -85,7 +86,7 @@ class CreateForm extends Component
                     'form_session_id' => session()->getId(),
                 ]
             );
-            
+
             $movement = $result['stock_movement'];
 
             $this->success_message = $result['message'];
@@ -200,7 +201,6 @@ class CreateForm extends Component
         $this->recently_used_locations = array_slice($this->recently_used_locations, 0, 5);
     }
 
-
     public function getAvailableLocationsProperty()
     {
         try {
@@ -232,7 +232,6 @@ class CreateForm extends Component
     {
         return collect($this->recently_used_locations);
     }
-    
 
     #[On('productSelected')]
     public function onProductSelected($productId, $sku, $name)
@@ -240,7 +239,7 @@ class CreateForm extends Component
         $this->selectedProductId = $productId;
         $this->product_id = $productId;
         $this->selected_product = Product::find($productId);
-        
+
         // Clear location selections when product changes
         $this->selectedFromLocationId = '';
         $this->from_location_id = '';
@@ -248,16 +247,16 @@ class CreateForm extends Component
         $this->selectedToLocationId = '';
         $this->to_location_id = '';
         $this->to_location_code = '';
-        
+
         // Reset stock levels
         $this->currentStockLevel = null;
         $this->maxQuantity = null;
         $this->quantity = null;
-        
+
         // Notify location selector to refresh
         $this->dispatch('productChanged', $productId);
     }
-    
+
     #[On('productCleared')]
     public function onProductCleared()
     {
@@ -267,7 +266,7 @@ class CreateForm extends Component
         $this->maxQuantity = null;
         $this->currentStockLevel = null;
     }
-    
+
     #[On('locationSelected')]
     public function onLocationSelected($locationId, $locationCode, $type = 'from')
     {
@@ -275,7 +274,7 @@ class CreateForm extends Component
             $this->selectedFromLocationId = $locationId;
             $this->from_location_id = $locationId;
             $this->from_location_code = $locationCode;
-            
+
             // Update stock levels when from location changes
             $this->updateStockLevels();
         } else {
@@ -284,7 +283,7 @@ class CreateForm extends Component
             $this->to_location_code = $locationCode;
         }
     }
-    
+
     protected function updateStockLevels()
     {
         if ($this->selected_product && $this->from_location_code) {
@@ -292,13 +291,14 @@ class CreateForm extends Component
                 // Get stock locations for this product from Linnworks
                 $linnworksService = app(\App\Services\LinnworksApiService::class);
                 $stockLocations = $linnworksService->getStockLocationsByProduct($this->selected_product->sku);
-                
+
                 // Find the specific location
                 $locationStock = collect($stockLocations)->first(function ($location) {
                     $locationData = $location['Location'] ?? [];
+
                     return ($locationData['LocationName'] ?? '') === $this->from_location_code;
                 });
-                
+
                 if ($locationStock) {
                     $this->currentStockLevel = $locationStock['StockLevel'] ?? 0;
                     $this->maxQuantity = $this->currentStockLevel;
@@ -313,7 +313,7 @@ class CreateForm extends Component
                 \Log::warning('Failed to get stock level from Linnworks', [
                     'product_sku' => $this->selected_product->sku,
                     'location_code' => $this->from_location_code,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
                 ]);
             }
         } else {
@@ -321,7 +321,7 @@ class CreateForm extends Component
             $this->maxQuantity = null;
         }
     }
-    
+
     public function updatedQuantity()
     {
         if ($this->maxQuantity && $this->quantity > $this->maxQuantity) {
@@ -331,7 +331,7 @@ class CreateForm extends Component
             $this->error_message = '';
         }
     }
-    
+
     public function render()
     {
         return view('livewire.stock-movements.create-form');

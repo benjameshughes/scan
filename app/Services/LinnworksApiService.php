@@ -634,11 +634,11 @@ class LinnworksApiService
             if (empty($stockItem) || ! isset($stockItem['StockLevels'])) {
                 throw new \Exception("No stock information found for SKU: {$sku}");
             }
-            
+
             $allLocations = $stockItem['StockLevels'];
             $sourceLocation = null;
             $targetLocation = null;
-            
+
             Log::channel('inventory')->info('Searching for locations in generic transfer', [
                 'sku' => $sku,
                 'source_location_id' => $sourceLocationId,
@@ -648,7 +648,7 @@ class LinnworksApiService
                     return $loc['Location']['StockLocationId'] ?? 'no-id';
                 }, $allLocations),
             ]);
-            
+
             foreach ($allLocations as $location) {
                 $currentLocationId = $location['Location']['StockLocationId'] ?? null;
                 if ($currentLocationId === $sourceLocationId) {
@@ -657,43 +657,43 @@ class LinnworksApiService
                     $targetLocation = $location;
                 }
             }
-            
+
             // If source location not found, it means it has 0 stock - create a virtual location entry
             if (! $sourceLocation) {
-                Log::channel('inventory')->info("Source location not found in stock levels, treating as 0 stock", [
+                Log::channel('inventory')->info('Source location not found in stock levels, treating as 0 stock', [
                     'source_location_id' => $sourceLocationId,
                     'sku' => $sku,
                 ]);
                 $sourceLocation = [
                     'Location' => ['StockLocationId' => $sourceLocationId],
-                    'StockLevel' => 0
+                    'StockLevel' => 0,
                 ];
             }
-            
-            // If target location not found, it means it has 0 stock - create a virtual location entry  
+
+            // If target location not found, it means it has 0 stock - create a virtual location entry
             if (! $targetLocation) {
-                Log::channel('inventory')->info("Target location not found in stock levels, treating as 0 stock", [
+                Log::channel('inventory')->info('Target location not found in stock levels, treating as 0 stock', [
                     'target_location_id' => $targetLocationId,
                     'sku' => $sku,
                 ]);
                 $targetLocation = [
                     'Location' => ['StockLocationId' => $targetLocationId],
-                    'StockLevel' => 0
+                    'StockLevel' => 0,
                 ];
             }
-            
+
             $sourceCurrentStock = $sourceLocation['StockLevel'] ?? 0;
             $targetCurrentStock = $targetLocation['StockLevel'] ?? 0;
-            
+
             // Calculate new stock levels
             $sourceNewStock = $sourceCurrentStock - $transferQuantity;
             $targetNewStock = $targetCurrentStock + $transferQuantity;
-            
+
             // Validate we have enough stock in source
             if ($sourceNewStock < 0) {
                 throw new \Exception("Insufficient stock in source location. Available: {$sourceCurrentStock}, Requested: {$transferQuantity}");
             }
-            
+
             // Perform both stock updates in one API call
             $body = [
                 'stockLevels' => [
@@ -709,7 +709,7 @@ class LinnworksApiService
                     ],
                 ],
             ];
-            
+
             Log::channel('inventory')->info('Transferring stock between locations', [
                 'sku' => $sku,
                 'source_location_id' => $sourceLocationId,
@@ -721,13 +721,13 @@ class LinnworksApiService
                 'target_new_stock' => $targetNewStock,
                 'request_body' => $body,
             ]);
-            
+
             $response = $this->makeAuthenticatedRequest(
                 'POST',
                 'Stock/SetStockLevel',
                 ['body' => json_encode($body)]
             );
-            
+
             Log::channel('inventory')->info('Generic stock transfer completed', [
                 'sku' => $sku,
                 'source_location_id' => $sourceLocationId,
@@ -735,9 +735,9 @@ class LinnworksApiService
                 'transfer_quantity' => $transferQuantity,
                 'response' => $response,
             ]);
-            
+
             return $response;
-            
+
         } catch (\Exception $e) {
             Log::channel('inventory')->error('Failed to transfer stock between locations', [
                 'sku' => $sku,
@@ -746,7 +746,7 @@ class LinnworksApiService
                 'transfer_quantity' => $transferQuantity,
                 'error' => $e->getMessage(),
             ]);
-            
+
             throw $e;
         }
     }
@@ -790,25 +790,25 @@ class LinnworksApiService
 
             // If source location not found, it means it has 0 stock - create a virtual location entry
             if (! $sourceLocation) {
-                Log::channel('inventory')->info("Source location not found in stock levels, treating as 0 stock", [
+                Log::channel('inventory')->info('Source location not found in stock levels, treating as 0 stock', [
                     'source_location_id' => $sourceLocationId,
                     'sku' => $sku,
                 ]);
                 $sourceLocation = [
                     'Location' => ['StockLocationId' => $sourceLocationId],
-                    'StockLevel' => 0
+                    'StockLevel' => 0,
                 ];
             }
 
             // If default location not found, it means it has 0 stock - create a virtual location entry
             if (! $defaultLocation) {
-                Log::channel('inventory')->info("Default location not found in stock levels, treating as 0 stock", [
+                Log::channel('inventory')->info('Default location not found in stock levels, treating as 0 stock', [
                     'default_location_id' => $defaultLocationId,
                     'sku' => $sku,
                 ]);
                 $defaultLocation = [
                     'Location' => ['StockLocationId' => $defaultLocationId],
-                    'StockLevel' => 0
+                    'StockLevel' => 0,
                 ];
             }
 

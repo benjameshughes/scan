@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * Handles HTTP requests to the Linnworks API
- * 
+ *
  * This class is responsible for:
  * - Making authenticated HTTP requests
  * - Handling retries and token refresh
@@ -19,12 +19,14 @@ use Illuminate\Support\Facades\Log;
 class LinnworksHttpClient
 {
     private Client $client;
+
     private LinnworksAuthenticator $authenticator;
+
     private string $baseUrl;
 
     public function __construct(LinnworksAuthenticator $authenticator)
     {
-        $this->client = new Client();
+        $this->client = new Client;
         $this->authenticator = $authenticator;
         $this->baseUrl = config('linnworks.base_url');
     }
@@ -49,7 +51,7 @@ class LinnworksHttpClient
             // If we get a 401, try to refresh the token and retry once
             if (str_contains($e->getMessage(), '401')) {
                 Log::channel('lw_auth')->warning('Received 401 error, refreshing token and retrying request');
-                
+
                 // Clear and refresh token
                 $this->authenticator->clearToken();
                 $token = $this->authenticator->getValidToken();
@@ -72,7 +74,7 @@ class LinnworksHttpClient
             $response = $this->client->request($method, $url, $options);
 
             $responseData = json_decode($response->getBody()->getContents(), true);
-            
+
             // Handle cases where API returns non-JSON responses
             if (json_last_error() !== JSON_ERROR_NONE) {
                 throw new Exception('Invalid JSON response from Linnworks API');
@@ -106,6 +108,7 @@ class LinnworksHttpClient
     public function post(string $endpoint, array $data = [], array $options = []): array
     {
         $options['body'] = json_encode($data);
+
         return $this->makeAuthenticatedRequest('POST', $endpoint, $options);
     }
 
@@ -115,6 +118,7 @@ class LinnworksHttpClient
     public function put(string $endpoint, array $data = [], array $options = []): array
     {
         $options['body'] = json_encode($data);
+
         return $this->makeAuthenticatedRequest('PUT', $endpoint, $options);
     }
 
@@ -147,7 +151,7 @@ class LinnworksHttpClient
             // If we get a 401, try to refresh the token and retry once
             if (str_contains($e->getMessage(), '401')) {
                 Log::channel('lw_auth')->warning('Received 401 error, refreshing token and retrying request');
-                
+
                 $this->authenticator->clearToken();
                 $token = $this->authenticator->getValidToken();
 
@@ -174,9 +178,11 @@ class LinnworksHttpClient
         try {
             // Simple health check endpoint
             $this->get('');
+
             return true;
         } catch (Exception $e) {
             Log::channel('lw_auth')->error('API connection test failed: '.$e->getMessage());
+
             return false;
         }
     }

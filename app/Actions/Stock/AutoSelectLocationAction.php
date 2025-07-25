@@ -9,11 +9,12 @@ class AutoSelectLocationAction
     public function handle(
         array $availableLocations,
         string $targetLocationId,
-        string $preferredLocationId = null,
+        ?string $preferredLocationId = null,
         int $minStockRequired = 1
     ): ?array {
         if (empty($availableLocations)) {
             Log::channel('inventory')->warning('No locations available for auto-selection');
+
             return null;
         }
 
@@ -27,6 +28,7 @@ class AutoSelectLocationAction
                 'target_location_id' => $targetLocationId,
                 'total_locations' => count($availableLocations),
             ]);
+
             return null;
         }
 
@@ -41,6 +43,7 @@ class AutoSelectLocationAction
                     'selected_location' => $preferredLocation['name'],
                     'stock_level' => $preferredLocation['stock_level'],
                 ]);
+
                 return $preferredLocation;
             }
         }
@@ -52,12 +55,13 @@ class AutoSelectLocationAction
                 'selected_location' => $singleLocation['name'],
                 'stock_level' => $singleLocation['stock_level'],
             ]);
+
             return $singleLocation;
         }
 
         // 3. Select location with highest stock level
         $highestStockLocation = $sourceLocations->sortByDesc('stock_level')->first();
-        
+
         Log::channel('inventory')->info('Auto-selected location with highest stock', [
             'selected_location' => $highestStockLocation['name'],
             'stock_level' => $highestStockLocation['stock_level'],

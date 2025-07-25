@@ -18,9 +18,7 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
-
-    use HasRoles, Notifiable;
+    use HasFactory, HasRoles, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -32,6 +30,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'password',
         'status',
+        'settings',
     ];
 
     /**
@@ -106,13 +105,15 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Get the settings attribute with defaults
+     * Get the settings attribute with defaults for user preferences only
+     * Notifications are now mandatory based on permissions, not user settings
      */
     public function getSettingsAttribute($value)
     {
         $defaults = [
-            'notification_emails' => true,
-            'notification_database' => true,
+            'dark_mode' => false,
+            'auto_submit' => false,
+            'scan_sound' => true,
         ];
 
         if (! $value) {
@@ -120,8 +121,18 @@ class User extends Authenticatable implements MustVerifyEmail
         }
 
         $settings = json_decode($value, true);
-
-        return array_merge($defaults, $settings);
+        
+        if (! $settings) {
+            return $defaults;
+        }
+        
+        // Only use defaults for missing keys, preserve existing values (including false)
+        $result = [];
+        foreach ($defaults as $key => $defaultValue) {
+            $result[$key] = array_key_exists($key, $settings) ? $settings[$key] : $defaultValue;
+        }
+        
+        return $result;
     }
 
     public function invite(): HasOne
@@ -139,6 +150,18 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function setSettingsAttribute($value)
     {
-        $this->attributes['settings'] = is_array($value) ? json_encode($value) : $value;
+        if (is_array($value)) {
+            $this->attributes['settings'] = json_encode($value);
+        } else {
+            $this->attributes['settings'] = $value;
+        }
+    }
+
+    /**
+     * The channels the user receives notification broadcasts on.
+     */
+    public function receivesBroadcastNotificationsOn(): string
+    {
+        return 'users.'.$this->id;
     }
 }

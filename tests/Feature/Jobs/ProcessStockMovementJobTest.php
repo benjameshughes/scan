@@ -6,7 +6,6 @@ use App\Models\StockMovement;
 use App\Models\User;
 use App\Services\LinnworksApiService;
 use Illuminate\Support\Facades\Queue;
-use Spatie\Permission\Models\Permission;
 
 beforeEach(function () {
     $this->user = User::factory()->create();
@@ -23,7 +22,7 @@ it('can be dispatched with a stock movement', function () {
         'user_id' => $this->user->id,
         'from_location_id' => 'floor-001',
         'from_location_code' => 'FLOOR',
-        'to_location_id' => 'main-001', 
+        'to_location_id' => 'main-001',
         'to_location_code' => 'MAIN',
         'quantity' => 10,
         'type' => StockMovement::TYPE_BAY_REFILL,
@@ -99,7 +98,7 @@ it('handles processing failures correctly', function () {
     ]);
 
     $job = new ProcessStockMovement($stockMovement);
-    
+
     expect(function () use ($job) {
         $job->handle();
     })->toThrow(Exception::class, 'API Error');
@@ -154,7 +153,7 @@ it('has correct job tags', function () {
     $tags = $job->tags();
 
     expect($tags)->toContain('stock-movement')
-        ->and($tags)->toContain('movement:' . $stockMovement->id)
-        ->and($tags)->toContain('type:' . StockMovement::TYPE_BAY_REFILL)
+        ->and($tags)->toContain('movement:'.$stockMovement->id)
+        ->and($tags)->toContain('type:'.StockMovement::TYPE_BAY_REFILL)
         ->and($tags)->toContain('product:TEST-JOB-001');
 });

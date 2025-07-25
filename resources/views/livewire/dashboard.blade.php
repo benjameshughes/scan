@@ -29,6 +29,37 @@
                                     {{ $retryCount }} items queued
                                 </span>
                             @endif
+
+                            <!-- Test Notification Buttons (Admin Only) -->
+                            @role('Admin')
+                                <div class="flex items-center gap-2 border-l border-zinc-200 dark:border-zinc-700 pl-3">
+                                    <span class="text-xs text-zinc-500 dark:text-zinc-400">Test:</span>
+                                    <flux:button
+                                        wire:click="testEmptyBayNotification"
+                                        variant="ghost"
+                                        size="sm"
+                                        title="Test Empty Bay Notification"
+                                    >
+                                        📦
+                                    </flux:button>
+                                    <flux:button
+                                        wire:click="testScanFailedNotification"
+                                        variant="ghost"
+                                        size="sm"
+                                        title="Test Scan Failed Notification"
+                                    >
+                                        ⚠️
+                                    </flux:button>
+                                    <flux:button
+                                        wire:click="testRefillFailedNotification"
+                                        variant="ghost"
+                                        size="sm"
+                                        title="Test Refill Failed Notification"
+                                    >
+                                        🚨
+                                    </flux:button>
+                                </div>
+                            @endrole
                         @endcan
 
                     <!-- Notifications Button -->
@@ -40,7 +71,7 @@
                             square
                             class="relative"
                         >
-                            @if($notifications->count() > 0)
+                            @if($this->notificationCount > 0)
                                 <flux:icon.bell class="size-5 text-red-500 animate-pulse" />
                                 <span class="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full"></span>
                             @else
@@ -105,12 +136,70 @@
                                                             {{ $notification->data['message'] }}
                                                         </p>
                                                         <div class="mt-2 space-y-1">
-                                                            <p class="text-xs text-zinc-500 dark:text-zinc-400">
-                                                                Scan ID: {{ $notification->data['scan_id'] }}
-                                                            </p>
-                                                            <p class="text-xs text-zinc-500 dark:text-zinc-400">
-                                                                Barcode: {{ $notification->data['barcode'] }}
-                                                            </p>
+                                                            @php
+                                                                $notificationType = $notification->data['type'] ?? 'unknown';
+                                                            @endphp
+                                                            
+                                                            {{-- Display notification-specific details --}}
+                                                            @if($notificationType === 'scan_sync_failed' || str_contains($notification->type, 'ScanSyncFailedNotification'))
+                                                                @if(isset($notification->data['scan_id']))
+                                                                    <p class="text-xs text-zinc-500 dark:text-zinc-400">
+                                                                        Scan ID: {{ $notification->data['scan_id'] }}
+                                                                    </p>
+                                                                @endif
+                                                                @if(isset($notification->data['barcode']))
+                                                                    <p class="text-xs text-zinc-500 dark:text-zinc-400">
+                                                                        Barcode: {{ $notification->data['barcode'] }}
+                                                                    </p>
+                                                                @endif
+                                                            @elseif($notificationType === 'refill_sync_failed' || str_contains($notification->type, 'RefillSyncFailedNotification'))
+                                                                @if(isset($notification->data['stock_movement_id']))
+                                                                    <p class="text-xs text-zinc-500 dark:text-zinc-400">
+                                                                        Movement ID: {{ $notification->data['stock_movement_id'] }}
+                                                                    </p>
+                                                                @endif
+                                                                @if(isset($notification->data['product_sku']))
+                                                                    <p class="text-xs text-zinc-500 dark:text-zinc-400">
+                                                                        Product SKU: {{ $notification->data['product_sku'] }}
+                                                                    </p>
+                                                                @endif
+                                                            @elseif($notificationType === 'recurring_barcode_failure' || str_contains($notification->type, 'RecurringBarcodeFailureNotification'))
+                                                                @if(isset($notification->data['barcode']))
+                                                                    <p class="text-xs text-zinc-500 dark:text-zinc-400">
+                                                                        Barcode: {{ $notification->data['barcode'] }}
+                                                                    </p>
+                                                                @endif
+                                                                @if(isset($notification->data['failure_count']))
+                                                                    <p class="text-xs text-zinc-500 dark:text-zinc-400">
+                                                                        Failure Count: {{ $notification->data['failure_count'] }}
+                                                                    </p>
+                                                                @endif
+                                                            @elseif($notificationType === 'empty_bay' || str_contains($notification->type, 'EmptyBayNotification'))
+                                                                @if(isset($notification->data['product_sku']))
+                                                                    <p class="text-xs text-zinc-500 dark:text-zinc-400">
+                                                                        Product SKU: {{ $notification->data['product_sku'] }}
+                                                                    </p>
+                                                                @endif
+                                                                @if(isset($notification->data['product_name']))
+                                                                    <p class="text-xs text-zinc-500 dark:text-zinc-400">
+                                                                        Product: {{ $notification->data['product_name'] }}
+                                                                    </p>
+                                                                @endif
+                                                                @if(isset($notification->data['barcode']))
+                                                                    <p class="text-xs text-zinc-500 dark:text-zinc-400">
+                                                                        Barcode: {{ $notification->data['barcode'] }}
+                                                                    </p>
+                                                                @endif
+                                                            @endif
+                                                            
+                                                            {{-- Display error type if available --}}
+                                                            @if(isset($notification->data['error_type']))
+                                                                <p class="text-xs text-zinc-500 dark:text-zinc-400">
+                                                                    Error Type: {{ ucwords(str_replace('_', ' ', $notification->data['error_type'])) }}
+                                                                </p>
+                                                            @endif
+                                                            
+                                                            {{-- Always show timestamp --}}
                                                             <p class="text-xs text-zinc-500 dark:text-zinc-400">
                                                                 {{ $notification->created_at->diffForHumans() }}
                                                             </p>

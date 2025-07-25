@@ -33,6 +33,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('scanner', [ScanController::class, 'scan'])->name('scan.scan')->middleware('permission:view scanner');
     Route::view('dashboard', 'dashboard')->name('dashboard');
     Route::view('profile', 'profile')->name('profile');
+    
+    // API Routes for frontend integration
+    Route::prefix('api')->name('api.')->group(function () {
+        Route::get('user/settings', function () {
+            return response()->json(auth()->user()->settings);
+        })->name('user.settings');
+    });
 
     /*
     |--------------------------------------------------------------------------
@@ -156,7 +163,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 return view('locations.movements');
             })->name('movements');
         });
-        
+
         Route::middleware('permission:create stock movements')->group(function () {
             Route::get('movements/create', function () {
                 // Debug logging to help diagnose the issue
@@ -164,7 +171,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                     'user' => auth()->user()->email ?? 'not authenticated',
                     'can_create' => auth()->check() ? auth()->user()->can('create stock movements') : false,
                 ]);
-                
+
                 return view('locations.movements.create');
             })->name('movements.create');
         });

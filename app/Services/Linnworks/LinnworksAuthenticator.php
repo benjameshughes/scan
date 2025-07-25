@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * Handles Linnworks API authentication and token management
- * 
+ *
  * This class is responsible for:
  * - Managing session tokens
  * - Token caching and validation
@@ -19,15 +19,20 @@ use Illuminate\Support\Facades\Log;
 class LinnworksAuthenticator
 {
     private Client $client;
+
     private string $appId;
+
     private string $appSecret;
+
     private string $appToken;
+
     private string $authUrl;
+
     private string $cacheKey;
 
     public function __construct()
     {
-        $this->client = new Client();
+        $this->client = new Client;
         $this->appId = config('linnworks.app_id');
         $this->appSecret = config('linnworks.app_secret');
         $this->appToken = config('linnworks.app_token');
@@ -148,8 +153,8 @@ class LinnworksAuthenticator
             ]);
 
             $responseData = json_decode($response->getBody()->getContents(), true);
-            
-            if (!isset($responseData['Token'])) {
+
+            if (! isset($responseData['Token'])) {
                 throw new Exception('Invalid response from Linnworks auth API');
             }
 

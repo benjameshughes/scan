@@ -166,54 +166,7 @@
             </div>
         @endif
 
-        @if($showSuccessMessage && !$product)
-            <div class="bg-white dark:bg-zinc-800 rounded-lg shadow-sm border border-green-200 dark:border-green-800 mb-4">
-                <div class="p-4 bg-green-50 dark:bg-green-900/20">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            <span class="text-sm font-medium text-green-700 dark:text-green-300">{{ $successMessage }}</span>
-                        </div>
-                        <button 
-                            wire:click="$set('showSuccessMessage', false)" 
-                            class="text-green-500 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
-                            title="Dismiss message"
-                        >
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        @endif
-
-        <!-- Success Message (when product is found) -->
-        @if($showSuccessMessage && $product)
-            <div class="bg-white dark:bg-zinc-800 rounded-lg shadow-sm border border-green-200 dark:border-green-800 mb-4">
-                <div class="p-4 bg-green-50 dark:bg-green-900/20">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            <span class="text-sm font-medium text-green-700 dark:text-green-300">{{ $successMessage }}</span>
-                        </div>
-                        <button 
-                            wire:click="$set('showSuccessMessage', false)" 
-                            class="text-green-500 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
-                            title="Dismiss message"
-                        >
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        @endif
+        <!-- Messages removed as requested - product data is displayed in the product section instead -->
 
         <!-- Product Information -->
         @if($product)
@@ -314,6 +267,19 @@
 
         <!-- Scan Details Section (show when barcode is scanned and not in refill mode) -->
         @if($barcodeScanned && !$showRefillForm)
+            <!-- Success Sound - Auto-play when product found -->
+            @if($playSuccessSound)
+                <audio autoplay preload="auto" style="display: none;">
+                    <source src="https://images.caecus.net/assets/sounds/ding.mp3" type="audio/mpeg">
+                    <source src="/public/ding.wav" type="audio/wav">
+                </audio>
+                <script>
+                    // Reset sound flag after 500ms so it can play again
+                    setTimeout(() => {
+                        Livewire.dispatch('reset-sound-flag');
+                    }, 500);
+                </script>
+            @endif
             <div class="bg-white dark:bg-zinc-800 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-700 mb-4">
                 <div class="px-4 py-3 border-b border-zinc-200 dark:border-zinc-700">
                     <h3 class="text-base font-medium text-gray-900 dark:text-gray-100">

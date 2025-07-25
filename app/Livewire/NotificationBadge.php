@@ -9,10 +9,15 @@ class NotificationBadge extends Component
 {
     public int $notificationCount = 0;
 
-    #[On(['notification.markAsRead', 'notification.markAllAsRead'])]
     public function mount()
     {
-        //        $this->notificationCount = auth()->user()->unreadNotifications()->count() ?? 0;
+        $this->notificationCount = auth()->user()->unreadNotifications()->count() ?? 0;
+    }
+
+    #[On(['notification.markAsRead', 'notification.markAllAsRead'])]
+    public function refreshNotificationCount()
+    {
+        $this->notificationCount = auth()->user()->unreadNotifications()->count() ?? 0;
     }
 
     public function render()

@@ -18,18 +18,18 @@ describe('Refactored Linnworks Services', function () {
             'auth_url' => 'https://auth.linnworks.net/',
             'base_url' => 'https://api.linnworks.net/',
             'cache' => [
-                'session_token_key' => 'linnworks_session_token'
+                'session_token_key' => 'linnworks_session_token',
             ],
             'pagination' => [
                 'inventory_page_size' => 100,
                 'search_page_size' => 50,
-                'sync_page_size' => 200
+                'sync_page_size' => 200,
             ],
-            'default_location_id' => 'test-location-id'
+            'default_location_id' => 'test-location-id',
         ]);
 
         Cache::flush();
-        
+
         // Mock Log facade to prevent errors
         Log::shouldReceive('channel')->andReturnSelf();
         Log::shouldReceive('info')->andReturn(null);
@@ -42,7 +42,7 @@ describe('Refactored Linnworks Services', function () {
         test('it can get a valid token from cache', function () {
             Cache::put('linnworks_session_token', 'cached-token');
 
-            $authenticator = new LinnworksAuthenticator();
+            $authenticator = new LinnworksAuthenticator;
             $token = $authenticator->getValidToken();
 
             expect($token)->toBe('cached-token');
@@ -51,7 +51,7 @@ describe('Refactored Linnworks Services', function () {
         test('it checks if token exists', function () {
             Cache::put('linnworks_session_token', 'cached-token');
 
-            $authenticator = new LinnworksAuthenticator();
+            $authenticator = new LinnworksAuthenticator;
 
             expect($authenticator->hasValidToken())->toBeTrue();
             expect($authenticator->getCachedToken())->toBe('cached-token');
@@ -60,7 +60,7 @@ describe('Refactored Linnworks Services', function () {
         test('it can clear token', function () {
             Cache::put('linnworks_session_token', 'cached-token');
 
-            $authenticator = new LinnworksAuthenticator();
+            $authenticator = new LinnworksAuthenticator;
             $authenticator->clearToken();
 
             expect($authenticator->hasValidToken())->toBeFalse();
@@ -74,7 +74,7 @@ describe('Refactored Linnworks Services', function () {
                 ], 200),
             ]);
 
-            $authenticator = new LinnworksAuthenticator();
+            $authenticator = new LinnworksAuthenticator;
             $token = $authenticator->getValidToken();
 
             expect($token)->toBe('new-fresh-token');
@@ -86,9 +86,9 @@ describe('Refactored Linnworks Services', function () {
                 'auth.linnworks.net/Auth/AuthorizeByApplication' => Http::response([], 401),
             ]);
 
-            $authenticator = new LinnworksAuthenticator();
+            $authenticator = new LinnworksAuthenticator;
 
-            expect(fn() => $authenticator->getValidToken())
+            expect(fn () => $authenticator->getValidToken())
                 ->toThrow(Exception::class, 'Unable to authorize by application');
         });
     });
@@ -102,7 +102,7 @@ describe('Refactored Linnworks Services', function () {
                 'api.linnworks.net/test-endpoint' => Http::response(['success' => true], 200),
             ]);
 
-            $authenticator = new LinnworksAuthenticator();
+            $authenticator = new LinnworksAuthenticator;
             $httpClient = new LinnworksHttpClient($authenticator);
 
             $result = $httpClient->get('test-endpoint');
@@ -124,7 +124,7 @@ describe('Refactored Linnworks Services', function () {
                 'api.linnworks.net/delete-endpoint' => Http::response(['deleted' => true], 200),
             ]);
 
-            $authenticator = new LinnworksAuthenticator();
+            $authenticator = new LinnworksAuthenticator;
             $httpClient = new LinnworksHttpClient($authenticator);
 
             $postResult = $httpClient->post('post-endpoint', ['data' => 'test']);
@@ -148,7 +148,7 @@ describe('Refactored Linnworks Services', function () {
                 ], 200),
             ]);
 
-            $authenticator = new LinnworksAuthenticator();
+            $authenticator = new LinnworksAuthenticator;
             $httpClient = new LinnworksHttpClient($authenticator);
 
             $result = $httpClient->get('protected-endpoint');
@@ -169,7 +169,7 @@ describe('Refactored Linnworks Services', function () {
                 ], 200),
             ]);
 
-            $authenticator = new LinnworksAuthenticator();
+            $authenticator = new LinnworksAuthenticator;
             $httpClient = new LinnworksHttpClient($authenticator);
             $inventoryService = new LinnworksInventoryService($httpClient);
 
@@ -180,6 +180,7 @@ describe('Refactored Linnworks Services', function () {
 
             Http::assertSent(function ($request) {
                 $body = json_decode($request->body(), true);
+
                 return $request->url() === 'https://api.linnworks.net/Stock/GetStockItemsFull' &&
                        $body['keyword'] === 'search-term' &&
                        $request->method() === 'POST';
@@ -194,12 +195,12 @@ describe('Refactored Linnworks Services', function () {
                     [
                         'SKU' => 'TEST-SKU',
                         'ItemTitle' => 'Test Product',
-                        'StockLevels' => [['StockLevel' => 50]]
+                        'StockLevels' => [['StockLevel' => 50]],
                     ],
                 ], 200),
             ]);
 
-            $authenticator = new LinnworksAuthenticator();
+            $authenticator = new LinnworksAuthenticator;
             $httpClient = new LinnworksHttpClient($authenticator);
             $inventoryService = new LinnworksInventoryService($httpClient);
 
@@ -220,7 +221,7 @@ describe('Refactored Linnworks Services', function () {
                     ->push([], 200), // Product doesn't exist
             ]);
 
-            $authenticator = new LinnworksAuthenticator();
+            $authenticator = new LinnworksAuthenticator;
             $httpClient = new LinnworksHttpClient($authenticator);
             $inventoryService = new LinnworksInventoryService($httpClient);
 
@@ -242,7 +243,7 @@ describe('Refactored Linnworks Services', function () {
                 ], 200),
             ]);
 
-            $authenticator = new LinnworksAuthenticator();
+            $authenticator = new LinnworksAuthenticator;
             $httpClient = new LinnworksHttpClient($authenticator);
             $inventoryService = new LinnworksInventoryService($httpClient);
 
@@ -261,7 +262,7 @@ describe('Refactored Linnworks Services', function () {
                 'api.linnworks.net/Stock/GetStockItemsFull' => Http::response([], 500),
             ]);
 
-            $authenticator = new LinnworksAuthenticator();
+            $authenticator = new LinnworksAuthenticator;
             $httpClient = new LinnworksHttpClient($authenticator);
             $inventoryService = new LinnworksInventoryService($httpClient);
 
@@ -278,25 +279,25 @@ describe('Refactored Linnworks Services', function () {
                 [
                     'SKU' => 'INTEGRATION-SKU',
                     'ItemTitle' => 'Integration Test Product',
-                    'StockLevels' => [['StockLevel' => 100]]
+                    'StockLevels' => [['StockLevel' => 100]],
                 ],
             ], 200),
         ]);
 
         // Create services
-        $authenticator = new LinnworksAuthenticator();
+        $authenticator = new LinnworksAuthenticator;
         $httpClient = new LinnworksHttpClient($authenticator);
         $inventoryService = new LinnworksInventoryService($httpClient);
 
         // Test the complete flow
         expect($authenticator->hasValidToken())->toBeTrue();
-        
+
         $products = $inventoryService->searchStockItems('INTEGRATION-SKU');
         expect($products)->toHaveCount(1);
-        
+
         $stockLevel = $inventoryService->getStockLevel('INTEGRATION-SKU');
         expect($stockLevel)->toBe(100);
-        
+
         $info = $inventoryService->getProductInfo('INTEGRATION-SKU');
         expect($info['title'])->toBe('Integration Test Product');
     });

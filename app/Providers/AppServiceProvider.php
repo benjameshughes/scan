@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\ServiceProvider;
@@ -94,6 +95,17 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('viewPulse', function ($user) {
             return $user->email == config('pulse.users');
         });
+
+        // Register smart notification event listeners
+        Event::listen(
+            \App\Events\RefillOperationFailed::class,
+            \App\Listeners\NotifyRefillFailure::class
+        );
+
+        Event::listen(
+            \App\Events\ScanSyncFailed::class,
+            \App\Listeners\NotifyScanFailure::class
+        );
 
     }
 }

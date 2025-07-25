@@ -51,9 +51,9 @@ class ValidateStockTransferAction
 
         $permission = $requiredPermissions[$operationType] ?? 'create stock movements';
 
-        if (!$user->can($permission)) {
+        if (! $user->can($permission)) {
             throw ValidationException::withMessages([
-                'permissions' => ["You do not have permission to perform {$operationType} operations."]
+                'permissions' => ["You do not have permission to perform {$operationType} operations."],
             ]);
         }
     }
@@ -62,31 +62,31 @@ class ValidateStockTransferAction
     {
         if ($quantity < 1) {
             throw ValidationException::withMessages([
-                'quantity' => ['Quantity must be at least 1.']
+                'quantity' => ['Quantity must be at least 1.'],
             ]);
         }
 
         if ($availableStock !== null && $quantity > $availableStock) {
             throw ValidationException::withMessages([
-                'quantity' => ["Quantity cannot exceed available stock ({$availableStock})."]
+                'quantity' => ["Quantity cannot exceed available stock ({$availableStock})."],
             ]);
         }
     }
 
     private function validateProduct(Product $product): void
     {
-        if (!$product->sku || trim($product->sku) === '') {
+        if (! $product->sku || trim($product->sku) === '') {
             throw ValidationException::withMessages([
-                'product' => ['Product must have a valid SKU.']
+                'product' => ['Product must have a valid SKU.'],
             ]);
         }
     }
 
     private function validateLocation(?string $fromLocationId): void
     {
-        if ($fromLocationId && !is_string($fromLocationId)) {
+        if ($fromLocationId && ! is_string($fromLocationId)) {
             throw ValidationException::withMessages([
-                'location' => ['From location ID must be a valid string.']
+                'location' => ['From location ID must be a valid string.'],
             ]);
         }
     }

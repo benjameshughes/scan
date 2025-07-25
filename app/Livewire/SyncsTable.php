@@ -7,7 +7,6 @@ use App\Tables\Columns\ActionsColumn;
 use App\Tables\Columns\BadgeColumn;
 use App\Tables\Columns\DateColumn;
 use App\Tables\Columns\TextColumn;
-use App\Tables\Columns\CustomColumn;
 use App\Tables\Table;
 use App\Tables\TableComponent;
 
@@ -95,6 +94,7 @@ class SyncsTable extends TableComponent
                         if ($value === '1') {
                             return $query->where('sync_attempts', '>', 1)->where('sync_status', 'failed');
                         }
+
                         return $query;
                     },
                 ],
@@ -151,7 +151,7 @@ class SyncsTable extends TableComponent
                     'label' => 'Retry Sync',
                     'handle' => function (array $ids) {
                         $scans = Scan::whereIn('id', $ids)->get();
-                        
+
                         // Reset sync status and increment attempts for tracking
                         foreach ($scans as $scan) {
                             $scan->update([
@@ -160,7 +160,7 @@ class SyncsTable extends TableComponent
                                 'sync_error_type' => null,
                             ]);
                         }
-                        
+
                         session()->flash('message', count($ids).' scans queued for retry.');
                     },
                 ],
@@ -175,7 +175,7 @@ class SyncsTable extends TableComponent
                                 'sync_error_message' => null,
                                 'sync_error_type' => null,
                             ]);
-                        
+
                         session()->flash('message', $retryCount.' failed scans queued for retry.');
                     },
                 ],
@@ -189,7 +189,7 @@ class SyncsTable extends TableComponent
                             'sync_error_message' => null,
                             'sync_error_type' => null,
                         ]);
-                        
+
                         session()->flash('message', $updateCount.' scans marked as synced.');
                     },
                 ],
@@ -201,7 +201,7 @@ class SyncsTable extends TableComponent
                             'sync_error_message' => null,
                             'sync_error_type' => null,
                         ]);
-                        
+
                         session()->flash('message', 'Error information cleared for '.$clearCount.' scans.');
                     },
                 ],

@@ -2,54 +2,58 @@
 
 namespace App\Livewire\Admin;
 
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
-use Illuminate\Support\Facades\Artisan;
 use Livewire\Component;
 use Livewire\WithPagination;
-use Carbon\Carbon;
 
 class SyncQueue extends Component
 {
     use WithPagination;
-    
+
     public $queueStats = [];
+
     public $pendingJobs = [];
+
     public $failedJobs = [];
+
     public $showFailedDetails = [];
-    
+
     public $refreshing = false;
+
     public $processing = false;
-    
+
     protected $paginationTheme = 'simple';
-    
+
     public function mount()
     {
         // Check if user has permission to manage products
         if (! auth()->user()->can('manage products')) {
             abort(403, 'You do not have permission to access the sync queue.');
         }
-        
+
         $this->loadQueueData();
     }
-    
+
     public function loadQueueData()
     {
         $this->refreshing = true;
-        
+
         $this->queueStats = $this->getQueueStats();
         $this->pendingJobs = $this->getPendingJobs();
         $this->failedJobs = $this->getFailedJobs();
-        
+
         $this->refreshing = false;
     }
-    
+
     public function refreshQueue()
     {
         $this->loadQueueData();
         $this->dispatch('queue-refreshed');
     }
-    
+
     public function retryJob($failedJobId)
     {
         try {
@@ -57,25 +61,25 @@ class SyncQueue extends Component
             session()->flash('success', 'Job queued for retry.');
             $this->loadQueueData();
         } catch (\Exception $e) {
-            session()->flash('error', 'Failed to retry job: ' . $e->getMessage());
+            session()->flash('error', 'Failed to retry job: '.$e->getMessage());
         }
     }
-    
+
     public function retryAllFailed()
     {
         $this->processing = true;
-        
+
         try {
             Artisan::call('queue:retry', ['id' => 'all']);
             session()->flash('success', 'All failed jobs queued for retry.');
             $this->loadQueueData();
         } catch (\Exception $e) {
-            session()->flash('error', 'Failed to retry jobs: ' . $e->getMessage());
+            session()->flash('error', 'Failed to retry jobs: '.$e->getMessage());
         }
-        
+
         $this->processing = false;
     }
-    
+
     public function deleteFailedJob($failedJobId)
     {
         try {
@@ -83,35 +87,35 @@ class SyncQueue extends Component
             session()->flash('success', 'Failed job deleted.');
             $this->loadQueueData();
         } catch (\Exception $e) {
-            session()->flash('error', 'Failed to delete job: ' . $e->getMessage());
+            session()->flash('error', 'Failed to delete job: '.$e->getMessage());
         }
     }
-    
+
     public function flushFailedJobs()
     {
         $this->processing = true;
-        
+
         try {
             Artisan::call('queue:flush');
             session()->flash('success', 'All failed jobs have been deleted.');
             $this->loadQueueData();
         } catch (\Exception $e) {
-            session()->flash('error', 'Failed to flush jobs: ' . $e->getMessage());
+            session()->flash('error', 'Failed to flush jobs: '.$e->getMessage());
         }
-        
+
         $this->processing = false;
     }
-    
+
     public function pauseQueue()
     {
         try {
             // This would require a queue manager like Horizon
             session()->flash('info', 'Queue pause feature requires Horizon or similar queue manager.');
         } catch (\Exception $e) {
-            session()->flash('error', 'Failed to pause queue: ' . $e->getMessage());
+            session()->flash('error', 'Failed to pause queue: '.$e->getMessage());
         }
     }
-    
+
     public function toggleFailedJobDetails($jobId)
     {
         if (isset($this->showFailedDetails[$jobId])) {
@@ -120,23 +124,23 @@ class SyncQueue extends Component
             $this->showFailedDetails[$jobId] = true;
         }
     }
-    
+
     protected function getQueueStats()
     {
         try {
             $pending = DB::table('jobs')->count();
             $failed = DB::table('failed_jobs')->count();
-            
+
             // Get job age distribution for pending jobs
             $oldJobs = DB::table('jobs')
                 ->where('created_at', '<', Carbon::now()->subHours(1))
                 ->count();
-            
+
             // Get recent failure rate
             $recentFailures = DB::table('failed_jobs')
                 ->where('failed_at', '>=', Carbon::now()->subHours(24))
                 ->count();
-            
+
             return [
                 'pending_count' => $pending,
                 'failed_count' => $failed,
@@ -155,7 +159,7 @@ class SyncQueue extends Component
             ];
         }
     }
-    
+
     protected function getPendingJobs()
     {
         try {
@@ -166,14 +170,14 @@ class SyncQueue extends Component
                     'payload',
                     'attempts',
                     'created_at',
-                    'available_at'
+                    'available_at',
                 ])
                 ->orderBy('created_at', 'asc')
                 ->limit(50)
                 ->get()
                 ->map(function ($job) {
                     $payload = json_decode($job->payload, true);
-                    
+
                     return [
                         'id' => $job->id,
                         'queue' => $job->queue,
@@ -189,7 +193,7 @@ class SyncQueue extends Component
             return collect([]);
         }
     }
-    
+
     protected function getFailedJobs()
     {
         try {
@@ -201,7 +205,7 @@ class SyncQueue extends Component
                     'queue',
                     'payload',
                     'exception',
-                    'failed_at'
+                    'failed_at',
                 ])
                 ->orderBy('failed_at', 'desc')
                 ->limit(100)
@@ -209,7 +213,7 @@ class SyncQueue extends Component
                 ->map(function ($job) {
                     $payload = json_decode($job->payload, true);
                     $exception = $job->exception;
-                    
+
                     // Extract error type from exception
                     $errorType = 'Unknown Error';
                     if (str_contains($exception, 'GuzzleHttp')) {
@@ -221,11 +225,11 @@ class SyncQueue extends Component
                     } elseif (str_contains($exception, 'TimeoutException')) {
                         $errorType = 'Timeout Error';
                     }
-                    
+
                     // Extract first line of error message
                     $errorLines = explode("\n", $exception);
                     $errorMessage = $errorLines[0] ?? 'No error message';
-                    
+
                     return [
                         'id' => $job->id,
                         'uuid' => $job->uuid,
@@ -242,7 +246,7 @@ class SyncQueue extends Component
             return collect([]);
         }
     }
-    
+
     public function render()
     {
         return view('livewire.admin.sync-queue')

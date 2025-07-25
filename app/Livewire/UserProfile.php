@@ -22,13 +22,9 @@ class UserProfile extends Component
     public string $newPasswordConfirmation = '';
 
     // User settings
-    public bool $notifications = false;
-
-    public bool $darkMode = false;
-
     public bool $autoSubmit = false;
 
-    public bool $scanSound = false;
+    public bool $scanSound = true;
 
     public function mount()
     {
@@ -38,10 +34,8 @@ class UserProfile extends Component
 
         // Load user settings
         $settings = $user->settings ?: [];
-        $this->notifications = $settings['notifications'] ?? false;
-        $this->darkMode = $settings['dark_mode'] ?? false;
         $this->autoSubmit = $settings['auto_submit'] ?? false;
-        $this->scanSound = $settings['scan_sound'] ?? false;
+        $this->scanSound = $settings['scan_sound'] ?? true;
     }
 
     public function updateProfile()
@@ -96,17 +90,27 @@ class UserProfile extends Component
         $this->authorize('update', $user);
 
         $settings = [
-            'notifications' => $this->notifications,
-            'dark_mode' => $this->darkMode,
             'auto_submit' => $this->autoSubmit,
             'scan_sound' => $this->scanSound,
         ];
 
         $user->update([
-            'settings' => json_encode($settings),
+            'settings' => $settings,
         ]);
 
         session()->flash('settings-message', 'Settings updated successfully.');
+    }
+    
+    // Handle live auto-submit updates
+    public function updatedAutoSubmit($value)
+    {
+        $this->updateSettings();
+    }
+    
+    // Handle live scan sound updates
+    public function updatedScanSound($value)
+    {
+        $this->updateSettings();
     }
 
     public function render()

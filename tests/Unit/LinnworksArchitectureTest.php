@@ -17,18 +17,18 @@ describe('Linnworks Refactored Architecture', function () {
             'auth_url' => 'https://auth.linnworks.net/',
             'base_url' => 'https://api.linnworks.net/',
             'cache' => [
-                'session_token_key' => 'test_linnworks_token'
+                'session_token_key' => 'test_linnworks_token',
             ],
             'pagination' => [
                 'inventory_page_size' => 100,
                 'search_page_size' => 50,
-                'sync_page_size' => 200
+                'sync_page_size' => 200,
             ],
-            'default_location_id' => 'test-location-id'
+            'default_location_id' => 'test-location-id',
         ]);
 
         Cache::flush();
-        
+
         // Mock Log facade
         Log::shouldReceive('channel')->andReturnSelf();
         Log::shouldReceive('info')->andReturn(null);
@@ -37,7 +37,7 @@ describe('Linnworks Refactored Architecture', function () {
     });
 
     test('architecture: classes can be instantiated without errors', function () {
-        $authenticator = new LinnworksAuthenticator();
+        $authenticator = new LinnworksAuthenticator;
         $httpClient = new LinnworksHttpClient($authenticator);
         $inventoryService = new LinnworksInventoryService($httpClient);
 
@@ -47,7 +47,7 @@ describe('Linnworks Refactored Architecture', function () {
     });
 
     test('authenticator: token cache management works', function () {
-        $authenticator = new LinnworksAuthenticator();
+        $authenticator = new LinnworksAuthenticator;
 
         // Initially no token
         expect($authenticator->hasValidToken())->toBeFalse();
@@ -69,7 +69,7 @@ describe('Linnworks Refactored Architecture', function () {
     });
 
     test('architecture: dependency injection works correctly', function () {
-        $authenticator = new LinnworksAuthenticator();
+        $authenticator = new LinnworksAuthenticator;
         $httpClient = new LinnworksHttpClient($authenticator);
         $inventoryService = new LinnworksInventoryService($httpClient);
 
@@ -80,26 +80,26 @@ describe('Linnworks Refactored Architecture', function () {
         $httpClientReflection = new ReflectionClass($httpClient);
         $authenticatorProperty = $httpClientReflection->getProperty('authenticator');
         $authenticatorProperty->setAccessible(true);
-        
+
         expect($authenticatorProperty->getValue($httpClient))->toBe($authenticator);
 
         $inventoryReflection = new ReflectionClass($inventoryService);
         $httpClientProperty = $inventoryReflection->getProperty('httpClient');
         $httpClientProperty->setAccessible(true);
-        
+
         expect($httpClientProperty->getValue($inventoryService))->toBe($httpClient);
     });
 
     test('safety: inventory service has only read methods', function () {
         $inventoryService = new LinnworksInventoryService(
-            new LinnworksHttpClient(new LinnworksAuthenticator())
+            new LinnworksHttpClient(new LinnworksAuthenticator)
         );
 
         $methods = array_filter(
-            get_class_methods($inventoryService), 
-            fn($method) => !str_starts_with($method, '__')
+            get_class_methods($inventoryService),
+            fn ($method) => ! str_starts_with($method, '__')
         );
-        
+
         // Check that all methods are safe (read-only operations)
         $safeMethods = [
             'getInventory',
@@ -111,7 +111,7 @@ describe('Linnworks Refactored Architecture', function () {
             'getAllProducts',
             'getStockLocationsByProduct',
             'productExists',
-            'getProductInfo'
+            'getProductInfo',
         ];
 
         // Ensure no dangerous methods exist
@@ -121,17 +121,17 @@ describe('Linnworks Refactored Architecture', function () {
             'createProduct',
             'deleteProduct',
             'updateProduct',
-            'transferStock'
+            'transferStock',
         ];
 
         // Simply verify we have the expected number of safe methods
-        expect(count($methods))->toBe(10, "Expected 10 methods, got " . count($methods));
-        
+        expect(count($methods))->toBe(10, 'Expected 10 methods, got '.count($methods));
+
         // Verify no dangerous methods exist
         foreach ($dangerousMethods as $method) {
             expect($methods)->not->toContain($method, "Found dangerous method: {$method}");
         }
-        
+
         // Verify a few key safe methods exist
         expect($methods)->toContain('getInventory');
         expect($methods)->toContain('searchStockItems');
@@ -140,49 +140,49 @@ describe('Linnworks Refactored Architecture', function () {
 
     test('architecture: classes are focused and have single responsibility', function () {
         // Test class method counts to ensure focused responsibility
-        
+
         $authenticatorMethods = get_class_methods(LinnworksAuthenticator::class);
         $httpClientMethods = get_class_methods(LinnworksHttpClient::class);
         $inventoryMethods = get_class_methods(LinnworksInventoryService::class);
 
         // Authenticator should be focused on authentication only
-        $authMethods = array_filter($authenticatorMethods, fn($method) => !str_starts_with($method, '__'));
+        $authMethods = array_filter($authenticatorMethods, fn ($method) => ! str_starts_with($method, '__'));
         expect(count($authMethods))->toBeLessThan(10, 'Authenticator has too many methods - should be focused');
 
         // HttpClient should be focused on HTTP operations
-        $httpMethods = array_filter($httpClientMethods, fn($method) => !str_starts_with($method, '__'));
+        $httpMethods = array_filter($httpClientMethods, fn ($method) => ! str_starts_with($method, '__'));
         expect(count($httpMethods))->toBeLessThan(12, 'HttpClient has too many methods - should be focused');
 
         // InventoryService should be focused on read-only inventory operations
-        $inventoryMethodsFiltered = array_filter($inventoryMethods, fn($method) => !str_starts_with($method, '__'));
+        $inventoryMethodsFiltered = array_filter($inventoryMethods, fn ($method) => ! str_starts_with($method, '__'));
         expect(count($inventoryMethodsFiltered))->toBeLessThan(15, 'InventoryService has too many methods - should be focused');
     });
 
     test('safety: no write operations in inventory service method names', function () {
         $inventoryService = new LinnworksInventoryService(
-            new LinnworksHttpClient(new LinnworksAuthenticator())
+            new LinnworksHttpClient(new LinnworksAuthenticator)
         );
 
         $methods = get_class_methods($inventoryService);
-        
+
         $writeKeywords = ['update', 'set', 'create', 'delete', 'insert', 'modify', 'change', 'edit', 'remove'];
-        
+
         foreach ($methods as $method) {
             $methodLower = strtolower($method);
             foreach ($writeKeywords as $keyword) {
-                expect($methodLower)->not->toContain($keyword, 
+                expect($methodLower)->not->toContain($keyword,
                     "Method '{$method}' contains write keyword '{$keyword}' - should be read-only");
             }
         }
     });
 
     test('configuration: all required config keys are properly loaded', function () {
-        $authenticator = new LinnworksAuthenticator();
+        $authenticator = new LinnworksAuthenticator;
         $httpClient = new LinnworksHttpClient($authenticator);
 
         // Use reflection to verify config is loaded
         $authReflection = new ReflectionClass($authenticator);
-        
+
         $appIdProperty = $authReflection->getProperty('appId');
         $appIdProperty->setAccessible(true);
         expect($appIdProperty->getValue($authenticator))->toBe('test-app-id');
@@ -202,21 +202,21 @@ describe('Linnworks Refactored Architecture', function () {
         // New architecture separates them properly
 
         $originalServiceMethods = get_class_methods(\App\Services\LinnworksApiService::class);
-        $originalMethodCount = count(array_filter($originalServiceMethods, fn($m) => !str_starts_with($m, '__')));
+        $originalMethodCount = count(array_filter($originalServiceMethods, fn ($m) => ! str_starts_with($m, '__')));
 
         $authenticatorMethods = count(array_filter(
-            get_class_methods(LinnworksAuthenticator::class), 
-            fn($m) => !str_starts_with($m, '__')
+            get_class_methods(LinnworksAuthenticator::class),
+            fn ($m) => ! str_starts_with($m, '__')
         ));
-        
+
         $httpClientMethods = count(array_filter(
-            get_class_methods(LinnworksHttpClient::class), 
-            fn($m) => !str_starts_with($m, '__')
+            get_class_methods(LinnworksHttpClient::class),
+            fn ($m) => ! str_starts_with($m, '__')
         ));
-        
+
         $inventoryMethods = count(array_filter(
-            get_class_methods(LinnworksInventoryService::class), 
-            fn($m) => !str_starts_with($m, '__')
+            get_class_methods(LinnworksInventoryService::class),
+            fn ($m) => ! str_starts_with($m, '__')
         ));
 
         // Each refactored class should be smaller and more focused

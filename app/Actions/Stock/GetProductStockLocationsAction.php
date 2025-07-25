@@ -28,7 +28,7 @@ class GetProductStockLocationsAction
                 'product_sku' => $product->sku,
                 'locations_count' => count($locations),
                 'include_zero_stock' => $includeZeroStock,
-                'sample_location' => !empty($locations) ? $locations[0] : 'no locations',
+                'sample_location' => ! empty($locations) ? $locations[0] : 'no locations',
             ]);
 
             return $this->formatLocations($locations);
@@ -47,7 +47,7 @@ class GetProductStockLocationsAction
     {
         return collect($locations)->map(function ($location) {
             $locationData = $location['Location'] ?? [];
-            
+
             return [
                 'id' => $locationData['StockLocationId'] ?? null,
                 'name' => $locationData['LocationName'] ?? '',

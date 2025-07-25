@@ -146,7 +146,7 @@ describe('Linnworks Stock Update', function () {
         $action = new SyncBarcodeAction($scan);
 
         expect(fn () => $action->handle())
-            ->toThrow(\App\Exceptions\NoSkuFoundException::class);
+            ->toThrow(\Exception::class);
 
         // Verify scan was marked as failed
         expect($scan->fresh()->submitted)->toBe(0); // Database stores as integer

@@ -67,13 +67,13 @@ class Scan extends Model
             $this->created_at->year === now()->year ? 'MMM d, h:mm a' : 'MMM d, YYYY'
         );
     }
-    
+
     /**
      * Get a human-readable error type
      */
     public function getErrorTypeDisplayAttribute()
     {
-        return match($this->sync_error_type) {
+        return match ($this->sync_error_type) {
             'network' => 'Network Error',
             'auth' => 'Authentication Error',
             'rate_limit' => 'Rate Limit Exceeded',
@@ -84,20 +84,20 @@ class Scan extends Model
             default => ucfirst(str_replace('_', ' ', $this->sync_error_type ?? 'Unknown Error'))
         };
     }
-    
+
     /**
      * Get a user-friendly sync status with additional context
      */
     public function getSyncStatusDisplayAttribute()
     {
-        return match($this->sync_status) {
+        return match ($this->sync_status) {
             'pending' => 'Pending Sync',
             'synced' => 'Successfully Synced',
             'failed' => 'Sync Failed',
             default => ucfirst($this->sync_status ?? 'Unknown')
         };
     }
-    
+
     /**
      * Check if this scan has failed multiple times
      */
@@ -105,7 +105,7 @@ class Scan extends Model
     {
         return $this->sync_attempts > 1 && $this->sync_status === 'failed';
     }
-    
+
     /**
      * Get the next retry attempt number
      */
@@ -113,7 +113,7 @@ class Scan extends Model
     {
         return $this->sync_attempts + 1;
     }
-    
+
     /**
      * Record a sync attempt with error information
      */

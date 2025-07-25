@@ -19,7 +19,7 @@ return new class extends Migration
             $table->timestamp('processed_at')->nullable()->after('last_sync_attempt_at');
             $table->text('sync_error_message')->nullable()->after('processed_at');
             $table->string('sync_error_type')->nullable()->after('sync_error_message');
-            
+
             // Add index for querying by sync status
             $table->index('sync_status');
             $table->index(['sync_status', 'created_at']);
@@ -34,10 +34,10 @@ return new class extends Migration
         Schema::table('stock_movements', function (Blueprint $table) {
             $table->dropIndex(['sync_status', 'created_at']);
             $table->dropIndex(['sync_status']);
-            
+
             $table->dropColumn([
                 'sync_status',
-                'sync_attempts', 
+                'sync_attempts',
                 'last_sync_attempt_at',
                 'processed_at',
                 'sync_error_message',

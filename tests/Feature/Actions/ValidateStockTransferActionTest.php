@@ -129,7 +129,7 @@ it('validates successfully when no available stock limit is provided', function 
 it('throws validation exception for product without SKU', function () {
     Permission::firstOrCreate(['name' => 'refill bays']);
     $this->user->givePermissionTo('refill bays');
-    
+
     $invalidProduct = Product::factory()->create(['sku' => '']);
 
     expect(function () {

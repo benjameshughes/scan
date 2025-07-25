@@ -1,24 +1,66 @@
-/.phpunit.cache
+# Dependencies
 /node_modules
+/vendor
+
+# Environment files
+.env
+.env.*
+.env.backup
+.env.production
+
+# Build output
 /public/build
 /public/hot
 /public/storage
+
+# Storage & Cache
 /storage/*.key
+/storage/logs/*.log
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/views/*
 /storage/pail
-/vendor
-.env
-.env*
-.env.backup
-.env.production
-.phpactor.json
+/storage/app/private/imports/*.csv
+/storage/app/private/livewire-tmp/*
+
+# Testing
+/.phpunit.cache
 .phpunit.result.cache
-Homestead.json
-Homestead.yaml
-auth.json
-npm-debug.log
-yarn-error.log
+
+# IDE & Editor configs
 /.fleet
 /.idea
 /.nova
 /.vscode
 /.zed
+.phpactor.json
+
+# Deployment
+Homestead.json
+Homestead.yaml
+auth.json
+
+# Logs
+npm-debug.log
+yarn-error.log
+*.log
+
+# OS generated
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Claude AI
+.claude
+
+# Documentation (temporary/dev only)
+PWA-*.md
+ACTIONS_*.md
+FEATURE_*.md
+SECURE_*.md
+*-TESTING.md
+*-FIX.md

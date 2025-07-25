@@ -118,7 +118,7 @@ abstract class TableComponent extends Component
     {
         // Initialize basic properties without calling getTable() yet
         // (getTable() will be called in render() when component ID is available)
-        
+
         if (empty($this->sortField)) {
             // Set default sort - we'll get this from table in render if needed
             $this->sortField = 'id';
@@ -444,13 +444,13 @@ abstract class TableComponent extends Component
     public function render()
     {
         $table = $this->getTable();
-        
+
         // Initialize sort defaults if not set yet
         if (empty($this->sortField) || $this->sortField === 'id') {
             $this->sortField = $table->getDefaultSortField();
             $this->sortDirection = $table->getDefaultSortDirection();
         }
-        
+
         $query = $this->getQuery();
         $this->totalRecordsCount = $query->count();
         $data = $query->paginate($this->perPage);

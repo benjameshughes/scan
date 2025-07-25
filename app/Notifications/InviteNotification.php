@@ -6,6 +6,7 @@ use App\Mail\InviteEmail;
 use App\Models\Invite;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 
 class InviteNotification extends Notification implements ShouldQueue
@@ -29,7 +30,14 @@ class InviteNotification extends Notification implements ShouldQueue
      */
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        $settings = $notifiable->settings ?? [];
+        $channels = ['mail']; // Always send invitation emails
+
+        if ($settings['notification_push'] ?? true) {
+            $channels[] = 'broadcast';
+        }
+
+        return $channels;
     }
 
     /**
@@ -48,7 +56,28 @@ class InviteNotification extends Notification implements ShouldQueue
     public function toArray(object $notifiable): array
     {
         return [
-            //
+            'type' => 'invite_sent',
+            'invite_id' => $this->invite->id,
+            'email' => $this->invite->email,
+            'expires_at' => $this->invite->expires_at->toISOString(),
         ];
+    }
+
+    /**
+     * Get the broadcast representation of the notification.
+     */
+    public function toBroadcast(object $notifiable): BroadcastMessage
+    {
+        return new BroadcastMessage([
+            'type' => 'invite_sent',
+            'title' => 'Invitation Sent',
+            'message' => "Invitation sent to {$this->invite->email}",
+            'invite_id' => $this->invite->id,
+            'email' => $this->invite->email,
+            'expires_at' => $this->invite->expires_at->toISOString(),
+            'severity' => 'low',
+            'timestamp' => now()->toISOString(),
+            'icon' => '📧',
+        ]);
     }
 }

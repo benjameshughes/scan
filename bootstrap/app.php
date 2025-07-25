@@ -16,7 +16,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+            'notifications' => \App\Http\Middleware\hasNotifications::class,
         ]);
+
+        // Apply notifications middleware to web routes
+        $middleware->web('notifications');
     })
     ->withExceptions(function (Exceptions $exceptions) {
         Integration::handles($exceptions);

@@ -9,6 +9,7 @@ trait UpdateScanStatus
     protected function updateScanStatus(Scan $scan, string $status): Scan
     {
         $scan->recordSyncAttempt($status);
+
         return $scan;
     }
 
@@ -29,15 +30,17 @@ trait UpdateScanStatus
     protected function markScanAsSyncing(Scan $scan): Scan
     {
         $scan->recordSyncAttempt('syncing');
+
         return $scan;
     }
 
-    protected function markScanAsFailed(Scan $scan, string $errorMessage = null, string $errorType = null, array $metadata = []): Scan
+    protected function markScanAsFailed(Scan $scan, ?string $errorMessage = null, ?string $errorType = null, array $metadata = []): Scan
     {
         $scan->recordSyncAttempt('failed', $errorMessage, $errorType, $metadata);
+
         return $scan;
     }
-    
+
     /**
      * Categorize error based on exception type or message
      */
@@ -45,67 +48,66 @@ trait UpdateScanStatus
     {
         $errorMessage = $exception->getMessage();
         $exceptionClass = get_class($exception);
-        
+
         // Network/HTTP errors
-        if (str_contains($exceptionClass, 'GuzzleHttp') || 
+        if (str_contains($exceptionClass, 'GuzzleHttp') ||
             str_contains($exceptionClass, 'ConnectException') ||
             str_contains($errorMessage, 'Connection') ||
             str_contains($errorMessage, 'network')) {
-            return ['network', 'Network Error: ' . $errorMessage];
+            return ['network', 'Network Error: '.$errorMessage];
         }
-        
+
         // Authentication errors
         if (str_contains($exceptionClass, 'AuthenticationException') ||
             str_contains($errorMessage, 'auth') ||
             str_contains($errorMessage, 'token') ||
             str_contains($errorMessage, 'unauthorized')) {
-            return ['auth', 'Authentication Error: ' . $errorMessage];
+            return ['auth', 'Authentication Error: '.$errorMessage];
         }
-        
+
         // Rate limiting
         if (str_contains($errorMessage, 'rate limit') ||
             str_contains($errorMessage, 'Too Many Requests') ||
             str_contains($errorMessage, '429')) {
-            return ['rate_limit', 'Rate Limit Exceeded: ' . $errorMessage];
+            return ['rate_limit', 'Rate Limit Exceeded: '.$errorMessage];
         }
-        
+
         // Product not found
-        if (str_contains($exceptionClass, 'NoSkuFoundException') ||
-            str_contains($errorMessage, 'product not found') ||
+        if (str_contains($errorMessage, 'product not found') ||
             str_contains($errorMessage, 'SKU not found')) {
-            return ['product_not_found', 'Product Not Found: ' . $errorMessage];
+            return ['product_not_found', 'Product Not Found: '.$errorMessage];
         }
-        
+
         // Timeout errors
         if (str_contains($exceptionClass, 'TimeoutException') ||
             str_contains($errorMessage, 'timeout') ||
             str_contains($errorMessage, 'timed out')) {
-            return ['timeout', 'Request Timeout: ' . $errorMessage];
+            return ['timeout', 'Request Timeout: '.$errorMessage];
         }
-        
+
         // Validation errors
         if (str_contains($exceptionClass, 'ValidationException') ||
             str_contains($errorMessage, 'validation') ||
             str_contains($errorMessage, 'invalid')) {
-            return ['validation', 'Validation Error: ' . $errorMessage];
+            return ['validation', 'Validation Error: '.$errorMessage];
         }
-        
+
         // Generic API errors
-        if (str_contains($errorMessage, 'API') || 
+        if (str_contains($errorMessage, 'API') ||
             str_contains($errorMessage, 'HTTP')) {
-            return ['api_error', 'API Error: ' . $errorMessage];
+            return ['api_error', 'API Error: '.$errorMessage];
         }
-        
+
         // Default case
         return ['unknown', $errorMessage];
     }
-    
+
     /**
      * Determine if an error should be retried based on type and attempt count
      */
     protected function shouldRetry(Scan $scan, string $errorType): bool
     {
-        $maxAttempts = match($errorType) {
+        $maxAttempts = match ($errorType) {
             'rate_limit' => 5,      // Rate limits often resolve quickly
             'network' => 3,         // Network issues can be transient
             'timeout' => 3,         // Timeouts can be retried
@@ -115,22 +117,22 @@ trait UpdateScanStatus
             'validation' => 1,      // Validation errors need fixing
             default => 2            // Conservative default
         };
-        
+
         return $scan->sync_attempts < $maxAttempts;
     }
-    
+
     /**
      * Get retry delay in seconds based on attempt count and error type
      */
     protected function getRetryDelay(int $attemptCount, string $errorType): int
     {
-        $baseDelay = match($errorType) {
+        $baseDelay = match ($errorType) {
             'rate_limit' => 300,    // 5 minutes for rate limits
             'network' => 60,        // 1 minute for network issues
             'timeout' => 120,       // 2 minutes for timeouts
             default => 300          // 5 minutes default
         };
-        
+
         // Exponential backoff: delay * (2 ^ (attempt - 1))
         return $baseDelay * (2 ** ($attemptCount - 1));
     }

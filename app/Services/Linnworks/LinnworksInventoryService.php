@@ -7,9 +7,9 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * Handles read-only inventory/product operations with Linnworks API
- * 
+ *
  * This service is SAFE - it only reads data from Linnworks, never writes
- * 
+ *
  * Responsibilities:
  * - Product catalog retrieval
  * - Product searches
@@ -73,7 +73,7 @@ class LinnworksInventoryService
         int $pageNumber = 1
     ): array {
         $entriesPerPage = $entriesPerPage ?? config('linnworks.pagination.search_page_size');
-        
+
         $data = [
             'keyword' => trim($keyword),
             'loadCompositeParents' => false,
@@ -110,7 +110,7 @@ class LinnworksInventoryService
     {
         $data = $this->searchStockItems($sku, 1, ['StockLevels']);
 
-        if (empty($data) || !isset($data[0]['StockLevels'][0]['StockLevel'])) {
+        if (empty($data) || ! isset($data[0]['StockLevels'][0]['StockLevel'])) {
             return 0;
         }
 
@@ -213,11 +213,13 @@ class LinnworksInventoryService
     {
         try {
             $result = $this->searchStockItems($sku, 1);
-            return !empty($result);
+
+            return ! empty($result);
         } catch (Exception $e) {
             Log::warning("Failed to validate product existence for SKU: {$sku}", [
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -229,7 +231,7 @@ class LinnworksInventoryService
     {
         try {
             $stockData = $this->getStockDetails($sku);
-            
+
             if (empty($stockData)) {
                 return null;
             }
@@ -244,8 +246,9 @@ class LinnworksInventoryService
             ];
         } catch (Exception $e) {
             Log::warning("Failed to get product info for SKU: {$sku}", [
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }

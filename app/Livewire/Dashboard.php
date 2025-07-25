@@ -5,7 +5,8 @@ namespace App\Livewire;
 use App\Actions\Dashboard\MarkNotificationAsRead;
 use App\Actions\MarkScanAsSubmitted;
 use App\Jobs\SyncBarcode;
-use App\Models\Scan;
+use App\Models\{Product, Scan, StockMovement};
+use App\Notifications\{EmptyBayNotification, RefillSyncFailedNotification, ScanSyncFailedNotification};
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
@@ -18,6 +19,12 @@ class Dashboard extends Component
     public Collection $notifications;
 
     public int $retryCount = 0;
+
+    // Computed property for notification count to ensure reactivity
+    public function getNotificationCountProperty()
+    {
+        return auth()->user()->unreadNotifications()->count();
+    }
 
     // Mark notification as read
     public function markAsRead($id)
@@ -40,6 +47,82 @@ class Dashboard extends Component
         $this->dispatch('notification.markAllAsRead');
 
         $this->notifications = auth()->user()->unreadNotifications()->get();
+    }
+
+    // Test notification methods (Admin only)
+    public function testEmptyBayNotification()
+    {
+        // Authorization check - Admin role only
+        if (!auth()->user()->hasRole('Admin')) {
+            abort(403, 'Unauthorized');
+        }
+        $product = Product::first();
+        if (!$product) {
+            session()->flash('error', 'No products found. Create a product first.');
+            return;
+        }
+        
+        // Debug: Check permission
+        $canRefill = auth()->user()->can('refill bays');
+        \Log::info('Empty bay notification test', [
+            'user' => auth()->user()->name,
+            'can_refill_bays' => $canRefill,
+            'product' => $product->name
+        ]);
+        
+        auth()->user()->notify(new EmptyBayNotification($product));
+        
+        // Debug: Check if notification was actually created
+        $notificationCount = auth()->user()->unreadNotifications()->count();
+        \Log::info('After notification creation', ['notification_count' => $notificationCount]);
+        
+        $this->notifications = auth()->user()->unreadNotifications()->get();
+        $this->dispatch('$refresh'); // Force Livewire to re-render
+        session()->flash('success', "Empty bay notification created for: {$product->name} (Debug: can refill={$canRefill}, count={$notificationCount})");
+    }
+
+    public function testScanFailedNotification()
+    {
+        // Authorization check - Admin role only
+        if (!auth()->user()->hasRole('Admin')) {
+            abort(403, 'Unauthorized');
+        }
+        $scan = Scan::first();
+        if (!$scan) {
+            session()->flash('error', 'No scans found. Create a scan first.');
+            return;
+        }
+        
+        auth()->user()->notify(new ScanSyncFailedNotification(
+            $scan,
+            'Test API connection timeout - failed to sync with Linnworks',
+            'connection_timeout'
+        ));
+        $this->notifications = auth()->user()->unreadNotifications()->get();
+        $this->dispatch('$refresh'); // Force Livewire to re-render
+        session()->flash('success', "Scan sync failed notification created for: {$scan->barcode}");
+    }
+
+    public function testRefillFailedNotification()
+    {
+        // Authorization check - Admin role only
+        if (!auth()->user()->hasRole('Admin')) {
+            abort(403, 'Unauthorized');
+        }
+        $stockMovement = StockMovement::first();
+        if (!$stockMovement) {
+            session()->flash('error', 'No stock movements found. Create a stock movement first.');
+            return;
+        }
+        
+        auth()->user()->notify(new RefillSyncFailedNotification(
+            $stockMovement,
+            'Test Linnworks API error - invalid location code provided',
+            'api_validation_error'
+        ));
+        $this->notifications = auth()->user()->unreadNotifications()->get();
+        $this->dispatch('$refresh'); // Force Livewire to re-render
+        session()->flash('success', "Refill sync failed notification created for: {$stockMovement->product->sku}");
     }
 
     /**

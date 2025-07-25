@@ -31,7 +31,7 @@ trait SendNotifications
      */
     protected function notifyUsers(Notification $notification, array $userEmails)
     {
-        $users = collect(User::where('email', $userEmails));
+        $users = User::whereIn('email', $userEmails)->get();
 
         $users->each(function ($user) use ($notification) {
             $user->notify($notification);

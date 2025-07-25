@@ -148,7 +148,7 @@ it('persists movement to database', function () {
 
 it('throws exception when database save fails', function () {
     // Create a product with invalid data to force database error
-    $invalidProduct = new Product();
+    $invalidProduct = new Product;
     $invalidProduct->id = 999999; // Non-existent ID
 
     expect(function () {

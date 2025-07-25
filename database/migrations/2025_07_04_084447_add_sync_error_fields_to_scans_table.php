@@ -19,10 +19,10 @@ return new class extends Migration
             $table->timestamp('last_sync_attempt')->nullable()->after('sync_attempts');
             $table->timestamp('synced_at')->nullable()->after('last_sync_attempt'); // When successfully synced
             $table->json('sync_metadata')->nullable()->after('synced_at'); // Store additional sync context
-            
+
             // Add notes field for manual annotations
             $table->text('notes')->nullable()->after('sync_metadata');
-            
+
             // Add indexes for performance
             $table->index('sync_error_type');
             $table->index('sync_attempts');
@@ -39,15 +39,15 @@ return new class extends Migration
             $table->dropIndex(['sync_error_type']);
             $table->dropIndex(['sync_attempts']);
             $table->dropIndex(['last_sync_attempt']);
-            
+
             $table->dropColumn([
                 'sync_error_message',
-                'sync_error_type', 
+                'sync_error_type',
                 'sync_attempts',
                 'last_sync_attempt',
                 'synced_at',
                 'sync_metadata',
-                'notes'
+                'notes',
             ]);
         });
     }
