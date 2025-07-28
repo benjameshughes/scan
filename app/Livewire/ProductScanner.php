@@ -88,7 +88,7 @@ class ProductScanner extends Component
             abort(403, 'Insufficient permissions to use scanner');
         }
 
-        $this->loadingCamera = false; // Start with video element visible
+        $this->loadingCamera = false; // Start in "Ready to Scan" state
         $this->isScanning = false;
         
         // Initialize user settings
@@ -180,12 +180,18 @@ class ProductScanner extends Component
     // Camera controls - Livewire handles state, dispatches to JS
     public function toggleCamera()
     {
-        $this->isScanning = ! $this->isScanning;
-        $this->dispatch('camera-state-changed', $this->isScanning);
-
-        if (! $this->isScanning) {
+        if ($this->isScanning) {
+            // Stopping camera - direct toggle
+            $this->isScanning = false;
+            $this->dispatch('camera-state-changed', false);
             $this->cameraError = '';
-            $this->isTorchOn = false; // Turn off torch when camera stops
+            $this->isTorchOn = false;
+            $this->loadingCamera = false;
+        } else {
+            // Starting camera - use same flow as init
+            $this->loadingCamera = true;
+            $this->isScanning = false; // Will be set to true by onCameraReady()
+            $this->dispatch('camera-state-changed', true);
         }
     }
 
@@ -202,6 +208,14 @@ class ProductScanner extends Component
     }
 
     // JS callbacks - JS reports back to Livewire
+    #[On('onCameraInitializing')]
+    public function onCameraInitializing()
+    {
+        $this->loadingCamera = true;
+        $this->isScanning = false;
+        $this->cameraError = '';
+    }
+
     #[On('onCameraReady')]
     public function onCameraReady()
     {
@@ -385,6 +399,11 @@ class ProductScanner extends Component
         $this->isEmailRefill = false;
         $this->playSuccessSound = false;
         $this->triggerVibration = false;
+        
+        // Reset camera state to initial "Ready to Scan" state
+        $this->loadingCamera = false;
+        $this->isScanning = false;
+        
         $this->resetRefillForm();
         $this->resetValidation();
     }
@@ -407,7 +426,8 @@ class ProductScanner extends Component
     public function startNewScan()
     {
         $this->resetScan();
-        $this->isScanning = true;
+        $this->loadingCamera = true;
+        $this->isScanning = false; // Will be set to true by onCameraReady()
         $this->dispatch('camera-state-changed', true); // Start camera
     }
 
@@ -444,9 +464,10 @@ class ProductScanner extends Component
         // Reset form first
         $this->resetScan();
 
-        // Auto-resume scanning for next item
-        $this->isScanning = true;
-        $this->dispatch('camera-state-changed', true); // Start camera
+        // Auto-resume scanning for next item using same flow as toggle
+        $this->loadingCamera = true;
+        $this->isScanning = false; // Will be set to true by onCameraReady()
+        $this->dispatch('camera-state-changed', true);
     }
 
     public function clearError()
@@ -597,8 +618,9 @@ class ProductScanner extends Component
             // Reset everything back to scanner after successful transfer
             $this->resetScan();
 
-            // Auto-resume scanning for next item
-            $this->isScanning = true;
+            // Auto-resume scanning for next item using same flow as toggle
+            $this->loadingCamera = true;
+            $this->isScanning = false; // Will be set to true by onCameraReady()
             $this->dispatch('camera-state-changed', true);
 
         } catch (ValidationException $e) {

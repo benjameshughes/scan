@@ -106,6 +106,9 @@ class ProductScanner {
 
     async initializeCamera() {
         try {
+            // Tell Livewire we're starting camera initialization
+            Livewire.dispatch('onCameraInitializing');
+            
             // Check and request camera permission if needed
             await this.checkAndRequestPermission();
             
