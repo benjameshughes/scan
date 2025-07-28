@@ -1,5 +1,11 @@
 <!-- Mobile-First Scanner Layout -->
-<div class="min-h-screen bg-zinc-50 dark:bg-zinc-900">
+<div class="min-h-screen bg-zinc-50 dark:bg-zinc-900"
+     x-data 
+     x-init="$store.camera.init()"
+     @visibilitychange.window="$store.camera.handleVisibilityChange()"
+     @focus.window="$store.camera.handleWindowFocus()"
+     @blur.window="$store.camera.handleWindowBlur()"
+     @camera-toggle.window="$store.camera.handleUserToggle()"
     <!-- Header Bar (Mobile) -->
     <div class="bg-white dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700 px-4 py-3 sm:px-6">
         <div class="flex items-center justify-between">

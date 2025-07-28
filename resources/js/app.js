@@ -1,5 +1,6 @@
 import './bootstrap';
 import './flashmessage';
+import './pwa-camera-lifecycle';
 
 // Alpine.js Theme Store
 document.addEventListener('alpine:init', () => {
