@@ -563,6 +563,7 @@ function createScannerStore() {
     /**
      * Cleanup function for page unload - releases camera hardware
      * FIX 1: Now properly removes event listeners
+     * LIVEWIRE NAVIGATE FIX: Now resets isInitialized flag for re-initialization
      */
     function cleanup() {
         console.log('Scanner cleanup triggered');
@@ -581,7 +582,11 @@ function createScannerStore() {
             stopScanning();
         }
 
-        console.log('Lifecycle event listeners removed');
+        // LIVEWIRE NAVIGATE FIX: Reset initialization flag so scanner can re-init
+        // after navigating away and back via wire:navigate
+        isInitialized = false;
+
+        console.log('Scanner cleanup complete, ready for re-initialization');
     }
 
     // Register cleanup on page unload/refresh - CRITICAL for proper camera release
@@ -600,6 +605,25 @@ function createScannerStore() {
     if (screen.orientation) {
         screen.orientation.addEventListener('change', handleOrientationChange);
     }
+
+    // LIVEWIRE NAVIGATE FIX: Handle SPA-style navigation with wire:navigate
+    // These events fire instead of beforeunload/pagehide during Livewire navigation
+    document.addEventListener('livewire:navigating', () => {
+        // Called BEFORE navigation - cleanup if scanner was initialized
+        if (isInitialized) {
+            console.log('Livewire navigating away - cleaning up scanner');
+            cleanup();
+        }
+    });
+
+    document.addEventListener('livewire:navigated', () => {
+        // Called AFTER navigation completes - check if we need to init
+        const video = document.getElementById('video');
+        if (video && !isInitialized) {
+            console.log('Livewire navigated to scanner page - initializing');
+            init();
+        }
+    });
 
     // Public API exposed to Alpine
     return {
