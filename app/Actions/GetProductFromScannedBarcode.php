@@ -6,19 +6,12 @@ use App\Models\Product;
 
 class GetProductFromScannedBarcode
 {
-    protected string $barcode;
-
-    public function __construct($barcode)
-    {
-        $this->barcode = (string) $barcode;
-    }
-
-    public function handle()
+    public function handle(string $barcode): ?Product
     {
         // Search for product by checking all barcode fields
-        $product = Product::where('barcode', $this->barcode)
-            ->orWhere('barcode_2', $this->barcode)
-            ->orWhere('barcode_3', $this->barcode)
+        $product = Product::where('barcode', $barcode)
+            ->orWhere('barcode_2', $barcode)
+            ->orWhere('barcode_3', $barcode)
             ->first();
 
         return $product;

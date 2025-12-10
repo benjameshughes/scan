@@ -12,15 +12,34 @@ document.addEventListener('alpine:init', () => {
         autoStarted: false,
         isInitialized: false,
 
-        // Initialize camera lifecycle management (only on scanner pages)
+        // Initialize camera lifecycle management (only on legacy scanner pages)
         init() {
-            // Only run on scanner pages
+            // Only run on scanner pages with video element
             if (!document.getElementById('video')) {
                 console.log('PWA Camera Store: Not a scanner page, skipping');
                 return;
             }
 
-            console.log('PWA Camera Store: Initializing on scanner page');
+            // Check for refactored scanner using multiple detection methods
+            // 1. data-scanner-refactored attribute (most reliable - already in DOM)
+            const hasRefactoredMarker = document.querySelector('[data-scanner-refactored]') !== null;
+
+            // 2. Check for scanner-page script (handles Vite hashed filenames like scanner-page-ABC123.js)
+            const hasRefactoredScript = document.querySelector('script[src*="scanner-page"]') !== null;
+
+            // 3. Check if the scanner Alpine store already exists (created by scanner-page.js)
+            const hasScannerStore = window.Alpine && Alpine.store('scanner');
+
+            if (hasRefactoredMarker || hasRefactoredScript || hasScannerStore) {
+                console.log('PWA Camera Store: Refactored scanner detected, skipping (scanner-page.js handles lifecycle)', {
+                    marker: hasRefactoredMarker,
+                    script: hasRefactoredScript,
+                    store: !!hasScannerStore
+                });
+                return;
+            }
+
+            console.log('PWA Camera Store: Initializing on legacy scanner page');
             this.isInitialized = true;
 
             // Auto-start camera after Livewire loads

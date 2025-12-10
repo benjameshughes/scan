@@ -11,8 +11,8 @@ describe('GetProductFromScannedBarcode Action', function () {
             'barcode' => '1234567890123',
         ]);
 
-        $action = new GetProductFromScannedBarcode($product->barcode);
-        $result = $action->handle();
+        $action = new GetProductFromScannedBarcode;
+        $result = $action->handle($product->barcode);
 
         expect($result)->not->toBeNull();
         expect($result->id)->toBe($product->id);
@@ -26,8 +26,8 @@ describe('GetProductFromScannedBarcode Action', function () {
             'barcode_2' => '1234567890123',
         ]);
 
-        $action = new GetProductFromScannedBarcode('1234567890123');
-        $result = $action->handle();
+        $action = new GetProductFromScannedBarcode;
+        $result = $action->handle('1234567890123');
 
         expect($result)->not->toBeNull();
         expect($result->id)->toBe($product->id);
@@ -42,8 +42,8 @@ describe('GetProductFromScannedBarcode Action', function () {
             'barcode_3' => '1234567890123',
         ]);
 
-        $action = new GetProductFromScannedBarcode('1234567890123');
-        $result = $action->handle();
+        $action = new GetProductFromScannedBarcode;
+        $result = $action->handle('1234567890123');
 
         expect($result)->not->toBeNull();
         expect($result->id)->toBe($product->id);
@@ -57,8 +57,8 @@ describe('GetProductFromScannedBarcode Action', function () {
             'barcode_3' => '3333333333333',
         ]);
 
-        $action = new GetProductFromScannedBarcode('9999999999999');
-        $result = $action->handle();
+        $action = new GetProductFromScannedBarcode;
+        $result = $action->handle('9999999999999');
 
         expect($result)->toBeNull();
     });
@@ -76,8 +76,8 @@ describe('GetProductFromScannedBarcode Action', function () {
             'created_at' => now(),
         ]);
 
-        $action = new GetProductFromScannedBarcode('1234567890123');
-        $result = $action->handle();
+        $action = new GetProductFromScannedBarcode;
+        $result = $action->handle('1234567890123');
 
         expect($result)->not->toBeNull();
         // Should return one of the products (database will determine which)
@@ -90,8 +90,8 @@ describe('GetProductFromScannedBarcode Action', function () {
             'barcode' => '1234567890123',
         ]);
 
-        $action = new GetProductFromScannedBarcode('1234567890123');
-        $result = $action->handle();
+        $action = new GetProductFromScannedBarcode;
+        $result = $action->handle('1234567890123');
 
         expect($result)->not->toBeNull();
         expect($result->id)->toBe($product->id);
@@ -103,8 +103,8 @@ describe('GetProductFromScannedBarcode Action', function () {
             'barcode' => '1234567890123',
         ]);
 
-        $action = new GetProductFromScannedBarcode(1234567890123);
-        $result = $action->handle();
+        $action = new GetProductFromScannedBarcode;
+        $result = $action->handle('1234567890123');
 
         expect($result)->not->toBeNull();
         expect($result->id)->toBe($product->id);
@@ -116,8 +116,8 @@ describe('GetProductFromScannedBarcode Action', function () {
             'barcode' => '1234567890123',
         ]);
 
-        $action = new GetProductFromScannedBarcode('1234567890123');
-        $result = $action->handle();
+        $action = new GetProductFromScannedBarcode;
+        $result = $action->handle('1234567890123');
 
         expect($result)->not->toBeNull();
         expect($result->id)->toBe($product->id);
@@ -131,8 +131,8 @@ describe('GetProductFromScannedBarcode Action', function () {
         ]);
 
         // Note: This test depends on how the Scan model relationship handles the barcode
-        $action = new GetProductFromScannedBarcode('1234567890123');
-        $result = $action->handle();
+        $action = new GetProductFromScannedBarcode;
+        $result = $action->handle('1234567890123');
 
         expect($result)->not->toBeNull();
         expect($result->id)->toBe($product->id);
@@ -152,8 +152,8 @@ describe('GetProductFromScannedBarcode Action', function () {
             'barcode' => '1234567890123',
         ]);
 
-        $action = new GetProductFromScannedBarcode('1234567890123');
-        $result = $action->handle();
+        $action = new GetProductFromScannedBarcode;
+        $result = $action->handle('1234567890123');
 
         expect($result)->not->toBeNull();
         // Should find one of them, but the exact behavior depends on the database query order

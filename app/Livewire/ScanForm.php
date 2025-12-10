@@ -49,7 +49,7 @@ class ScanForm extends Component
         $this->barcodeScanned = true;
 
         if ($this->validate()) {
-            $product = (new GetProductFromScannedBarcode($this->barcode))->handle();
+            $product = app(GetProductFromScannedBarcode::class)->handle($this->barcode);
             $this->successMessage = $product ? $product->name : 'No Product Found With That Barcode';
             $this->showSuccessMessage = true;
         }

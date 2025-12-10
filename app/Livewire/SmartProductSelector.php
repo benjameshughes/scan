@@ -66,7 +66,7 @@ class SmartProductSelector extends Component
 
         // If search looks like a barcode, try barcode lookup
         if (strlen($this->search) >= 8 && is_numeric($this->search)) {
-            $barcodeProduct = (new GetProductFromScannedBarcode($this->search))->handle();
+            $barcodeProduct = app(GetProductFromScannedBarcode::class)->handle($this->search);
             if ($barcodeProduct && ! $this->searchResults->contains('id', $barcodeProduct->id)) {
                 $this->searchResults->prepend($barcodeProduct);
             }
@@ -130,7 +130,7 @@ class SmartProductSelector extends Component
 
     public function processBarcode($barcode)
     {
-        $product = (new GetProductFromScannedBarcode($barcode))->handle();
+        $product = app(GetProductFromScannedBarcode::class)->handle($barcode);
 
         if ($product) {
             $this->selectProduct($product->id);

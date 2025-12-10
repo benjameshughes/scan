@@ -34,7 +34,7 @@ new class extends Component
                         {{ __('Dashboard') }}
                         <livewire:notification-badge/>
                     </x-nav-link>
-                    <x-nav-link :href="route('scan.create')" :active="request()->routeIs('scan.create')" wire:navigate>
+                    <x-nav-link :href="route('scanner.refactored')" :active="request()->routeIs('scanner.refactored')" wire:navigate>
                         {{ __('Scan') }}
                     </x-nav-link>
                     <x-nav-link :href="route('scans.index')" :active="request()->routeIs('scans.index')" wire:navigate>
@@ -129,7 +129,7 @@ new class extends Component
                 {{ __('Dashboard') }}
                 <livewire:notification-badge/>
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('scan.create')" :active="request()->routeIs('scan.create')"
+            <x-responsive-nav-link :href="route('scanner.refactored')" :active="request()->routeIs('scanner.refactored')"
                                    wire:navigate>
                 {{ __('Scanner') }}
             </x-responsive-nav-link>

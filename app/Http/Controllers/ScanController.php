@@ -5,7 +5,10 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreScanRequest;
 use App\Http\Requests\UpdateScanRequest;
 use App\Models\Scan;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+
+use function class_exists;
 
 class ScanController extends Controller
 {
@@ -25,10 +28,9 @@ class ScanController extends Controller
      */
     public function create(): View
     {
-        //        $this->authorize('create', Scan::class);
-
-        // Render the view
-        return view('scan.index');
+        // $this->authorize('create', Scan::class);
+        // Redirect to refactored scanner route (feature-gated)
+        return redirect()->route('scanner.refactored');
     }
 
     /**
@@ -83,12 +85,24 @@ class ScanController extends Controller
     }
 
     /**
-     * Show the scan form for authenticated users
+     * Show the scan form for authenticated users.
+     * Shows refactored scanner if feature flag is active, otherwise legacy scanner.
      */
     public function scan()
     {
         $this->authorize('viewAny', Scan::class);
 
+        // Check if Pennant feature flag is active for this user
+        $useRefactored = false;
+        if (class_exists(\Laravel\Pennant\Feature::class)) {
+            $useRefactored = \Laravel\Pennant\Feature::for(Auth::user())->active('scanner_refactor');
+        }
+
+        if ($useRefactored) {
+            return view('scanner-refactored');
+        }
+
+        // Default to legacy scanner
         return view('scan.index');
     }
 }

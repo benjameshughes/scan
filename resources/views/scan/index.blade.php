@@ -1,4 +1,4 @@
 <x-scan-layout>
     <livewire:product-scanner/>
-    @vite('resources/js/product-scanner.js')
+    @vite('resources/js/scanner-page.js')
 </x-scan-layout>

@@ -88,8 +88,8 @@ document.addEventListener('alpine:init', () => {
     });
 });
 
-// Register Service Worker for PWA
-if ('serviceWorker' in navigator) {
+// Register Service Worker for PWA (production only)
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js')
             .then(registration => {

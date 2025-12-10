@@ -45,7 +45,7 @@ class ProductScanner extends Component
     public bool $triggerVibration = false;
 
     public bool $scanAction = false;
-    
+
     public bool $autoSubmitEnabled = false;
 
     public ?Product $product = null;
@@ -90,7 +90,7 @@ class ProductScanner extends Component
 
         $this->loadingCamera = false; // Start in "Ready to Scan" state
         $this->isScanning = false;
-        
+
         // Initialize user settings
         $userSettings = auth()->user()->settings;
         $this->autoSubmitEnabled = $userSettings['auto_submit'] ?? false;
@@ -118,7 +118,7 @@ class ProductScanner extends Component
 
             // Validate barcode and find product
             $this->validateOnly('barcode');
-            $this->product = new GetProductFromScannedBarcode($this->barcode)->handle();
+            $this->product = app(GetProductFromScannedBarcode::class)->handle($this->barcode);
 
             if ($this->product) {
                 // Product found - set up for refill workflow
@@ -151,7 +151,7 @@ class ProductScanner extends Component
             // Validate just the barcode field with prefix check (no required rule needed here)
             try {
                 $this->validateOnly('barcode');
-                $this->product = new GetProductFromScannedBarcode($this->barcode)->handle();
+                $this->product = app(GetProductFromScannedBarcode::class)->handle($this->barcode);
 
                 // Valid barcode - allow submission regardless of whether product is found
                 $this->barcodeScanned = true;
@@ -160,10 +160,10 @@ class ProductScanner extends Component
 
                 // Set sound and vibration flags for manual entry if product found (check user settings)
                 $userSettings = auth()->user()->settings;
-                $this->playSuccessSound = ($userSettings['scan_sound'] ?? true) && !!$this->product;
-                
+                $this->playSuccessSound = ($userSettings['scan_sound'] ?? true) && (bool) $this->product;
+
                 $vibrationPattern = VibrationPattern::fromValue($userSettings['vibration_pattern'] ?? 'medium');
-                $this->triggerVibration = $vibrationPattern->isEnabled() && !!$this->product;
+                $this->triggerVibration = $vibrationPattern->isEnabled() && (bool) $this->product;
             } catch (\Illuminate\Validation\ValidationException $e) {
                 // Invalid barcode - keep scanning, don't switch view
                 $this->barcodeScanned = false;
@@ -261,15 +261,15 @@ class ProductScanner extends Component
 
         try {
             $this->validateOnly('barcode');
-            $this->product = new GetProductFromScannedBarcode($this->barcode)->handle();
-            
+            $this->product = app(GetProductFromScannedBarcode::class)->handle($this->barcode);
+
             // Play success sound and trigger vibration when product is found (check user settings)
             $userSettings = auth()->user()->settings;
-            $this->playSuccessSound = ($userSettings['scan_sound'] ?? true) && !!$this->product;
-            
+            $this->playSuccessSound = ($userSettings['scan_sound'] ?? true) && (bool) $this->product;
+
             $vibrationPattern = VibrationPattern::fromValue($userSettings['vibration_pattern'] ?? 'medium');
-            $this->triggerVibration = $vibrationPattern->isEnabled() && !!$this->product;
-            
+            $this->triggerVibration = $vibrationPattern->isEnabled() && (bool) $this->product;
+
             // Auto-submit if enabled and product found (future feature)
             if ($this->autoSubmitEnabled && $this->product) {
                 $this->handleAutoSubmit();
@@ -399,11 +399,11 @@ class ProductScanner extends Component
         $this->isEmailRefill = false;
         $this->playSuccessSound = false;
         $this->triggerVibration = false;
-        
+
         // Reset camera state to initial "Ready to Scan" state
         $this->loadingCamera = false;
         $this->isScanning = false;
-        
+
         $this->resetRefillForm();
         $this->resetValidation();
     }
@@ -435,10 +435,10 @@ class ProductScanner extends Component
     {
         $emptyBayDTO = new EmptyBayDTO($this->barcode);
         EmptyBayJob::dispatch($emptyBayDTO);
-        
+
         // Dispatch success message and reset form to stage one
         $this->dispatch('empty-bay-submitted');
-        
+
         $this->resetScan();
     }
 
@@ -693,17 +693,17 @@ class ProductScanner extends Component
         // 3. Call the save() method automatically
         // 4. Show a brief confirmation message
         // 5. Auto-resume scanning for next item
-        
+
         // For now, this is just a placeholder structure
         // When implementing, consider:
         // - User feedback (brief notification that scan was auto-submitted)
         // - Error handling for failed auto-submissions
         // - Option to undo last auto-submission
         // - Integration with sound feedback
-        
+
         \Log::info('Auto-submit triggered', [
             'barcode' => $this->barcode,
-            'product_found' => !!$this->product,
+            'product_found' => (bool) $this->product,
             'user_id' => auth()->id(),
         ]);
     }
