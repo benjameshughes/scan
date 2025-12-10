@@ -43,29 +43,6 @@
         @endif
     </div>
 
-    {{-- Quick Actions --}}
-    @if (!$barcodeScanned && !$barcode)
-        <div class="grid grid-cols-2 gap-3">
-            <button 
-                type="button"
-                class="flex items-center justify-center space-x-2 px-4 py-3 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-zinc-900 dark:text-zinc-100 rounded-md transition-colors"
-                onclick="document.getElementById('barcode-input').focus()"
-            >
-                <flux:icon.pencil class="w-4 h-4" />
-                <span class="text-sm">Type Barcode</span>
-            </button>
-
-            <button 
-                type="button"
-                class="flex items-center justify-center space-x-2 px-4 py-3 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800 text-blue-900 dark:text-blue-100 rounded-md transition-colors"
-                onclick="navigator.clipboard.readText().then(text => { if (text) @this.set('barcode', text.trim()) })"
-            >
-                <flux:icon.clipboard class="w-4 h-4" />
-                <span class="text-sm">Paste</span>
-            </button>
-        </div>
-    @endif
-
     {{-- Clear Barcode --}}
     @if ($barcode)
         <div class="flex justify-center">
