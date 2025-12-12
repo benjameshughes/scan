@@ -53,7 +53,7 @@ class PrepareRefillFormAction
         }
 
         try {
-            // Get available locations using the service
+            // Get available locations (with stock) using the service
             $locationResult = $this->locationManager->prepareRefillLocations($product);
 
             if (! $locationResult['success']) {
@@ -67,14 +67,21 @@ class PrepareRefillFormAction
                     'error' => $locationResult['error'],
                     'showRefillForm' => false,
                     'availableLocations' => [],
+                    'allLocations' => [],
                     'selectedLocationId' => '',
+                    'toLocationId' => config('linnworks.default_location_id'),
                     'isProcessingRefill' => false,
                 ];
             }
 
+            // Get all locations (including zero stock) for "To" dropdown
+            $allLocationsResult = $this->locationManager->getAllLocations($product);
+            $allLocations = $allLocationsResult['success'] ? $allLocationsResult['locations'] : [];
+
             Log::info('Refill form prepared successfully', [
                 'product_sku' => $product->sku,
-                'location_count' => count($locationResult['locations']),
+                'available_location_count' => count($locationResult['locations']),
+                'all_location_count' => count($allLocations),
                 'auto_selected' => $locationResult['selectedLocationId'],
             ]);
 
@@ -83,7 +90,9 @@ class PrepareRefillFormAction
                 'error' => null,
                 'showRefillForm' => true,
                 'availableLocations' => $locationResult['locations'],
+                'allLocations' => $allLocations,
                 'selectedLocationId' => $locationResult['selectedLocationId'],
+                'toLocationId' => config('linnworks.default_location_id'),
                 'isProcessingRefill' => false,
             ];
 
@@ -218,5 +227,49 @@ class PrepareRefillFormAction
             'refillError' => '',
             'refillSuccess' => '',
         ];
+    }
+
+    /**
+     * Filter "From" locations by search term (only locations with stock > 0)
+     */
+    public function filterLocationsBySearch(array $locations, string $searchTerm): array
+    {
+        if (empty($searchTerm)) {
+            return $this->locationManager->getSmartLocationSelectorData($locations)->toArray();
+        }
+
+        $search = strtolower($searchTerm);
+
+        return $this->locationManager->getSmartLocationSelectorData($locations)
+            ->filter(function ($location) use ($search) {
+                $locationName = strtolower($location['LocationName'] ?? '');
+                $locationId = strtolower($location['StockLocationId'] ?? '');
+
+                return str_contains($locationName, $search) || str_contains($locationId, $search);
+            })
+            ->values()
+            ->toArray();
+    }
+
+    /**
+     * Filter "To" locations by search term (ALL locations regardless of stock)
+     */
+    public function filterAllLocationsBySearch(array $locations, string $searchTerm): array
+    {
+        if (empty($searchTerm)) {
+            return $this->locationManager->getAllLocationSelectorData($locations)->toArray();
+        }
+
+        $search = strtolower($searchTerm);
+
+        return $this->locationManager->getAllLocationSelectorData($locations)
+            ->filter(function ($location) use ($search) {
+                $locationName = strtolower($location['LocationName'] ?? '');
+                $locationId = strtolower($location['StockLocationId'] ?? '');
+
+                return str_contains($locationName, $search) || str_contains($locationId, $search);
+            })
+            ->values()
+            ->toArray();
     }
 }

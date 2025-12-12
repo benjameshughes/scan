@@ -22,7 +22,8 @@ class ProcessRefillSubmissionAction
         Product $product,
         string $selectedLocationId,
         int $refillQuantity,
-        User $user
+        User $user,
+        ?string $toLocationId = null
     ): array {
         Log::info('Processing refill submission', [
             'product_sku' => $product->sku,
@@ -33,7 +34,10 @@ class ProcessRefillSubmissionAction
 
         try {
             // Validate input data
-            $this->validateRefillData($selectedLocationId, $refillQuantity);
+            $this->validateRefillData($selectedLocationId, $refillQuantity, $toLocationId);
+
+            // Determine the destination location
+            $destinationLocationId = $toLocationId ?? config('linnworks.default_location_id');
 
             // Execute the stock transfer
             $result = $this->executeTransferAction->handle(
@@ -42,6 +46,7 @@ class ProcessRefillSubmissionAction
                 quantity: $refillQuantity,
                 operationType: 'refill',
                 fromLocationId: $selectedLocationId,
+                toLocationId: $destinationLocationId,
                 autoSelectSource: false, // User already selected source
                 additionalMetadata: [
                     'refilled_via_scanner' => true,
@@ -94,19 +99,33 @@ class ProcessRefillSubmissionAction
     /**
      * Validate refill submission data
      */
-    private function validateRefillData(string $selectedLocationId, int $refillQuantity): void
+    private function validateRefillData(string $selectedLocationId, int $refillQuantity, ?string $toLocationId = null): void
     {
-        $validator = Validator::make([
-            'selectedLocationId' => $selectedLocationId,
-            'refillQuantity' => $refillQuantity,
-        ], [
+        $rules = [
             'selectedLocationId' => 'required|string',
             'refillQuantity' => 'required|integer|min:1',
-        ], [
+        ];
+
+        $messages = [
             'selectedLocationId.required' => 'Please select a location to transfer from.',
             'refillQuantity.required' => 'Please enter a quantity to transfer.',
             'refillQuantity.min' => 'Quantity must be at least 1.',
-        ]);
+        ];
+
+        $data = [
+            'selectedLocationId' => $selectedLocationId,
+            'refillQuantity' => $refillQuantity,
+        ];
+
+        // Add toLocationId validation if provided
+        if ($toLocationId !== null) {
+            $rules['toLocationId'] = 'required|string|different:selectedLocationId';
+            $messages['toLocationId.required'] = 'Please select a location to transfer to.';
+            $messages['toLocationId.different'] = 'The from and to locations must be different.';
+            $data['toLocationId'] = $toLocationId;
+        }
+
+        $validator = Validator::make($data, $rules, $messages);
 
         if ($validator->fails()) {
             throw new ValidationException($validator);

@@ -3,7 +3,6 @@
 namespace App\Livewire\Scanner;
 
 use App\Actions\Scanner\AutoSubmitScanAction;
-use App\Actions\Scanner\HandleEmailRefillAction;
 use App\Actions\Scanner\ProcessBarcodeAction;
 use App\Actions\Scanner\ResetContext;
 use App\Actions\Scanner\ResetScanStateAction;
@@ -36,9 +35,6 @@ class ProductScanner extends Component
 
     public ?Product $product = null;
 
-    // Email workflow state
-    public bool $isEmailRefill = false;
-
     // Child component visibility state
     public bool $showRefillForm = false;
 
@@ -53,11 +49,6 @@ class ProductScanner extends Component
     private function resetScanStateAction(): ResetScanStateAction
     {
         return app(ResetScanStateAction::class);
-    }
-
-    private function handleEmailRefillAction(): HandleEmailRefillAction
-    {
-        return app(HandleEmailRefillAction::class);
     }
 
     private function cameraManagerService(): CameraManagerService
@@ -98,29 +89,6 @@ class ProductScanner extends Component
         // Load user settings for auto-submit
         $userSettings = auth()->user()->settings;
         $this->autoSubmitEnabled = $userSettings['auto_submit'] ?? false;
-
-        // Handle direct email navigation to refill bay
-        $action = request('action');
-        $barcodeParam = request('barcode');
-
-        if ($action === 'refill' && $barcodeParam) {
-            $this->handleEmailRefillRequest($barcodeParam);
-        }
-    }
-
-    /**
-     * Handle direct refill request from email notification
-     */
-    private function handleEmailRefillRequest(string $barcodeParam): void
-    {
-        $result = $this->handleEmailRefillAction()->handle($barcodeParam, auth()->user());
-
-        if ($result['success']) {
-            $this->applyStateArray($result);
-        } else {
-            $this->cameraError = $result['error'];
-            $this->applyStateArray($result);
-        }
     }
 
     // Camera event handlers - delegate to service
@@ -346,13 +314,6 @@ class ProductScanner extends Component
     public function resetVibrationFlag(): void
     {
         // This will be handled by child components
-    }
-
-    // Email workflow handlers
-    public function resetScan(): void
-    {
-        $emailReset = $this->handleEmailRefillAction()->resetEmailRefillState();
-        $this->applyStateArray($emailReset);
     }
 
     /**

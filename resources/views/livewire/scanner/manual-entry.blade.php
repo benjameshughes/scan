@@ -12,16 +12,8 @@
         </label>
         
         <div class="relative">
-{{--            <input --}}
-{{--                type="text" --}}
-{{--                id="barcode-input"--}}
-{{--                wire:model.live.debounce.3000ms="barcode"--}}
-{{--                placeholder="Enter or scan barcode"--}}
-{{--                class="w-full px-4 py-3 border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-gray-900 dark:text-gray-100 rounded-md focus:ring-blue-500 focus:border-blue-500 focus:ring-1"--}}
-{{--                wire:loading.attr="disabled"--}}
-{{--            />--}}
 
-            <flux:input type="text" id="barcode-input" wire:model.live.debounce.2000ms="barcode" placeholder="Enter or scan a barcode"></flux:input>
+            <flux:input type="text" id="barcode-input" wire:model.live.debounce="barcode" placeholder="Enter or scan a barcode"></flux:input>
             
             {{-- Loading Indicator --}}
             <div class="absolute right-3 top-1/2 transform -translate-y-1/2" wire:loading>

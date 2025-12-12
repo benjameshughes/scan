@@ -53,9 +53,6 @@ class ResetScanStateAction
             'playSuccessSound' => false,
             'triggerVibration' => false,
 
-            // Email workflow state
-            'isEmailRefill' => false,
-
             // Camera state (reset to initial "Ready to Scan")
             'loadingCamera' => false,
             'isScanning' => false,

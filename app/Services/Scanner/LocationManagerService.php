@@ -16,6 +16,56 @@ class LocationManagerService
     ) {}
 
     /**
+     * Get ALL system locations from database (not product-specific)
+     * Used for "To Location" dropdown in refill form
+     */
+    public function getAllLocations(Product $product): array
+    {
+        try {
+            Log::debug('Getting all system locations from database', ['product_sku' => $product->sku]);
+
+            // Get ALL active locations from the database (synced from Linnworks)
+            $locations = \App\Models\Location::where('is_active', true)
+                ->orderBy('name')
+                ->get();
+
+            if ($locations->isEmpty()) {
+                return [
+                    'success' => false,
+                    'error' => 'No locations found in the system.',
+                    'locations' => [],
+                ];
+            }
+
+            // Format locations for the refill form dropdowns
+            $formattedLocations = $this->formatDatabaseLocationsForView($locations);
+
+            Log::debug('All system locations retrieved from database', [
+                'product_sku' => $product->sku,
+                'location_count' => $locations->count(),
+            ]);
+
+            return [
+                'success' => true,
+                'error' => null,
+                'locations' => $formattedLocations,
+            ];
+
+        } catch (\Exception $e) {
+            Log::error('Failed to get all system locations from database', [
+                'product_sku' => $product->sku,
+                'error' => $e->getMessage(),
+            ]);
+
+            return [
+                'success' => false,
+                'error' => "Failed to load locations: {$e->getMessage()}",
+                'locations' => [],
+            ];
+        }
+    }
+
+    /**
      * Prepare refill form locations for a product
      */
     public function prepareRefillLocations(Product $product): array
@@ -70,7 +120,7 @@ class LocationManagerService
     }
 
     /**
-     * Get formatted locations for smart location selector
+     * Get formatted locations for smart location selector (filters to stock > 0)
      */
     public function getSmartLocationSelectorData(array $availableLocations): Collection
     {
@@ -90,6 +140,30 @@ class LocationManagerService
         })->filter(function ($location) {
             // Only include locations with stock and valid ID
             return ! empty($location['StockLocationId']) && $location['Quantity'] > 0;
+        })->values();
+    }
+
+    /**
+     * Get formatted locations for destination selector (includes ALL locations regardless of stock)
+     */
+    public function getAllLocationSelectorData(array $locations): Collection
+    {
+        if (empty($locations)) {
+            return collect([]);
+        }
+
+        return collect($locations)->map(function ($location) {
+            // Handle different API response structures
+            $locationData = $location['Location'] ?? $location;
+
+            return [
+                'StockLocationId' => $locationData['StockLocationId'] ?? $locationData['LocationId'] ?? $locationData['id'],
+                'LocationName' => $locationData['LocationName'] ?? $locationData['Name'] ?? 'Unknown Location',
+                'Quantity' => $location['Quantity'] ?? $location['Available'] ?? $location['Stock'] ?? 0,
+            ];
+        })->filter(function ($location) {
+            // Only require valid ID - include ALL locations regardless of stock
+            return ! empty($location['StockLocationId']);
         })->values();
     }
 
@@ -182,7 +256,7 @@ class LocationManagerService
     }
 
     /**
-     * Format locations for legacy view compatibility
+     * Format locations for legacy view compatibility (product-specific locations)
      */
     private function formatLocationsForLegacyView(array $locations): array
     {
@@ -197,6 +271,27 @@ class LocationManagerService
                 'Allocated' => $location['allocated'],
                 'OnOrder' => $location['on_order'],
                 'MinimumLevel' => $location['minimum_level'],
+            ];
+        })->toArray();
+    }
+
+    /**
+     * Format database locations for view compatibility
+     * Used for "To Location" dropdown - ALL system locations regardless of stock
+     */
+    private function formatDatabaseLocationsForView($locations): array
+    {
+        return $locations->map(function ($location) {
+            return [
+                'Location' => [
+                    'StockLocationId' => $location->location_id,
+                    'LocationName' => $location->display_name,
+                ],
+                'StockLevel' => 0, // System locations don't have product-specific stock
+                'Available' => 0,
+                'Allocated' => 0,
+                'OnOrder' => 0,
+                'MinimumLevel' => 0,
             ];
         })->toArray();
     }

@@ -162,9 +162,8 @@
 
         {{-- Refill Form --}}
         @if ($showRefillForm && $product)
-            <livewire:scanner.refill-form 
+            <livewire:scanner.refill-form
                 :product="$product"
-                :isEmailRefill="$isEmailRefill"
                 wire:key="refill-form"
             />
         @endif

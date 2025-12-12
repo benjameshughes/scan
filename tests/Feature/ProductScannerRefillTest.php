@@ -46,7 +46,6 @@ describe('ProductScanner Refill Functionality', function () {
         test('admin can access scanner with proper permissions', function () {
             Livewire::test(ProductScanner::class)
                 ->assertStatus(200)
-                ->assertSet('isEmailRefill', false)
                 ->assertSet('showRefillForm', false);
         });
 
@@ -228,20 +227,6 @@ describe('ProductScanner Refill Functionality', function () {
                 ->assertSet('selectedLocationId', '')
                 ->assertSet('refillQuantity', 1)
                 ->assertSet('refillError', '');
-        });
-
-        test('email refill workflow sets proper state', function () {
-            // Simulate email refill request
-            $this->mockLinnworksService
-                ->shouldReceive('getStockLocationsByProduct')
-                ->andReturn([]);
-
-            $component = Livewire::test(ProductScanner::class)
-                ->set('isEmailRefill', true)
-                ->set('barcode', $this->product->barcode)
-                ->set('product', $this->product);
-
-            expect($component->get('isEmailRefill'))->toBeTrue();
         });
     });
 
