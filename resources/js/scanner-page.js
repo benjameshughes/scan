@@ -309,6 +309,12 @@ function createScannerStore() {
         try {
             console.log('Starting scanner with device:', selectedDeviceId);
 
+            // Ensure we have a fresh codeReader instance (required after controls.stop())
+            if (!codeReader) {
+                console.log('Creating new BrowserMultiFormatReader instance');
+                codeReader = new BrowserMultiFormatReader();
+            }
+
             // Use ZXing's decodeFromVideoDevice which returns controls object
             controls = await codeReader.decodeFromVideoDevice(
                 selectedDeviceId,
@@ -393,6 +399,9 @@ function createScannerStore() {
                 video.srcObject = null;
             }
 
+            // Reset codeReader for fresh start next time
+            codeReader = null;
+
             console.log('Camera hardware fully released');
 
         } catch (e) {
@@ -451,16 +460,17 @@ function createScannerStore() {
     /**
      * Handle barcode detection result
      */
-    function handleBarcodeResult(result) {
+    async function handleBarcodeResult(result) {
         console.log('Barcode detected:', result.text);
 
         // Immediate haptic feedback
         triggerVibration();
 
-        // Stop scanning (camera released cleanly)
-        stopScanning();
+        // Stop scanning FIRST and wait for hardware release
+        await stopScanning();
+        console.log('Camera hardware released after barcode detection');
 
-        // Send to Livewire
+        // Only dispatch to Livewire after camera is fully stopped
         window.Livewire?.dispatch('onBarcodeDetected', [result.text]);
     }
 

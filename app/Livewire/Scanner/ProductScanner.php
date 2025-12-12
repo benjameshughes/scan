@@ -221,8 +221,9 @@ class ProductScanner extends Component
             ? Product::find($barcodeData['productId'])
             : null;
 
-        // Stop camera when barcode is processed
+        // Stop camera hardware when barcode is processed
         $this->isScanning = false;
+        $this->dispatch('camera-state-changed', false);
     }
 
     #[On('scan-submitted')]

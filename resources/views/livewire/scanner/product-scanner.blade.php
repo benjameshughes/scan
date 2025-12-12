@@ -85,19 +85,25 @@
             {{-- Camera Controls --}}
             <div class="flex justify-around items-center mt-4">
                 {{-- Camera Toggle --}}
-                <button
-                    wire:click="$dispatch('camera-toggle-requested')"
-                    class="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
-                    wire:loading.attr="disabled"
+{{--                <button--}}
+{{--                    wire:click="$dispatch('camera-toggle-requested')"--}}
+{{--                    class="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"--}}
+{{--                    wire:loading.attr="disabled"--}}
+{{--                >--}}
+{{--                    @if ($isScanning)--}}
+{{--                        <flux:icon.pause class="w-4 h-4" />--}}
+{{--                        <span>Stop Camera</span>--}}
+{{--                    @else--}}
+{{--                        <flux:icon.play class="w-4 h-4" />--}}
+{{--                        <span>Start Camera</span>--}}
+{{--                    @endif--}}
+{{--                </button>--}}
+                <flux:button
+                        icon="{{$isScanning ? 'pause' : 'play'}}"
+                        wire:click="$dispatch('camera-toggle-requested')"
                 >
-                    @if ($isScanning)
-                        <flux:icon.pause class="w-4 h-4" />
-                        <span>Stop Camera</span>
-                    @else
-                        <flux:icon.play class="w-4 h-4" />
-                        <span>Start Camera</span>
-                    @endif
-                </button>
+                    {{$isScanning ? 'pause' : 'start'}}
+                </flux:button>
 
                 {{-- Torch Toggle --}}
                 @if ($torchSupported && $isScanning)
