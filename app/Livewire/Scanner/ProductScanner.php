@@ -138,6 +138,15 @@ class ProductScanner extends Component
         $this->applyCameraState($cameraState);
     }
 
+    #[On('onCameraStopped')]
+    public function onCameraStopped(): void
+    {
+        // Update UI state when camera is stopped (e.g., app backgrounded)
+        $this->isScanning = false;
+        $this->loadingCamera = false;
+        $this->isTorchOn = false;
+    }
+
     #[On('onCameraError')]
     public function onCameraError(string $error): void
     {
