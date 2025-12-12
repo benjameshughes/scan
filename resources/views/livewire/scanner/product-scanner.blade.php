@@ -1,5 +1,5 @@
 <div
-    class="bg-white dark:bg-zinc-800 shadow-lg rounded-lg border border-zinc-200 dark:border-zinc-700"
+    class=""
     x-data
     x-init="$nextTick(() => $store.scanner.init())"
     @visibilitychange.window="$store.scanner.handleVisibilityChange()"
@@ -16,8 +16,15 @@
         }
     "
 >
+    {{-- Header --}}
+{{--    <div class="flex justify-around mb-6">--}}
+{{--        <div>--}}
+{{--            --}}{{--            <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Product Scanner</h2>--}}
+{{--            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Scan or enter product barcodes</p>--}}
+{{--        </div>--}}
+{{--    </div>--}}
     {{-- Main Content --}}
-    <div class="p-6 space-y-6">
+    <div class="py-6 pt-0 space-y-6">
         {{-- Camera Section - hidden class just hides visually, video stays in DOM for ZXing --}}
         <div class="{{ $barcodeScanned ? 'hidden' : '' }}">
             {{-- Camera View Container --}}
@@ -35,7 +42,7 @@
                 @if ($isScanning && !$barcodeScanned)
                     <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
                         <div class="relative">
-                            <div class="w-64 h-40 border-2 border-green-500 rounded-lg"></div>
+                            <div class="w-3/4 h-40 border-2 border-green-500 rounded-lg"></div>
                             <div class="absolute inset-0 flex items-center justify-center">
                                 <div class="w-full h-0.5 bg-red-500 animate-pulse"></div>
                             </div>
@@ -56,7 +63,7 @@
                     <div class="absolute inset-0 bg-zinc-800 flex flex-col items-center justify-center">
                         <flux:icon.camera class="w-12 h-12 text-zinc-400 mb-4" />
                         <p class="text-white text-sm">Ready to Scan</p>
-                        <p class="text-zinc-400 text-xs mt-1">Camera starting...</p>
+                        <p class="text-zinc-400 text-xs mt-1">Camera is asleep</p>
                     </div>
                 @endif
 
@@ -76,7 +83,7 @@
             </div>
 
             {{-- Camera Controls --}}
-            <div class="flex justify-between items-center mt-4">
+            <div class="flex justify-around items-center mt-4">
                 {{-- Camera Toggle --}}
                 <button
                     wire:click="$dispatch('camera-toggle-requested')"
@@ -116,9 +123,9 @@
         @endif
 
         {{-- Product Information --}}
-        @if ($barcodeScanned && $product)
+        @if ($barcodeScanned)
             <livewire:scanner.product-info
-                :product="$product"
+                :productId="$product?->id"
                 :barcode="$barcode"
                 :barcodeScanned="$barcodeScanned"
                 wire:key="product-info"

@@ -78,8 +78,8 @@
                     >
                         <option value="">Select a location...</option>
                         @foreach ($this->smartLocationSelectorData as $location)
-                            <option value="{{ $location['id'] }}">
-                                {{ $location['display_name'] }} ({{ $location['available_stock'] }} available)
+                            <option value="{{ $location['StockLocationId'] }}">
+                                {{ $location['LocationName'] }} ({{ $location['Quantity'] }} available)
                             </option>
                         @endforeach
                     </select>

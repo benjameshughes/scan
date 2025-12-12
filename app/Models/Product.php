@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 
 class Product extends Model
 {
@@ -40,6 +41,24 @@ class Product extends Model
                     $q->orWhere('barcode', $this->barcode_3);
                 });
         });
+    }
+
+    public function scopeByBarcode(Builder $query, ?string $barcode): Builder
+    {
+        if (empty($barcode)) {
+            return $query;
+        }
+
+        return $query->where('barcode', $barcode)->orWhere('barcode_2', $barcode)->orWhere('barcode_3', $barcode);
+    }
+
+    public function getBarcodes(): array
+    {
+        return array_filter([
+            $this->barcode,
+            $this->barcode_2,
+            $this->barcode_3,
+        ]);
     }
 
     /**
