@@ -42,11 +42,31 @@
 
                 {{-- Scanning Overlay --}}
                 @if ($isScanning && !$barcodeScanned)
-                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <div class="relative">
-                            <div class="w-3/4 h-40 border-2 border-green-500 rounded-lg"></div>
-                            <div class="absolute inset-0 flex items-center justify-center">
-                                <div class="w-full h-0.5 bg-red-500 animate-pulse"></div>
+                    <div class="absolute inset-0 pointer-events-none">
+                        {{-- Scanning frame container --}}
+                        <div class="absolute inset-0 flex items-center justify-center p-[10%]">
+                            <div class="relative w-full h-full">
+                                {{-- Corner brackets - creates scanner frame effect --}}
+                                {{-- Top Left --}}
+                                <div class="absolute top-0 left-0 w-6 h-6 sm:w-8 sm:h-8 border-l-[3px] border-t-[3px] border-green-400 rounded-tl-md"></div>
+                                {{-- Top Right --}}
+                                <div class="absolute top-0 right-0 w-6 h-6 sm:w-8 sm:h-8 border-r-[3px] border-t-[3px] border-green-400 rounded-tr-md"></div>
+                                {{-- Bottom Left --}}
+                                <div class="absolute bottom-0 left-0 w-6 h-6 sm:w-8 sm:h-8 border-l-[3px] border-b-[3px] border-green-400 rounded-bl-md"></div>
+                                {{-- Bottom Right --}}
+                                <div class="absolute bottom-0 right-0 w-6 h-6 sm:w-8 sm:h-8 border-r-[3px] border-b-[3px] border-green-400 rounded-br-md"></div>
+
+                                {{-- Animated scan line --}}
+                                <div class="absolute inset-x-0 top-0 h-full overflow-hidden [container-type:size]">
+                                    <div class="w-full h-0.5 bg-gradient-to-r from-transparent via-red-500 to-transparent shadow-[0_0_8px_rgba(239,68,68,0.8)] animate-scan-line-full"></div>
+                                </div>
+
+                                {{-- Instruction text --}}
+                                <div class="absolute -bottom-6 sm:-bottom-8 left-0 right-0 text-center">
+                                    <p class="text-white text-xs font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                                        Align barcode within frame
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>

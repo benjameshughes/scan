@@ -418,4 +418,32 @@
     .dark [wire\:progress-bar] {
         background: linear-gradient(90deg, #60a5fa, #3b82f6, #2563eb);
     }
+
+    /* Scanner Overlay Animation - fixed height version */
+    .animate-scan-line {
+        animation: scan-line 2s ease-in-out infinite;
+    }
+
+    @keyframes scan-line {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(8rem);
+        }
+    }
+
+    /* Scanner Overlay Animation - full height responsive version */
+    .animate-scan-line-full {
+        animation: scan-line-full 2.5s ease-in-out infinite;
+    }
+
+    @keyframes scan-line-full {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(calc(100cqh - 2px));
+        }
+    }
 }
