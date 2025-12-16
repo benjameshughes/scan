@@ -151,6 +151,10 @@ class ProductScanner extends Component
             $this->product = $result->product;
             $this->isScanning = false;
 
+            // Close any open forms when new barcode is scanned
+            $this->showRefillForm = false;
+            $this->showEmptyBayNotification = false;
+
             // Trigger feedback if needed
             if ($result->shouldTriggerFeedback) {
                 $feedbackState = $this->userFeedbackService()->triggerScanFeedback(
@@ -188,6 +192,10 @@ class ProductScanner extends Component
         $this->product = isset($barcodeData['productId'])
             ? Product::find($barcodeData['productId'])
             : null;
+
+        // Close any open forms when new barcode is processed
+        $this->showRefillForm = false;
+        $this->showEmptyBayNotification = false;
 
         // Stop camera hardware when barcode is processed
         $this->isScanning = false;
@@ -381,6 +389,8 @@ class ProductScanner extends Component
         $this->barcodeScanned = false;
         $this->product = null;
         $this->cameraError = '';
+        $this->showRefillForm = false;
+        $this->showEmptyBayNotification = false;
         $this->resetValidation();
     }
 
