@@ -178,6 +178,7 @@ class ProductScanner extends Component
             }
         } else {
             $this->cameraError = $result->error;
+            $this->isTorchOn = false; // Reset torch state when error occurs
         }
     }
 
