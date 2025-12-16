@@ -684,6 +684,8 @@ window.triggerVibration = function(patternData) {
 
 // Global success sound function for Blade template compatibility
 window.playSuccessSound = function() {
-    // TODO: Implement success sound if needed
-    console.log('Success sound triggered');
+    const audio = new Audio('https://images.caecus.net/assets/sounds/ding.mp3');
+    audio.play().catch(err => {
+        console.warn('Could not play success sound:', err);
+    });
 };
