@@ -10,6 +10,7 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
+use phpDocumentor\Reflection\Types\Nullable;
 
 class RefillForm extends Component
 {
@@ -22,7 +23,7 @@ class RefillForm extends Component
     public string $toLocationId;
 
     #[Validate('required|integer|min:1')]
-    public int $refillQuantity = 1;
+    public ?int $refillQuantity = 0;
 
     public array $availableLocations = [];
 
@@ -217,6 +218,16 @@ class RefillForm extends Component
             $this->refillQuantity = $newQuantity;
             $this->resetValidation(['refillQuantity']);
         }
+    }
+
+    /**
+     * Add to refill quantity (for quick select buttons)
+     */
+    public function addRefillQuantity(int $quantity): void
+    {
+        $maxStock = $this->maxRefillStock;
+        $this->refillQuantity = min($this->refillQuantity + $quantity, $maxStock);
+        $this->resetValidation(['refillQuantity']);
     }
 
     /**

@@ -98,9 +98,25 @@
 
                     <flux:button.group>
                         <flux:button wire:click="decrementRefillQuantity" icon="minus" disabled="{{$this->refillQuantity <= 1}}" />
-                        <flux:input type="number" wire:model.live="refillQuantity" min="1" max="{{$this->maxRefillStock}}"/>
+                        <flux:input type="number" wire:model.live="refillQuantity" min="1" max="{{$this->maxRefillStock}}" clearable/>
                         <flux:button wire:click="incrementRefillQuantity" icon="plus" disabled="{{$this->refillQuantity >= $this->maxRefillStock}}"/>
                     </flux:button.group>
+
+                    {{-- Quick Quantity Buttons (additive) --}}
+                    <div class="flex flex-wrap gap-2">
+                        @foreach ([6, 12, 24, 36, 48, 60] as $qty)
+                            <flux:button
+                                size="sm"
+                                wire:click="addRefillQuantity({{ $qty }})"
+                                :disabled="$this->refillQuantity >= $this->maxRefillStock"
+                            >+{{ $qty }}</flux:button>
+                        @endforeach
+                        <flux:button
+                            size="sm"
+                            variant="primary"
+                            wire:click="$set('refillQuantity', {{ $this->maxRefillStock }})"
+                        >Max</flux:button>
+                    </div>
 
                     <flux:error name="refillQuantity"/>
                 </div>
