@@ -96,75 +96,24 @@
                         @endif
                     </label>
 
-                    <div class="flex items-center space-x-3">
-                        {{-- Decrement Button --}}
-                        <button
-                            type="button"
-                            wire:click="decrementRefillQuantity"
-                            class="flex items-center justify-center w-10 h-10 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-zinc-900 dark:text-zinc-100 rounded-md transition-colors"
-                            {{ $refillQuantity <= 1 ? 'disabled' : '' }}
-                        >
-                            <flux:icon.minus class="w-4 h-4" />
-                        </button>
+                    <flux:button.group>
+                        <flux:button wire:click="decrementRefillQuantity" icon="minus" disabled="{{$this->refillQuantity <= 1}}" />
+                        <flux:input type="number" wire:model.live="refillQuantity" min="1" max="{{$this->maxRefillStock}}"/>
+                        <flux:button wire:click="incrementRefillQuantity" icon="plus" disabled="{{$this->refillQuantity >= $this->maxRefillStock}}"/>
+                    </flux:button.group>
 
-                        {{-- Quantity Input --}}
-                        <div class="flex-1">
-                            <input
-                                type="number"
-                                wire:model.live="refillQuantity"
-                                min="1"
-                                max="{{ $this->maxRefillStock }}"
-                                class="w-full px-4 py-2 text-center border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-gray-900 dark:text-gray-100 rounded-md focus:ring-blue-500 focus:border-blue-500 focus:ring-1"
-                            />
-                        </div>
-
-                        {{-- Increment Button --}}
-                        <button
-                            type="button"
-                            wire:click="incrementRefillQuantity"
-                            class="flex items-center justify-center w-10 h-10 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-zinc-900 dark:text-zinc-100 rounded-md transition-colors"
-                            {{ $refillQuantity >= $this->maxRefillStock ? 'disabled' : '' }}
-                        >
-                            <flux:icon.plus class="w-4 h-4" />
-                        </button>
-                    </div>
-
-                    @error('refillQuantity')
-                        <p class="text-xs text-red-600 dark:text-red-400 mt-1 flex items-center">
-                            <flux:icon.exclamation-triangle class="w-3 h-3 mr-1" />
-                            {{ $message }}
-                        </p>
-                    @enderror
+                    <flux:error name="refillQuantity"/>
                 </div>
             @endif
 
             {{-- Submit Button --}}
-            <button
-                type="submit"
-                class="w-full flex items-center justify-center space-x-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-md font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                wire:loading.attr="disabled"
-                {{ !$fromLocationId || !$toLocationId || $refillQuantity < 1 ? 'disabled' : '' }}
-            >
-                <span wire:loading.remove>
-                    <flux:icon.arrow-up-tray class="w-4 h-4" />
-                </span>
-                <span wire:loading>
-                    <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                </span>
-                <span wire:loading.remove>Submit Refill</span>
-                <span wire:loading>Processing...</span>
-            </button>
+            <flux:button type="submit" icon="arrow-up-tray" variant="primary" class="w-full">Refill Bay</flux:button>
+
         </form>
     @endif
 
     {{-- Action Buttons --}}
     <div class="flex space-x-3 pt-4 border-t border-zinc-200 dark:border-zinc-700">
-        <button
-            wire:click="cancelRefill"
-            class="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-zinc-900 dark:text-zinc-100 rounded-md transition-colors"
-        >
-            <flux:icon.arrow-left class="w-4 h-4" />
-            <span>Back to Scanner</span>
-        </button>
+        <flux:button variant="ghost" wire:click="cancelRefill" icon="arrow-left">Product Details</flux:button>
     </div>
 </div>

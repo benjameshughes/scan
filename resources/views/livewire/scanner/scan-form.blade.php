@@ -40,18 +40,13 @@
         </div>
 
         {{-- Scan Action Toggle --}}
-        <div class="space-x-3">
-            <flux:callout icon="triangle-alert" variant="secondary" inline>
-                <flux:callout.heading>Increase Stock</flux:callout.heading>
-                <flux:callout.text>Ticking this box will <strong>increase</strong> the stock level instead of decreasing the default stock level</flux:callout.text>
-                <x-slot name="actions">
-                    <flux:checkbox
-                        id="scan-action"
-                        wire:model.live="form.scanAction"
-                    />
-                </x-slot>
-            </flux:callout>
-        </div>
+        <flux:callout icon="triangle-alert" variant="secondary" inline>
+            <flux:callout.heading>Increase Stock</flux:callout.heading>
+            <flux:callout.text>Tick to <strong>increase</strong> stock instead of decreasing</flux:callout.text>
+            <x-slot name="controls">
+                <flux:checkbox wire:model.live="form.scanAction" />
+            </x-slot>
+        </flux:callout>
 
         {{-- Form-level Error --}}
         @error('form')
