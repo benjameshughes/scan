@@ -45,7 +45,7 @@
         @endauth
         
         <div class="min-h-screen flex flex-col md:justify-center items-center bg-gray-100 dark:bg-zinc-900">
-            <div class="w-full max-h-screen sm:max-w-md bg-white dark:bg-zinc-800 shadow-md overflow-hidden sm:rounded-lg">
+            <div class="w-full max-h-screen sm:max-w-md overflow-hidden">
                 {{ $slot }}
             </div>
         </div>
