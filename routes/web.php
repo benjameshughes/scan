@@ -204,21 +204,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::prefix('admin')->name('admin.')->middleware('permission:manage products')->group(function () {
-        Route::get('sync-dashboard', function () {
-            return view('admin.sync-dashboard');
-        })->name('sync-dashboard');
-
-        Route::get('sync-queue', function () {
-            return view('admin.sync-queue');
-        })->name('sync-queue');
+        Route::get('sync', function () {
+            return view('admin.manual-sync');
+        })->name('manual-sync');
 
         Route::get('pending-updates', function () {
             return view('admin.pending-updates');
         })->name('pending-updates');
-
-        Route::get('manual-sync', function () {
-            return view('admin.manual-sync');
-        })->name('manual-sync');
     });
 
 });

@@ -57,9 +57,9 @@ new class extends Component
                         </x-nav-link>
                     @endcan
                     @can('manage products')
-                        <x-nav-link :href="route('admin.sync-dashboard')" :active="request()->routeIs('admin.sync-dashboard')"
+                        <x-nav-link :href="route('admin.manual-sync')" :active="request()->routeIs('admin.manual-sync')"
                                     wire:navigate>
-                            {{ __('Sync Dashboard') }}
+                            {{ __('Sync Products') }}
                         </x-nav-link>
                     @endcan
                 </div>
@@ -93,10 +93,8 @@ new class extends Component
                                 <flux:navmenu.item href="{{route('locations.manage')}}" icon="map-pin" wire:navigate>Manage Locations</flux:navmenu.item>
                                 @endcan
                                 @can('manage products')
-                                <flux:navmenu.item href="{{route('admin.sync-dashboard')}}" icon="chart-bar" wire:navigate>Sync Dashboard</flux:navmenu.item>
-                                <flux:navmenu.item href="{{route('admin.sync-queue')}}" icon="queue-list" wire:navigate>Sync Queue</flux:navmenu.item>
-                                <flux:navmenu.item href="{{route('admin.pending-updates')}}" icon="exclamation-triangle" wire:navigate>Sync Updates</flux:navmenu.item>
-                                <flux:navmenu.item href="{{route('admin.manual-sync')}}" icon="arrow-path" wire:navigate>Manual Sync</flux:navmenu.item>
+                                <flux:navmenu.item href="{{route('admin.manual-sync')}}" icon="arrow-path" wire:navigate>Sync Products</flux:navmenu.item>
+                                <flux:navmenu.item href="{{route('admin.pending-updates')}}" icon="exclamation-triangle" wire:navigate>Pending Updates</flux:navmenu.item>
                                 @endcan
                             </flux:menu.group>
                         @endcanany
@@ -153,9 +151,9 @@ new class extends Component
                 </x-responsive-nav-link>
             @endcan
             @can('manage products')
-                <x-responsive-nav-link :href="route('admin.sync-dashboard')" :active="request()->routeIs('admin.sync-dashboard')"
+                <x-responsive-nav-link :href="route('admin.manual-sync')" :active="request()->routeIs('admin.manual-sync')"
                                        wire:navigate>
-                    {{ __('Sync Dashboard') }}
+                    {{ __('Sync Products') }}
                 </x-responsive-nav-link>
             @endcan
         </div>

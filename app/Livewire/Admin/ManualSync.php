@@ -4,7 +4,6 @@ namespace App\Livewire\Admin;
 
 use App\Actions\ManualFullSyncAction;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 use Livewire\Component;
 
 class ManualSync extends Component
@@ -18,10 +17,6 @@ class ManualSync extends Component
     public $estimatedInfo = null;
 
     public $dryRun = false;
-
-    public $currentProgress = null;
-
-    public $sessionId = null;
 
     protected ManualFullSyncAction $syncAction;
 
@@ -64,29 +59,16 @@ class ManualSync extends Component
         $this->isRunning = true;
         $this->showResults = false;
         $this->syncStats = null;
-        $this->currentProgress = null;
-        $this->sessionId = Str::uuid()->toString();
-
-        // Force Livewire to update the frontend state immediately
-        $this->dispatch('$refresh');
-
-        // Dispatch event to start polling AFTER setting isRunning to true
-        Log::info('Dispatching sync-started event', ['session_id' => $this->sessionId, 'isRunning' => $this->isRunning]);
-        $this->dispatch('sync-started');
-
-        // Give the frontend a moment to start polling
-        usleep(100000); // 0.1 seconds
 
         try {
             Log::info('Manual sync initiated by user', [
                 'user_id' => auth()->id(),
                 'user_email' => auth()->user()->email,
                 'dry_run' => $this->dryRun,
-                'session_id' => $this->sessionId,
             ]);
 
-            // Execute the sync with session tracking
-            $this->syncStats = $this->syncAction->execute($this->dryRun, $this->sessionId);
+            // Execute the sync
+            $this->syncStats = $this->syncAction->execute($this->dryRun);
 
             $this->showResults = true;
 
@@ -104,7 +86,6 @@ class ManualSync extends Component
                 'user_id' => auth()->id(),
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
-                'session_id' => $this->sessionId,
             ]);
 
             session()->flash('error', 'Sync failed: '.$e->getMessage());
@@ -115,48 +96,6 @@ class ManualSync extends Component
             // Refresh estimated info after sync
             $this->loadEstimatedInfo();
         }
-    }
-
-    /**
-     * Get current progress for the running sync
-     */
-    public function getProgress()
-    {
-        Log::info('getProgress called', [
-            'session_id' => $this->sessionId,
-            'is_running' => $this->isRunning,
-        ]);
-
-        if (! $this->sessionId) {
-            Log::info('getProgress: No session ID');
-
-            return null;
-        }
-
-        $progress = $this->syncAction->getProgress($this->sessionId);
-
-        if ($progress) {
-            $this->currentProgress = [
-                'operation' => $progress->current_operation,
-                'stats' => $progress->stats,
-                'batch_info' => $progress->current_batch,
-                'status' => $progress->status,
-                'is_running' => $progress->isRunning(),
-                'progress_percentage' => $progress->getProgressPercentage(),
-            ];
-
-            // If sync completed, get final results
-            if ($progress->isCompleted() && $this->isRunning) {
-                $this->syncStats = $progress->stats;
-                $this->showResults = true;
-                $this->isRunning = false;
-            } elseif ($progress->isFailed() && $this->isRunning) {
-                $this->isRunning = false;
-                session()->flash('error', 'Sync failed: '.$progress->error_message);
-            }
-        }
-
-        return $this->currentProgress;
     }
 
     /**
