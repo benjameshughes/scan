@@ -28,7 +28,15 @@
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="font-sans antialiased" x-data x-init="$store.theme.init()" x-cloak>
+<body
+    class="font-sans antialiased"
+    x-data
+    x-init="$store.theme.init()"
+    x-cloak
+    @auth
+    data-user-theme="{{ auth()->user()->settings['theme_color'] ?? 'blue' }}"
+    @endauth
+>
 <div class="min-h-screen bg-zinc-50 dark:bg-zinc-900">
     @if(request()->routeIs('scan.*'))
         <!-- Scanner Layout -->

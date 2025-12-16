@@ -25,9 +25,9 @@ it('validates quantity and action', function () {
     Livewire::test(ScanForm::class, [
         'barcode' => $product->barcode,
         'product' => $product,
-    ])->set('quantity', 0)
+    ])->set('form.quantity', 0)
         ->call('save')
-        ->assertHasErrors(['quantity' => 'Quantity must be at least 1.']);
+        ->assertHasErrors(['form.quantity' => 'Quantity must be at least 1.']);
 });
 
 it('submits scan and dispatches event', function () {
@@ -53,8 +53,8 @@ it('submits scan and dispatches event', function () {
     Livewire::test(ScanForm::class, [
         'barcode' => $product->barcode,
         'product' => $product,
-    ])->set('quantity', 2)
-        ->set('scanAction', false)
+    ])->set('form.quantity', 2)
+        ->set('form.scanAction', false)
         ->call('save')
         ->assertDispatched('scan-submitted');
 });

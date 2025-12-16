@@ -24,22 +24,10 @@ document.addEventListener('alpine:init', () => {
 
         // Initialize theme from user settings or localStorage
         init() {
-            // Try to get user theme from DOM (passed from PHP in blade templates)
-            const themeElements = document.querySelectorAll('[x-data*="currentTheme"]');
-            let userTheme = null;
-            
-            // Extract theme from Alpine.js components that have currentTheme
-            if (themeElements.length > 0) {
-                const firstElement = themeElements[0];
-                const xDataAttr = firstElement.getAttribute('x-data');
-                const match = xDataAttr?.match(/currentTheme:\s*'([^']+)'/);
-                if (match) {
-                    userTheme = match[1];
-                }
-            }
-            
+            // Clean approach: read from data attribute on body (set by PHP/Blade)
+            const userTheme = document.body.dataset.userTheme || null;
             const stored = localStorage.getItem('stockscan.theme-color');
-            
+
             if (userTheme && this.colors.includes(userTheme)) {
                 // Prioritize database settings for logged-in users
                 this.current = userTheme;
@@ -49,8 +37,31 @@ document.addEventListener('alpine:init', () => {
                 // Fall back to localStorage for guests or if no user theme
                 this.current = stored;
             }
-            
+
             this.apply();
+            this.setupStorageListener();
+        },
+
+        // Cross-tab synchronization via storage events
+        setupStorageListener() {
+            window.addEventListener('storage', (event) => {
+                // Only handle our theme-color key
+                if (event.key !== 'stockscan.theme-color') return;
+
+                const newColor = event.newValue;
+
+                // Validate and apply if different
+                if (newColor && this.colors.includes(newColor) && newColor !== this.current) {
+                    console.log('Theme synced from another tab:', newColor);
+                    this.current = newColor;
+                    this.apply();
+
+                    // Dispatch event for components that need to know
+                    window.dispatchEvent(new CustomEvent('theme-color-changed', {
+                        detail: { color: newColor, source: 'storage-sync' }
+                    }));
+                }
+            });
         },
 
         // Apply theme color to DOM

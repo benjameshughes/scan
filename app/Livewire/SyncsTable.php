@@ -3,222 +3,191 @@
 namespace App\Livewire;
 
 use App\Models\Scan;
-use App\Tables\Columns\ActionsColumn;
-use App\Tables\Columns\BadgeColumn;
-use App\Tables\Columns\DateColumn;
-use App\Tables\Columns\TextColumn;
-use App\Tables\Table;
-use App\Tables\TableComponent;
+use Livewire\Attributes\Url;
+use Livewire\Component;
+use Livewire\WithPagination;
 
-class SyncsTable extends TableComponent
+class SyncsTable extends Component
 {
-    protected ?string $model = Scan::class;
+    use WithPagination;
 
-    protected array $searchable = ['barcode', 'sync_status'];
+    #[Url]
+    public string $search = '';
 
-    protected ?string $title = 'Scan History';
+    #[Url]
+    public string $sortField = 'created_at';
 
-    public function table(Table $table): Table
+    #[Url]
+    public string $sortDirection = 'desc';
+
+    // Filters
+    #[Url]
+    public string $syncStatus = '';
+
+    #[Url]
+    public string $errorType = '';
+
+    #[Url]
+    public string $submitted = '';
+
+    #[Url]
+    public string $action = '';
+
+    #[Url]
+    public ?string $dateFrom = null;
+
+    #[Url]
+    public ?string $dateTo = null;
+
+    // Bulk selection
+    public array $selected = [];
+
+    public bool $selectAll = false;
+
+    public function sort(string $field): void
     {
-        return parent::table($table)
-            ->crud(
-                createRoute: route('scans.create'),
-                editRoute: null,
-                viewRoute: 'scans.show',
-                deleteAction: null
-            )
-            ->columns([
-                TextColumn::make('barcode')->label('Barcode')->sortable()->searchable(),
-                TextColumn::make('quantity')->label('Quantity')->sortable(),
-                TextColumn::make('action')->label('Action')
-                    ->value(function (Scan $scan) {
-                        return ucfirst($scan->action ?? 'decrease');
-                    }),
-                BadgeColumn::make('submitted')->label('Submitted')
-                    ->colors([
-                        '1' => 'green',
-                        '0' => 'yellow',
-                    ])
-                    ->value(function (Scan $scan) {
-                        return $scan->submitted ? 'Submitted' : 'Not Submitted';
-                    }),
-                DateColumn::make('created_at')->label('Scan Date')->diffForHumans()->sortable(),
-                ActionsColumn::make('actions')->view('scans.show')->delete(),
-            ])
-            ->exportable(['csv', 'xlsx'])
-            ->filters([
-                [
-                    'key' => 'sync_status',
-                    'label' => 'Sync Status',
-                    'type' => 'select',
-                    'options' => [
-                        '' => 'All',
-                        'pending' => 'Pending',
-                        'synced' => 'Synced',
-                        'failed' => 'Failed',
-                    ],
-                    'default' => '',
-                    'apply' => function ($query, $value) {
-                        return $query->where('sync_status', $value);
-                    },
-                ],
-                [
-                    'key' => 'sync_error_type',
-                    'label' => 'Error Type',
-                    'type' => 'select',
-                    'options' => [
-                        '' => 'All',
-                        'network' => 'Network Error',
-                        'auth' => 'Authentication Error',
-                        'rate_limit' => 'Rate Limit',
-                        'product_not_found' => 'Product Not Found',
-                        'api_error' => 'API Error',
-                        'timeout' => 'Request Timeout',
-                        'validation' => 'Validation Error',
-                    ],
-                    'default' => '',
-                    'apply' => function ($query, $value) {
-                        return $query->where('sync_error_type', $value);
-                    },
-                ],
-                [
-                    'key' => 'multiple_failures',
-                    'label' => 'Multiple Failures',
-                    'type' => 'select',
-                    'options' => [
-                        '' => 'All',
-                        '1' => 'Has Multiple Failures',
-                    ],
-                    'default' => '',
-                    'apply' => function ($query, $value) {
-                        if ($value === '1') {
-                            return $query->where('sync_attempts', '>', 1)->where('sync_status', 'failed');
-                        }
-
-                        return $query;
-                    },
-                ],
-                [
-                    'key' => 'submitted',
-                    'label' => 'Submission Status',
-                    'type' => 'select',
-                    'options' => [
-                        '' => 'All',
-                        '1' => 'Submitted',
-                        '0' => 'Pending',
-                    ],
-                    'default' => '',
-                    'apply' => function ($query, $value) {
-                        return $query->where('submitted', $value);
-                    },
-                ],
-                [
-                    'key' => 'action',
-                    'label' => 'Action Type',
-                    'type' => 'select',
-                    'options' => [
-                        '' => 'All',
-                        'increase' => 'Increase',
-                        'decrease' => 'Decrease',
-                    ],
-                    'default' => '',
-                    'apply' => function ($query, $value) {
-                        return $query->where('action', $value);
-                    },
-                ],
-                [
-                    'key' => 'date_from',
-                    'label' => 'From Date',
-                    'type' => 'date',
-                    'default' => null,
-                    'apply' => function ($query, $value) {
-                        return $query->whereDate('created_at', '>=', $value);
-                    },
-                ],
-                [
-                    'key' => 'date_to',
-                    'label' => 'To Date',
-                    'type' => 'date',
-                    'default' => null,
-                    'apply' => function ($query, $value) {
-                        return $query->whereDate('created_at', '<=', $value);
-                    },
-                ],
-            ])
-            ->bulkActions([
-                [
-                    'name' => 'retry_sync',
-                    'label' => 'Retry Sync',
-                    'handle' => function (array $ids) {
-                        $scans = Scan::whereIn('id', $ids)->get();
-
-                        // Reset sync status and increment attempts for tracking
-                        foreach ($scans as $scan) {
-                            $scan->update([
-                                'sync_status' => 'pending',
-                                'sync_error_message' => null,
-                                'sync_error_type' => null,
-                            ]);
-                        }
-
-                        session()->flash('message', count($ids).' scans queued for retry.');
-                    },
-                ],
-                [
-                    'name' => 'retry_failed_only',
-                    'label' => 'Retry Failed Only',
-                    'handle' => function (array $ids) {
-                        $retryCount = Scan::whereIn('id', $ids)
-                            ->where('sync_status', 'failed')
-                            ->update([
-                                'sync_status' => 'pending',
-                                'sync_error_message' => null,
-                                'sync_error_type' => null,
-                            ]);
-
-                        session()->flash('message', $retryCount.' failed scans queued for retry.');
-                    },
-                ],
-                [
-                    'name' => 'mark_synced',
-                    'label' => 'Mark as Synced',
-                    'handle' => function (array $ids) {
-                        $updateCount = Scan::whereIn('id', $ids)->update([
-                            'sync_status' => 'synced',
-                            'synced_at' => now(),
-                            'sync_error_message' => null,
-                            'sync_error_type' => null,
-                        ]);
-
-                        session()->flash('message', $updateCount.' scans marked as synced.');
-                    },
-                ],
-                [
-                    'name' => 'clear_errors',
-                    'label' => 'Clear Error Info',
-                    'handle' => function (array $ids) {
-                        $clearCount = Scan::whereIn('id', $ids)->update([
-                            'sync_error_message' => null,
-                            'sync_error_type' => null,
-                        ]);
-
-                        session()->flash('message', 'Error information cleared for '.$clearCount.' scans.');
-                    },
-                ],
-                [
-                    'name' => 'delete',
-                    'label' => 'Delete Selected',
-                    'handle' => function (array $ids) {
-                        Scan::whereIn('id', $ids)->delete();
-                        session()->flash('message', count($ids).' scans deleted.');
-                    },
-                ],
-            ])
-            ->defaultSort('id', 'desc');
+        if ($this->sortField === $field) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortField = $field;
+            $this->sortDirection = 'asc';
+        }
     }
 
-    public function create(): void
+    public function updatedSearch(): void
     {
-        $this->redirect(route('scans.create'));
+        $this->resetPage();
+    }
+
+    public function updatedSyncStatus(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedSelectAll(): void
+    {
+        if ($this->selectAll) {
+            $this->selected = $this->getQuery()->pluck('id')->map(fn ($id) => (string) $id)->toArray();
+        } else {
+            $this->selected = [];
+        }
+    }
+
+    public function clearFilters(): void
+    {
+        $this->reset(['search', 'syncStatus', 'errorType', 'submitted', 'action', 'dateFrom', 'dateTo']);
+        $this->resetPage();
+    }
+
+    // Bulk Actions
+    public function retrySync(): void
+    {
+        if (empty($this->selected)) {
+            return;
+        }
+
+        Scan::whereIn('id', $this->selected)->update([
+            'sync_status' => 'pending',
+            'sync_error_message' => null,
+            'sync_error_type' => null,
+        ]);
+
+        session()->flash('message', count($this->selected).' scans queued for retry.');
+        $this->selected = [];
+        $this->selectAll = false;
+    }
+
+    public function retryFailedOnly(): void
+    {
+        if (empty($this->selected)) {
+            return;
+        }
+
+        $count = Scan::whereIn('id', $this->selected)
+            ->where('sync_status', 'failed')
+            ->update([
+                'sync_status' => 'pending',
+                'sync_error_message' => null,
+                'sync_error_type' => null,
+            ]);
+
+        session()->flash('message', $count.' failed scans queued for retry.');
+        $this->selected = [];
+        $this->selectAll = false;
+    }
+
+    public function markSynced(): void
+    {
+        if (empty($this->selected)) {
+            return;
+        }
+
+        Scan::whereIn('id', $this->selected)->update([
+            'sync_status' => 'synced',
+            'synced_at' => now(),
+            'sync_error_message' => null,
+            'sync_error_type' => null,
+        ]);
+
+        session()->flash('message', count($this->selected).' scans marked as synced.');
+        $this->selected = [];
+        $this->selectAll = false;
+    }
+
+    public function clearErrors(): void
+    {
+        if (empty($this->selected)) {
+            return;
+        }
+
+        Scan::whereIn('id', $this->selected)->update([
+            'sync_error_message' => null,
+            'sync_error_type' => null,
+        ]);
+
+        session()->flash('message', 'Error information cleared for '.count($this->selected).' scans.');
+        $this->selected = [];
+        $this->selectAll = false;
+    }
+
+    public function deleteSelected(): void
+    {
+        if (empty($this->selected)) {
+            return;
+        }
+
+        Scan::whereIn('id', $this->selected)->delete();
+
+        session()->flash('message', count($this->selected).' scans deleted.');
+        $this->selected = [];
+        $this->selectAll = false;
+    }
+
+    public function delete(int $id): void
+    {
+        Scan::find($id)?->delete();
+        session()->flash('message', 'Scan deleted.');
+    }
+
+    protected function getQuery()
+    {
+        return Scan::query()
+            ->when($this->search, fn ($q) => $q->where('barcode', 'like', "%{$this->search}%"))
+            ->when($this->syncStatus, fn ($q) => $q->where('sync_status', $this->syncStatus))
+            ->when($this->errorType, fn ($q) => $q->where('sync_error_type', $this->errorType))
+            ->when($this->submitted !== '', fn ($q) => $q->where('submitted', $this->submitted))
+            ->when($this->action, fn ($q) => $q->where('action', $this->action))
+            ->when($this->dateFrom, fn ($q) => $q->whereDate('created_at', '>=', $this->dateFrom))
+            ->when($this->dateTo, fn ($q) => $q->whereDate('created_at', '<=', $this->dateTo))
+            ->orderBy($this->sortField, $this->sortDirection);
+    }
+
+    public function render()
+    {
+        $scans = $this->getQuery()->paginate(15);
+
+        return view('livewire.syncs-table', [
+            'scans' => $scans,
+        ]);
     }
 }

@@ -640,9 +640,50 @@ function createScannerStore() {
         handleWindowBlur,
         handleUserToggle,
         cleanup,
+        // Expose torch control for Alpine event listeners
+        setTorchState,
+        // Expose vibration for Alpine event listeners
+        triggerVibration: (patternData) => {
+            const pattern = patternData?.pattern || patternData || [100, 50, 200];
+            triggerVibrationWithPattern(Array.isArray(pattern) ? pattern : [100, 50, 200]);
+        },
+        // Handle camera state changes from Livewire dispatch
+        handleCameraStateChange: async (data) => {
+            const shouldScan = Array.isArray(data) ? data[0] : data;
+            if (shouldScan) {
+                await startScanning();
+            } else {
+                await stopScanning();
+            }
+        },
         // Expose state for debugging
         get isScanning() { return isScanning; },
         get isTorchEnabled() { return isTorchEnabled; },
         get isInitialized() { return isInitialized; },
     };
 }
+
+// Global vibration function for Blade template compatibility
+// Bridges Livewire $this->dispatch() -> Alpine @event.window -> JS
+window.triggerVibration = function(patternData) {
+    const store = window.Alpine?.store('scanner');
+    if (store && typeof store.triggerVibration === 'function') {
+        store.triggerVibration(patternData);
+    } else {
+        // Fallback: direct vibration if store not available
+        if (navigator.vibrate) {
+            const pattern = patternData?.pattern || patternData || [100, 50, 200];
+            try {
+                navigator.vibrate(Array.isArray(pattern) ? pattern : [100, 50, 200]);
+            } catch (e) {
+                console.warn('Vibration failed:', e);
+            }
+        }
+    }
+};
+
+// Global success sound function for Blade template compatibility
+window.playSuccessSound = function() {
+    // TODO: Implement success sound if needed
+    console.log('Success sound triggered');
+};

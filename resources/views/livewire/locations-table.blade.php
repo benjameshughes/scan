@@ -1,274 +1,201 @@
-<div class="py-8">
-    <div class="max-w-7xl mx-auto px-6 lg:px-8">
-        
-        <!-- Messages -->
-        @if($successMessage)
-            <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-6">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <flux:icon.check-circle class="size-5 text-green-600 dark:text-green-400" />
-                        <span class="text-sm text-green-700 dark:text-green-300">{{ $successMessage }}</span>
-                    </div>
-                    <flux:button
-                        wire:click="clearMessages"
-                        variant="ghost"
-                        size="xs"
-                        square
-                        icon="x-mark"
-                    />
-                </div>
-            </div>
-        @endif
+<div class="space-y-4">
+    {{-- Flash Messages --}}
+    @if (session()->has('message'))
+        <flux:callout variant="success" icon="check-circle" dismissible>
+            {{ session('message') }}
+        </flux:callout>
+    @endif
 
-        @if($errorMessage)
-            <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <flux:icon.exclamation-triangle class="size-5 text-red-600 dark:text-red-400" />
-                        <span class="text-sm text-red-700 dark:text-red-300">{{ $errorMessage }}</span>
-                    </div>
-                    <flux:button
-                        wire:click="clearMessages"
-                        variant="ghost"
-                        size="xs"
-                        square
-                        icon="x-mark"
-                    />
-                </div>
-            </div>
-        @endif
+    @if (session()->has('error'))
+        <flux:callout variant="danger" icon="x-circle" dismissible>
+            {{ session('error') }}
+        </flux:callout>
+    @endif
 
-        <!-- Stats -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="bg-white dark:bg-zinc-800 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-700 p-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-zinc-600 dark:text-zinc-400">Total Locations</p>
-                        <p class="text-3xl font-bold text-gray-900 dark:text-gray-100">
-                            {{ number_format($stats['total']) }}
-                        </p>
-                    </div>
-                    <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
-                        <flux:icon.map-pin class="size-6 text-blue-600 dark:text-blue-400" />
-                    </div>
+    {{-- Stats Cards --}}
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div class="bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 p-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                    <flux:icon.map-pin class="size-5 text-blue-600 dark:text-blue-400" />
                 </div>
-            </div>
-
-            <div class="bg-white dark:bg-zinc-800 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-700 p-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-zinc-600 dark:text-zinc-400">Active Locations</p>
-                        <p class="text-3xl font-bold text-green-600 dark:text-green-400">
-                            {{ number_format($stats['active']) }}
-                        </p>
-                    </div>
-                    <div class="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
-                        <flux:icon.check-circle class="size-6 text-green-600 dark:text-green-400" />
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white dark:bg-zinc-800 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-700 p-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-zinc-600 dark:text-zinc-400">Recently Used</p>
-                        <p class="text-3xl font-bold text-purple-600 dark:text-purple-400">
-                            {{ number_format($stats['recently_used']) }}
-                        </p>
-                    </div>
-                    <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
-                        <flux:icon.clock class="size-6 text-purple-600 dark:text-purple-400" />
-                    </div>
+                <div>
+                    <p class="text-sm text-zinc-500 dark:text-zinc-400">Total Locations</p>
+                    <p class="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">{{ $this->stats['total'] }}</p>
                 </div>
             </div>
         </div>
-
-        <!-- Enhanced Table Component -->
-        <div class="table-container bg-white dark:bg-zinc-800 shadow-sm rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700">
-            {{-- Header with search, filters, and actions --}}
-            <div class="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div>
-                        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">{{ $table->getTitle() }}</h3>
-                        <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-1">{{ $table->getDescription() }}</p>
-                    </div>
-                    
-                    <div class="flex items-center gap-3">
-                        <flux:button
-                            wire:click="syncFromLinnworks"
-                            variant="filled"
-                            icon="arrow-path"
-                            :disabled="$isProcessingSync"
-                            size="sm"
-                        >
-                            @if($isProcessingSync)
-                                Syncing...
-                            @else
-                                Sync from Linnworks
-                            @endif
-                        </flux:button>
-                    </div>
+        <div class="bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 p-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
+                    <flux:icon.check-circle class="size-5 text-green-600 dark:text-green-400" />
+                </div>
+                <div>
+                    <p class="text-sm text-zinc-500 dark:text-zinc-400">Active</p>
+                    <p class="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">{{ $this->stats['active'] }}</p>
                 </div>
             </div>
-
-            {{-- Filters --}}
-            <div class="px-6 py-4 bg-zinc-50 dark:bg-zinc-700">
-                <div class="flex flex-col sm:flex-row gap-4">
-                    <div class="flex-1">
-                        <flux:input
-                            wire:model.live.debounce.300ms="search"
-                            placeholder="Search locations..."
-                            icon="magnifying-glass"
-                        />
-                    </div>
-                    
-                    <div class="flex items-center gap-4">
-                        <label class="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-200">
-                            <flux:checkbox
-                                wire:model.live="showInactiveLocations"
-                            />
-                            Show inactive
-                        </label>
-                    </div>
+        </div>
+        <div class="bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 p-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-amber-100 dark:bg-amber-900 rounded-lg">
+                    <flux:icon.clock class="size-5 text-amber-600 dark:text-amber-400" />
+                </div>
+                <div>
+                    <p class="text-sm text-zinc-500 dark:text-zinc-400">Used (30 days)</p>
+                    <p class="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">{{ $this->stats['recently_used'] }}</p>
                 </div>
             </div>
-            
-            {{-- Table --}}
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
-                    <thead class="bg-zinc-50 dark:bg-zinc-800">
-                        <tr>
-                            @foreach($table->getColumns() as $column)
-                                <th class="px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider border-b border-zinc-200 dark:border-zinc-700">
-                                    @if($column->isSortable())
-                                        <button wire:click="sortBy('{{ $column->getName() }}')" class="flex items-center gap-1 hover:text-zinc-700 dark:hover:text-zinc-100">
-                                            {{ $column->getLabel() }}
-                                            @if($sortField === $column->getName())
-                                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                                    @if($sortDirection === 'asc')
-                                                        <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd"/>
-                                                    @else
-                                                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                                                    @endif
-                                                </svg>
-                                            @endif
-                                        </button>
-                                    @else
-                                        {{ $column->getLabel() }}
-                                    @endif
-                                </th>
-                            @endforeach
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white dark:bg-zinc-800 divide-y divide-zinc-200 dark:divide-zinc-700">
-                        @forelse($data as $row)
-                            <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-700">
-                                @foreach($table->getColumns() as $column)
-                                    <td class="px-6 py-4">
-                                        {!! $column->getValue($row) !!}
-                                    </td>
-                                @endforeach
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="{{ count($table->getColumns()) }}" class="px-6 py-12 text-center">
-                                    <flux:icon.map-pin class="size-12 text-zinc-400 dark:text-zinc-500 mx-auto mb-4" />
-                                    <p class="text-sm text-zinc-500 dark:text-zinc-400">No locations found</p>
-                                    @if($search)
-                                        <p class="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
-                                            Try adjusting your search or filters
-                                        </p>
-                                    @else
-                                        <p class="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
-                                            Sync from Linnworks to get started
-                                        </p>
-                                    @endif
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-            
-            @if($data->hasPages())
-                <div class="px-6 py-4 border-t border-zinc-200 dark:border-zinc-700">
-                    {{ $data->links() }}
-                </div>
-            @endif
         </div>
     </div>
 
-    <!-- Edit Modal -->
-    @if($showEditModal)
-        <div class="fixed inset-0 z-50 overflow-y-auto">
-            <div class="flex items-center justify-center min-h-full p-4">
-                <div class="fixed inset-0 bg-black bg-opacity-25" wire:click="cancelEdit"></div>
-                
-                <div class="relative bg-white dark:bg-zinc-800 rounded-lg shadow-lg max-w-md w-full">
-                    <div class="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700">
-                        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">
-                            Edit Location
-                        </h3>
-                    </div>
-                    
-                    <form wire:submit="saveLocation" class="p-6 space-y-4">
-                        <div>
-                            <flux:input
-                                wire:model="editCode"
-                                label="Location Code"
-                                placeholder="e.g., 11A, 12B-3"
-                                required
-                            />
-                            <flux:error name="editCode" />
-                        </div>
-                        
-                        <div>
-                            <flux:input
-                                wire:model="editName"
-                                label="Display Name"
-                                placeholder="Optional display name"
-                            />
-                            <flux:error name="editName" />
-                        </div>
-                        
-                        <div>
-                            <flux:input
-                                wire:model="editQrCode"
-                                label="QR Code"
-                                placeholder="Optional QR code"
-                            />
-                            <flux:error name="editQrCode" />
-                        </div>
-                        
-                        <div>
-                            <label class="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-200">
-                                <flux:checkbox
-                                    wire:model="editIsActive"
-                                />
-                                Active location
-                            </label>
-                        </div>
-                        
-                        <div class="flex gap-3 pt-4">
-                            <flux:button
-                                type="button"
-                                wire:click="cancelEdit"
-                                variant="ghost"
-                                class="flex-1"
-                            >
-                                Cancel
-                            </flux:button>
-                            <flux:button
-                                type="submit"
-                                variant="filled"
-                                class="flex-1"
-                            >
-                                Save Changes
-                            </flux:button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+    {{-- Header with Search and Actions --}}
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex-1 max-w-sm">
+            <flux:input
+                wire:model.live.debounce.300ms="search"
+                placeholder="Search locations..."
+                icon="magnifying-glass"
+                clearable
+            />
         </div>
-    @endif
+
+        <div class="flex items-center gap-3">
+            <flux:switch wire:model.live="showInactive" label="Show Inactive" />
+
+            <flux:button
+                wire:click="syncFromLinnworks"
+                wire:loading.attr="disabled"
+                wire:target="syncFromLinnworks"
+                icon="arrow-path"
+                variant="primary"
+            >
+                <span wire:loading.remove wire:target="syncFromLinnworks">Sync from Linnworks</span>
+                <span wire:loading wire:target="syncFromLinnworks">Syncing...</span>
+            </flux:button>
+        </div>
+    </div>
+
+    {{-- Table --}}
+    <flux:table :paginate="$locations">
+        <flux:table.columns>
+            <flux:table.column sortable :sorted="$sortField === 'code'" :direction="$sortDirection" wire:click="sort('code')">
+                Location
+            </flux:table.column>
+            <flux:table.column sortable :sorted="$sortField === 'use_count'" :direction="$sortDirection" wire:click="sort('use_count')">
+                Usage
+            </flux:table.column>
+            <flux:table.column sortable :sorted="$sortField === 'is_active'" :direction="$sortDirection" wire:click="sort('is_active')">
+                Status
+            </flux:table.column>
+            <flux:table.column sortable :sorted="$sortField === 'last_used_at'" :direction="$sortDirection" wire:click="sort('last_used_at')">
+                Last Used
+            </flux:table.column>
+            <flux:table.column align="end">Actions</flux:table.column>
+        </flux:table.columns>
+
+        <flux:table.rows>
+            @forelse ($locations as $location)
+                <flux:table.row :key="$location->id">
+                    <flux:table.cell>
+                        <div>
+                            <div class="font-medium text-zinc-900 dark:text-zinc-100">{{ $location->code }}</div>
+                            @if ($location->name && $location->name !== $location->code)
+                                <div class="text-xs text-zinc-500 dark:text-zinc-400">{{ $location->name }}</div>
+                            @endif
+                            @if ($location->qr_code)
+                                <div class="flex items-center gap-1 mt-1">
+                                    <flux:icon.qr-code class="size-3 text-zinc-400 dark:text-zinc-500" />
+                                    <span class="text-xs text-zinc-400 dark:text-zinc-500 font-mono">{{ $location->qr_code }}</span>
+                                </div>
+                            @endif
+                        </div>
+                    </flux:table.cell>
+                    <flux:table.cell>
+                        <div class="flex items-center gap-1 text-sm text-zinc-500 dark:text-zinc-400">
+                            <flux:icon.arrow-trending-up class="size-4" />
+                            <span>{{ $location->use_count }} uses</span>
+                        </div>
+                    </flux:table.cell>
+                    <flux:table.cell>
+                        <flux:badge size="sm" :color="$location->is_active ? 'green' : 'zinc'">
+                            {{ $location->is_active ? 'Active' : 'Inactive' }}
+                        </flux:badge>
+                    </flux:table.cell>
+                    <flux:table.cell class="text-zinc-500 dark:text-zinc-400">
+                        {{ $location->last_used_at ? $location->last_used_at->diffForHumans() : 'Never' }}
+                    </flux:table.cell>
+                    <flux:table.cell align="end">
+                        <div class="flex items-center justify-end gap-1">
+                            <flux:button size="sm" variant="ghost" icon="pencil" wire:click="edit({{ $location->id }})" />
+                            <flux:button
+                                size="sm"
+                                variant="ghost"
+                                :icon="$location->is_active ? 'eye-slash' : 'eye'"
+                                wire:click="toggle({{ $location->id }})"
+                            />
+                            <flux:button
+                                size="sm"
+                                variant="ghost"
+                                icon="trash"
+                                wire:click="delete({{ $location->id }})"
+                                wire:confirm="Are you sure you want to delete this location? This action cannot be undone."
+                            />
+                        </div>
+                    </flux:table.cell>
+                </flux:table.row>
+            @empty
+                <flux:table.row>
+                    <flux:table.cell colspan="5" class="text-center py-8">
+                        <div class="flex flex-col items-center gap-2 text-zinc-500">
+                            <flux:icon.map-pin class="size-8" />
+                            <span>No locations found</span>
+                            <flux:button wire:click="syncFromLinnworks" size="sm" variant="ghost">
+                                Sync from Linnworks
+                            </flux:button>
+                        </div>
+                    </flux:table.cell>
+                </flux:table.row>
+            @endforelse
+        </flux:table.rows>
+    </flux:table>
+
+    {{-- Edit Location Modal --}}
+    <flux:modal name="edit-location" class="max-w-md">
+        <div class="space-y-4">
+            <flux:heading size="lg">Edit Location</flux:heading>
+
+            <form wire:submit="saveLocation" class="space-y-4">
+                <flux:input
+                    wire:model="editCode"
+                    label="Location Code"
+                    placeholder="e.g., A1-01"
+                    required
+                />
+
+                <flux:input
+                    wire:model="editName"
+                    label="Display Name"
+                    placeholder="Optional friendly name"
+                />
+
+                <flux:input
+                    wire:model="editQrCode"
+                    label="QR Code"
+                    placeholder="QR code identifier"
+                />
+
+                <flux:switch wire:model="editIsActive" label="Active" />
+
+                <div class="flex justify-end gap-2 pt-4">
+                    <flux:button type="button" wire:click="cancelEdit" variant="ghost">
+                        Cancel
+                    </flux:button>
+                    <flux:button type="submit" variant="primary">
+                        Save Changes
+                    </flux:button>
+                </div>
+            </form>
+        </div>
+    </flux:modal>
 </div>

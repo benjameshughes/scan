@@ -262,8 +262,8 @@ describe('Scan Submission', function () {
         Livewire::test(ScanForm::class, [
             'barcode' => '5059039999999',
             'product' => $this->product,
-            'quantity' => 5,
         ])
+            ->set('form.quantity', 5)
             ->call('save')
             ->assertHasNoErrors()
             ->assertDispatched('scan-submitted');
@@ -281,10 +281,10 @@ describe('Scan Submission', function () {
         Livewire::test(ScanForm::class, [
             'barcode' => '5059039999999',
             'product' => $this->product,
-            'quantity' => 0,
         ])
+            ->set('form.quantity', 0)
             ->call('save')
-            ->assertHasErrors('quantity');
+            ->assertHasErrors('form.quantity');
 
         expect(Scan::count())->toBe(0);
     });
@@ -293,30 +293,30 @@ describe('Scan Submission', function () {
         Livewire::test(ScanForm::class, [
             'barcode' => '5059039999999',
             'product' => $this->product,
-            'quantity' => 5,
         ])
+            ->set('form.quantity', 5)
             ->call('incrementQuantity')
-            ->assertSet('quantity', 6);
+            ->assertSet('form.quantity', 6);
     });
 
     test('decrement quantity decreases by one', function () {
         Livewire::test(ScanForm::class, [
             'barcode' => '5059039999999',
             'product' => $this->product,
-            'quantity' => 5,
         ])
+            ->set('form.quantity', 5)
             ->call('decrementQuantity')
-            ->assertSet('quantity', 4);
+            ->assertSet('form.quantity', 4);
     });
 
     test('decrement quantity does not go below 1', function () {
         Livewire::test(ScanForm::class, [
             'barcode' => '5059039999999',
             'product' => $this->product,
-            'quantity' => 1,
         ])
+            ->set('form.quantity', 1)
             ->call('decrementQuantity')
-            ->assertSet('quantity', 1);
+            ->assertSet('form.quantity', 1);
     });
 
     test('scan action toggle changes state', function () {
@@ -324,9 +324,9 @@ describe('Scan Submission', function () {
             'barcode' => '5059039999999',
             'product' => $this->product,
         ])
-            ->assertSet('scanAction', false)
-            ->set('scanAction', true)
-            ->assertSet('scanAction', true);
+            ->assertSet('form.scanAction', false)
+            ->set('form.scanAction', true)
+            ->assertSet('form.scanAction', true);
     });
 
     test('show refill bay form dispatches event', function () {
@@ -443,8 +443,8 @@ describe('Full Workflow', function () {
         Livewire::test(ScanForm::class, [
             'barcode' => '5059039999999',
             'product' => $this->product,
-            'quantity' => 3,
         ])
+            ->set('form.quantity', 3)
             ->call('save')
             ->assertHasNoErrors()
             ->assertDispatched('scan-submitted');
@@ -478,8 +478,8 @@ describe('Full Workflow', function () {
         Livewire::test(ScanForm::class, [
             'barcode' => '5059039999999',
             'product' => $this->product,
-            'quantity' => 2,
         ])
+            ->set('form.quantity', 2)
             ->call('save')
             ->assertHasNoErrors()
             ->assertDispatched('scan-submitted');

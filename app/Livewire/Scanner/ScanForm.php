@@ -3,72 +3,61 @@
 namespace App\Livewire\Scanner;
 
 use App\Actions\Scanner\CreateScanRecordAction;
-use App\Actions\Scanner\ValidateScanDataAction;
 use App\DTOs\Scanner\ScanData;
+use App\Livewire\Forms\ScanFormData;
 use App\Models\Product;
 use App\Services\Scanner\UserFeedbackService;
-use Livewire\Attributes\Validate;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
 class ScanForm extends Component
 {
-    public ?string $barcode = null;
+    public ScanFormData $form;
 
     public ?Product $product = null;
-
-    #[Validate('required|integer|min:1')]
-    public int $quantity = 1;
-
-    #[Validate('boolean')]
-    public bool $scanAction = false;
-
-    public bool $playSuccessSound = false;
-
-    public bool $triggerVibration = false;
 
     public function mount(
         ?string $barcode = null,
         ?Product $product = null,
-        int $quantity = 1,
-        bool $scanAction = false,
-        bool $playSuccessSound = false,
-        bool $triggerVibration = false,
     ) {
-        $this->barcode = $barcode;
+        $this->form->setBarcode($barcode);
         $this->product = $product;
-        $this->quantity = $quantity;
-        $this->scanAction = $scanAction;
-        $this->playSuccessSound = $playSuccessSound;
-        $this->triggerVibration = $triggerVibration;
     }
 
-    public function incrementQuantity()
+    /**
+     * Real-time validation when form fields update
+     */
+    public function updated(string $property): void
     {
-        $this->quantity++;
-        $this->resetValidation('quantity');
-    }
-
-    public function decrementQuantity()
-    {
-        if ($this->quantity > 1) {
-            $this->quantity--;
-            $this->resetValidation('quantity');
+        // Only validate form properties
+        if (str_starts_with($property, 'form.')) {
+            $field = str_replace('form.', '', $property);
+            $this->form->validateOnly($field);
         }
     }
 
-    public function save()
+    public function incrementQuantity(): void
     {
+        $this->form->incrementQuantity();
+    }
+
+    public function decrementQuantity(): void
+    {
+        $this->form->decrementQuantity();
+    }
+
+    public function save(): void
+    {
+        // Validate all form fields
+        $this->form->validate();
+
         // Create scan data DTO
         $scanData = ScanData::fromForm(
-            barcode: $this->barcode,
-            quantity: $this->quantity,
-            scanAction: $this->scanAction,
+            barcode: $this->form->barcode,
+            quantity: $this->form->quantity,
+            scanAction: $this->form->scanAction,
             userId: auth()->id()
         );
-
-        // Validate scan data
-        $validateScanDataAction = app(ValidateScanDataAction::class);
-        $validateScanDataAction->validateOrFail($scanData);
 
         try {
             // Create scan record
@@ -85,37 +74,24 @@ class ScanForm extends Component
                 'feedback' => $feedbackState,
             ]);
 
+        } catch (ValidationException $e) {
+            // Re-throw validation exceptions to show in form
+            throw $e;
         } catch (\Exception $e) {
             $this->addError('form', 'Failed to submit scan: '.$e->getMessage());
         }
     }
 
-    public function showRefillBayForm()
+    public function showRefillBayForm(): void
     {
         $this->dispatch('refill-form-requested');
     }
 
-    public function emptyBayNotification()
+    public function emptyBayNotification(): void
     {
         $this->dispatch('empty-bay-notification', [
-            'barcode' => $this->barcode,
+            'barcode' => $this->form->barcode,
         ]);
-    }
-
-    public function getRules()
-    {
-        return [
-            'quantity' => 'required|integer|min:1',
-            'scanAction' => 'boolean',
-        ];
-    }
-
-    public function getMessages()
-    {
-        return [
-            'quantity.integer' => 'Quantity must be an integer.',
-            'quantity.min' => 'Quantity must be at least 1.',
-        ];
     }
 
     public function render()
