@@ -36,7 +36,7 @@
                 
                 <!-- Dashboard link -->
                 <flux:button 
-                    href="{{ url('/dashboard') }}"
+                    href="{{ route('dashboard') }}"
                     variant="primary"
                     size="sm"
                     icon="home"

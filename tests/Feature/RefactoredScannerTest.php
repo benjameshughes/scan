@@ -216,7 +216,7 @@ describe('Manual Entry Component', function () {
             ->assertDispatched('barcode-processed', [
                 'barcode' => null,
                 'barcodeScanned' => false,
-                'product' => null,
+                'productId' => null,
             ]);
     });
 
@@ -227,7 +227,7 @@ describe('Manual Entry Component', function () {
             ->assertDispatched('barcode-processed', [
                 'barcode' => null,
                 'barcodeScanned' => false,
-                'product' => null,
+                'productId' => null,
             ]);
     });
 
@@ -250,7 +250,7 @@ describe('Manual Entry Component', function () {
             ->assertDispatched('barcode-processed', [
                 'barcode' => null,
                 'barcodeScanned' => false,
-                'product' => null,
+                'productId' => null,
             ]);
     });
 });

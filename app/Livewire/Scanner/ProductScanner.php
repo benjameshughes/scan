@@ -208,6 +208,7 @@ class ProductScanner extends Component
         // Reset state and restart camera after scan submission
         $resetState = $this->resetScanStateAction()->reset(ResetContext::AfterSubmission);
         $this->resetAfterScanSubmission();
+        $this->applyStateArray($resetState);
 
         if (isset($resetState['dispatchEvent'])) {
             $this->dispatch(...$resetState['dispatchEvent']);
@@ -226,6 +227,7 @@ class ProductScanner extends Component
         // Reset state and restart camera after refill submission
         $resetState = $this->resetScanStateAction()->reset(ResetContext::AfterRefill);
         $this->resetAfterScanSubmission();
+        $this->applyStateArray($resetState);
 
         if (isset($resetState['dispatchEvent'])) {
             $this->dispatch(...$resetState['dispatchEvent']);
@@ -250,6 +252,7 @@ class ProductScanner extends Component
         // Reset state and restart camera after empty bay submission
         $resetState = $this->resetScanStateAction()->reset(ResetContext::AfterSubmission);
         $this->resetAfterEmptyBaySubmission();
+        $this->applyStateArray($resetState);
 
         if (isset($resetState['dispatchEvent'])) {
             $this->dispatch(...$resetState['dispatchEvent']);
@@ -484,6 +487,7 @@ class ProductScanner extends Component
         // Reset state and restart camera for next scan
         $resetState = $this->resetScanStateAction()->reset(ResetContext::AfterSubmission);
         $this->resetAfterScanSubmission();
+        $this->applyStateArray($resetState);
 
         // Reset auto-submit flag
         $this->autoSubmitInProgress = false;
