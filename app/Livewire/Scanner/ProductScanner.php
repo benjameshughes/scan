@@ -239,8 +239,13 @@ class ProductScanner extends Component
     #[On('empty-bay-submitted')]
     public function onEmptyBaySubmitted(): void
     {
-        // Reset state after empty bay notification
+        // Reset state and restart camera after empty bay submission
+        $resetState = $this->resetScanStateAction()->reset(ResetContext::AfterSubmission);
         $this->resetAfterEmptyBaySubmission();
+
+        if (isset($resetState['dispatchEvent'])) {
+            $this->dispatch(...$resetState['dispatchEvent']);
+        }
     }
 
     #[On('empty-bay-closed')]

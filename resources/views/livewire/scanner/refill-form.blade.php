@@ -35,18 +35,8 @@
         </div>
     @endif
 
-    {{-- Refill Success --}}
-    @if ($refillSuccess)
-        <div class="p-3 bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 rounded-md">
-            <p class="text-sm text-green-800 dark:text-green-200 flex items-center">
-                <flux:icon.check-circle class="w-4 h-4 mr-2" />
-                {{ $refillSuccess }}
-            </p>
-        </div>
-    @endif
-
     {{-- Refill Form --}}
-    @if (!$isProcessingRefill && !$refillError && !$refillSuccess)
+    @if (!$isProcessingRefill && !$refillError)
         <form wire:submit="submitRefill" class="space-y-4">
             {{-- From Location Selection --}}
             @if (!empty($availableLocations))

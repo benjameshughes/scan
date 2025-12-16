@@ -127,10 +127,6 @@ it('submits refill and dispatches event', function () {
             'success' => true,
             'message' => 'Transferred',
         ]);
-        $mock->shouldReceive('prepareSuccessState')->andReturn([
-            'isProcessingRefill' => false,
-            'refillSuccess' => 'Transferred',
-        ]);
     });
 
     Livewire::test(RefillForm::class, [
@@ -138,6 +134,6 @@ it('submits refill and dispatches event', function () {
     ])->set('selectedLocationId', 'loc-1')
         ->set('refillQuantity', 3)
         ->call('submitRefill')
-        ->assertSet('refillSuccess', 'Transferred')
-        ->assertDispatched('refill-submitted');
+        ->assertDispatched('refill-submitted')
+        ->assertDispatched('refill-cancelled'); // Auto-close on success
 });

@@ -36,8 +36,6 @@ class RefillForm extends Component
 
     public string $refillError = '';
 
-    public string $refillSuccess = '';
-
     // Deprecated: kept for backward compatibility during transition
     public string $selectedLocationId = '';
 
@@ -242,15 +240,13 @@ class RefillForm extends Component
             );
 
             if ($result['success']) {
-                // Prepare success state
-                $successState = app(ProcessRefillSubmissionAction::class)->prepareSuccessState($result['message']);
-                $this->applyState($successState);
-
-                // Notify parent component
+                // Notify parent and immediately close - no success message needed
                 $this->dispatch('refill-submitted', [
-                    'message' => $result['message'],
                     'product_sku' => $this->product->sku,
                 ]);
+                $this->cancelRefill();
+
+                return;
             } else {
                 // Prepare error state
                 $errorState = app(ProcessRefillSubmissionAction::class)->prepareErrorState($result['error']);

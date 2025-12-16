@@ -16,8 +16,6 @@ class EmptyBayNotification extends Component
 
     public string $errorMessage = '';
 
-    public string $successMessage = '';
-
     public function mount(
         ?string $barcode = null,
         ?Product $product = null,
@@ -33,7 +31,6 @@ class EmptyBayNotification extends Component
     {
         $this->isProcessing = true;
         $this->errorMessage = '';
-        $this->successMessage = '';
 
         try {
             $handleEmailRefillAction = app(HandleEmailRefillAction::class);
@@ -44,20 +41,16 @@ class EmptyBayNotification extends Component
             );
 
             if ($result['success']) {
-                $this->successMessage = $result['message'];
-
-                // Notify parent component
+                // Notify parent and immediately close - no success message needed
                 $this->dispatch('empty-bay-submitted', [
-                    'message' => $result['message'],
                     'barcode' => $this->barcode,
                 ]);
+                $this->closeNotification();
 
-                // Auto-close after success
-                $this->js('setTimeout(() => { $wire.closeNotification() }, 3000)');
-            } else {
-                $this->errorMessage = $result['error'];
+                return;
             }
 
+            $this->errorMessage = $result['error'];
         } catch (\Exception $e) {
             $this->errorMessage = 'Failed to submit notification: '.$e->getMessage();
         }
@@ -79,14 +72,6 @@ class EmptyBayNotification extends Component
     public function clearError(): void
     {
         $this->errorMessage = '';
-    }
-
-    /**
-     * Clear success message
-     */
-    public function clearSuccess(): void
-    {
-        $this->successMessage = '';
     }
 
     public function render()

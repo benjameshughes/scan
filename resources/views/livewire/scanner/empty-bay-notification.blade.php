@@ -40,24 +40,6 @@
         </div>
     </div>
 
-    {{-- Success Message --}}
-    @if ($successMessage)
-        <div class="p-3 bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 rounded-md">
-            <div class="flex justify-between items-start">
-                <p class="text-sm text-green-800 dark:text-green-200 flex items-center">
-                    <flux:icon.check-circle class="w-4 h-4 mr-2" />
-                    {{ $successMessage }}
-                </p>
-                <button 
-                    wire:click="clearSuccess"
-                    class="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200"
-                >
-                    <flux:icon.x-mark class="w-4 h-4" />
-                </button>
-            </div>
-        </div>
-    @endif
-
     {{-- Error Message --}}
     @if ($errorMessage)
         <div class="p-3 bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded-md">
@@ -77,43 +59,32 @@
     @endif
 
     {{-- Action Buttons --}}
-    @if (!$successMessage)
-        <div class="space-y-3">
-            {{-- Submit Notification Button --}}
-            <button 
-                wire:click="submitNotification"
-                class="w-full flex items-center justify-center space-x-2 px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-md font-medium transition-colors"
-                wire:loading.attr="disabled"
-                {{ $isProcessing ? 'disabled' : '' }}
-            >
-                <span wire:loading.remove>
-                    <flux:icon.paper-airplane class="w-4 h-4" />
-                </span>
-                <span wire:loading>
-                    <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                </span>
-                <span wire:loading.remove>Send Empty Bay Notification</span>
-                <span wire:loading>Sending Notification...</span>
-            </button>
-
-            {{-- Cancel Button --}}
-            <button 
-                wire:click="closeNotification"
-                class="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-zinc-900 dark:text-zinc-100 rounded-md transition-colors"
-                {{ $isProcessing ? 'disabled' : '' }}
-            >
-                <flux:icon.arrow-left class="w-4 h-4" />
-                <span>Back to Scanner</span>
-            </button>
-        </div>
-    @else
-        {{-- Close Button (After Success) --}}
-        <button 
-            wire:click="closeNotification"
-            class="w-full flex items-center justify-center space-x-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition-colors"
+    <div class="space-y-3">
+        {{-- Submit Notification Button --}}
+        <button
+            wire:click="submitNotification"
+            class="w-full flex items-center justify-center space-x-2 px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-md font-medium transition-colors"
+            wire:loading.attr="disabled"
+            {{ $isProcessing ? 'disabled' : '' }}
         >
-            <flux:icon.check class="w-4 h-4" />
-            <span>Continue Scanning</span>
+            <span wire:loading.remove>
+                <flux:icon.paper-airplane class="w-4 h-4" />
+            </span>
+            <span wire:loading>
+                <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+            </span>
+            <span wire:loading.remove>Send Empty Bay Notification</span>
+            <span wire:loading>Sending Notification...</span>
         </button>
-    @endif
+
+        {{-- Cancel Button --}}
+        <button
+            wire:click="closeNotification"
+            class="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-zinc-900 dark:text-zinc-100 rounded-md transition-colors"
+            {{ $isProcessing ? 'disabled' : '' }}
+        >
+            <flux:icon.arrow-left class="w-4 h-4" />
+            <span>Back to Scanner</span>
+        </button>
+    </div>
 </div>
