@@ -13,6 +13,9 @@ use Livewire\Attributes\On;
  * - Torch support and state management
  * - Camera error handling
  * - Camera and torch toggle controls
+ *
+ * @requires HasScanState for applyStateArray() method
+ * @requires InteractsWithScannerServices for service access
  */
 trait HasCameraState
 {

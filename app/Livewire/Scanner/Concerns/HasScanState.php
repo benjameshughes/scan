@@ -13,6 +13,11 @@ use Livewire\Attributes\On;
  * - Product association
  * - State reset operations
  * - State array application
+ *
+ * @requires HasCameraState for $isScanning, $cameraError, $isTorchOn properties
+ * @requires HasChildComponentEvents for $showRefillForm, $showEmptyBayNotification properties
+ * @requires HasAutoSubmit for $autoSubmitEnabled property and handleAutoSubmit() method
+ * @requires InteractsWithScannerServices for service access
  */
 trait HasScanState
 {

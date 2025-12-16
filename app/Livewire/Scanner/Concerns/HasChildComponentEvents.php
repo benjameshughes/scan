@@ -15,11 +15,13 @@ use Livewire\Attributes\On;
  * - Refill form events
  * - Empty bay notification events
  * - Manual entry events
+ *
+ * @requires HasCameraState for camera state properties and methods
+ * @requires HasScanState for scan state properties and reset methods
+ * @requires InteractsWithScannerServices for service access
  */
 trait HasChildComponentEvents
 {
-    use HasCameraState;
-    use HasScanState;
     use InteractsWithScannerServices;
 
     // Child component visibility state

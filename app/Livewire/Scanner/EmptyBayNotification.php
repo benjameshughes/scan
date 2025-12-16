@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Scanner;
 
-use App\Actions\Scanner\HandleEmailRefillAction;
 use App\Models\Product;
 use Livewire\Component;
 
@@ -26,36 +25,20 @@ class EmptyBayNotification extends Component
 
     /**
      * Submit empty bay notification
+     * Note: Email refill functionality has been removed as of v2.0.0
+     * This component is kept for potential future notification features
      */
     public function submitNotification(): void
     {
         $this->isProcessing = true;
         $this->errorMessage = '';
 
-        try {
-            $handleEmailRefillAction = app(HandleEmailRefillAction::class);
-            $result = $handleEmailRefillAction->handle(
-                barcode: $this->barcode,
-                product: $this->product,
-                user: auth()->user()
-            );
-
-            if ($result['success']) {
-                // Notify parent and immediately close - no success message needed
-                $this->dispatch('empty-bay-submitted', [
-                    'barcode' => $this->barcode,
-                ]);
-                $this->closeNotification();
-
-                return;
-            }
-
-            $this->errorMessage = $result['error'];
-        } catch (\Exception $e) {
-            $this->errorMessage = 'Failed to submit notification: '.$e->getMessage();
-        }
-
-        $this->isProcessing = false;
+        // Email refill feature has been deprecated and removed
+        // Immediately close the notification without processing
+        $this->dispatch('empty-bay-submitted', [
+            'barcode' => $this->barcode,
+        ]);
+        $this->closeNotification();
     }
 
     /**

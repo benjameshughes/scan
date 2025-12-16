@@ -194,7 +194,7 @@ class RefillForm extends Component
      */
     public function incrementRefillQuantity(): void
     {
-        $this->form->incrementQuantity($this->maxRefillStock);
+        $this->form->incrementQuantity($this->maxRefillStock());
     }
 
     /**
@@ -210,7 +210,7 @@ class RefillForm extends Component
      */
     public function addRefillQuantity(int $quantity): void
     {
-        $this->form->addQuantity($quantity, $this->maxRefillStock);
+        $this->form->addQuantity($quantity, $this->maxRefillStock());
     }
 
     /**
@@ -218,7 +218,7 @@ class RefillForm extends Component
      */
     public function setMaxRefillQuantity(): void
     {
-        $this->form->setMaxQuantity($this->maxRefillStock);
+        $this->form->setMaxQuantity($this->maxRefillStock());
     }
 
     /**
@@ -239,7 +239,7 @@ class RefillForm extends Component
                     'string',
                     'different:form.fromLocationId',
                 ],
-                'refillQuantity' => 'required|integer|min:1|max:'.$this->maxRefillStock,
+                'refillQuantity' => 'required|integer|min:1|max:'.$this->maxRefillStock(),
             ]);
 
             // Set processing state
