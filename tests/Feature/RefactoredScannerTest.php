@@ -338,15 +338,17 @@ describe('Scan Submission', function () {
             ->assertDispatched('refill-form-requested');
     });
 
-    test('empty bay notification dispatches event with barcode', function () {
+    test('empty bay notification dispatches job and resets scanner', function () {
+        Queue::fake();
+
         Livewire::test(ScanForm::class, [
             'barcode' => '5059039999999',
             'product' => $this->product,
         ])
             ->call('emptyBayNotification')
-            ->assertDispatched('empty-bay-notification', [
-                'barcode' => '5059039999999',
-            ]);
+            ->assertDispatched('new-scan-requested');
+
+        Queue::assertPushed(\App\Jobs\EmptyBayJob::class);
     });
 });
 

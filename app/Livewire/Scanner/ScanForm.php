@@ -3,7 +3,9 @@
 namespace App\Livewire\Scanner;
 
 use App\Actions\Scanner\CreateScanRecordAction;
+use App\DTOs\EmptyBayDTO;
 use App\DTOs\Scanner\ScanData;
+use App\Jobs\EmptyBayJob;
 use App\Livewire\Forms\ScanFormData;
 use App\Models\Product;
 use App\Services\Scanner\UserFeedbackService;
@@ -89,9 +91,12 @@ class ScanForm extends Component
 
     public function emptyBayNotification(): void
     {
-        $this->dispatch('empty-bay-notification', [
-            'barcode' => $this->form->barcode,
-        ]);
+        // Dispatch notification job directly - no confirmation needed
+        $emptyBayDTO = new EmptyBayDTO((int) $this->form->barcode);
+        EmptyBayJob::dispatch($emptyBayDTO);
+
+        // Reset scanner to ready state
+        $this->dispatch('new-scan-requested');
     }
 
     public function render()
