@@ -29,27 +29,8 @@ Route::get('/register', function () {
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'verified'])->group(function () {
-    // Dashboard & Profile
+    // Scanner
     Route::get('scanner', [ScanController::class, 'scan'])->name('scan.scan')->middleware('permission:view scanner');
-
-    // Refactored Scanner Route (feature-gated via Pennant if available)
-    Route::get('scanner-refactored', function () {
-        // Only allow if user has scanner permission and feature enabled
-        if (! auth()->check()) {
-            abort(401);
-        }
-
-        // If Pennant is installed, enforce feature flag; otherwise block direct access
-        if (! class_exists(\Laravel\Pennant\Feature::class)) {
-            abort(403);
-        }
-
-        if (! \Laravel\Pennant\Feature::for(auth()->user())->active('scanner_refactor')) {
-            abort(403);
-        }
-
-        return view('scanner-refactored');
-    })->name('scanner.refactored')->middleware('permission:view scanner');
 
     Route::view('dashboard', 'dashboard')->name('dashboard');
     Route::view('profile', 'profile')->name('profile');
