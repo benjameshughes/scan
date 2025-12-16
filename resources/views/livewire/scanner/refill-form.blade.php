@@ -45,7 +45,7 @@
                         Transfer From Location <span class="text-red-500">*</span>
                     </label>
 
-                    <flux:select variant="listbox" wire:model.live="fromLocationId">
+                    <flux:select variant="listbox" wire:model.live="form.fromLocationId">
                         @foreach ($this->filteredFromLocations as $location)
                             <flux:select.option value="{{ $location['StockLocationId'] }}">
                                 {{ $location['LocationName'] }} ({{ $location['Quantity'] }} available)
@@ -53,7 +53,7 @@
                         @endforeach
                     </flux:select>
 
-                    @error('fromLocationId')
+                    @error('form.fromLocationId')
                         <p class="text-xs text-red-600 dark:text-red-400 mt-1 flex items-center">
                             <flux:icon.exclamation-triangle class="w-3 h-3 mr-1" />
                             {{ $message }}
@@ -69,7 +69,7 @@
                         Transfer To Location <span class="text-red-500">*</span>
                     </label>
 
-                    <flux:select variant="listbox" searchable clearable wire:model.live="toLocationId">
+                    <flux:select variant="listbox" searchable clearable wire:model.live="form.toLocationId">
                         @foreach ($this->filteredToLocations as $location)
                             <flux:select.option value="{{ $location['StockLocationId'] }}">
                                 {{ $location['LocationName'] }}
@@ -77,7 +77,7 @@
                         @endforeach
                     </flux:select>
 
-                    @error('toLocationId')
+                    @error('form.toLocationId')
                         <p class="text-xs text-red-600 dark:text-red-400 mt-1 flex items-center">
                             <flux:icon.exclamation-triangle class="w-3 h-3 mr-1" />
                             {{ $message }}
@@ -87,7 +87,7 @@
             @endif
 
             {{-- Quantity Selection --}}
-            @if ($fromLocationId)
+            @if ($form->fromLocationId)
                 <div class="space-y-2">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">
                         Quantity to Transfer <span class="text-red-500">*</span>
@@ -97,9 +97,9 @@
                     </label>
 
                     <flux:button.group>
-                        <flux:button wire:click="decrementRefillQuantity" icon="minus" disabled="{{$this->refillQuantity <= 1}}" />
-                        <flux:input type="number" wire:model.live="refillQuantity" min="1" max="{{$this->maxRefillStock}}" clearable/>
-                        <flux:button wire:click="incrementRefillQuantity" icon="plus" disabled="{{$this->refillQuantity >= $this->maxRefillStock}}"/>
+                        <flux:button wire:click="decrementRefillQuantity" icon="minus" disabled="{{ ($form->refillQuantity ?? 0) <= 1 }}" />
+                        <flux:input type="number" wire:model.live="form.refillQuantity" min="1" max="{{$this->maxRefillStock}}" clearable/>
+                        <flux:button wire:click="incrementRefillQuantity" icon="plus" disabled="{{ ($form->refillQuantity ?? 0) >= $this->maxRefillStock }}"/>
                     </flux:button.group>
 
                     {{-- Quick Quantity Buttons (additive) --}}
@@ -108,17 +108,22 @@
                             <flux:button
                                 size="sm"
                                 wire:click="addRefillQuantity({{ $qty }})"
-                                :disabled="$this->refillQuantity >= $this->maxRefillStock"
+                                :disabled="($form->refillQuantity ?? 0) >= $this->maxRefillStock"
                             >+{{ $qty }}</flux:button>
                         @endforeach
                         <flux:button
                             size="sm"
                             variant="primary"
-                            wire:click="$set('refillQuantity', {{ $this->maxRefillStock }})"
+                            wire:click="setMaxRefillQuantity"
                         >Max</flux:button>
                     </div>
 
-                    <flux:error name="refillQuantity"/>
+                    @error('form.refillQuantity')
+                        <p class="text-xs text-red-600 dark:text-red-400 mt-1 flex items-center">
+                            <flux:icon.exclamation-triangle class="w-3 h-3 mr-1" />
+                            {{ $message }}
+                        </p>
+                    @enderror
                 </div>
             @endif
 

@@ -4,26 +4,19 @@ namespace App\Livewire\Scanner;
 
 use App\Actions\Scanner\PrepareRefillFormAction;
 use App\Actions\Scanner\ProcessRefillSubmissionAction;
+use App\Livewire\Forms\RefillFormData;
 use App\Models\Product;
+use Illuminate\Contracts\View\View;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
-use Livewire\Attributes\Validate;
 use Livewire\Component;
-use phpDocumentor\Reflection\Types\Nullable;
 
 class RefillForm extends Component
 {
     public ?Product $product = null;
 
-    #[Validate('required|string')]
-    public string $fromLocationId = '';
-
-    #[Validate('required|string')]
-    public string $toLocationId;
-
-    #[Validate('required|integer|min:1')]
-    public ?int $refillQuantity = 0;
+    public RefillFormData $form;
 
     public array $availableLocations = [];
 
@@ -46,7 +39,7 @@ class RefillForm extends Component
         $this->product = $product;
 
         // Initialize toLocationId with default location BEFORE preparing form
-        $this->toLocationId = config('linnworks.default_location_id');
+        $this->form->toLocationId = config('linnworks.default_location_id');
 
         // Prepare the form when component is mounted
         if ($this->product) {
@@ -74,8 +67,8 @@ class RefillForm extends Component
         if ($result['success']) {
             $this->availableLocations = $result['availableLocations'];
             $this->allLocations = $result['allLocations'];
-            $this->fromLocationId = $result['selectedLocationId'];
-            $this->toLocationId = $result['toLocationId'];
+            $this->form->fromLocationId = $result['selectedLocationId'];
+            $this->form->toLocationId = $result['toLocationId'];
             // Keep for backward compatibility
             $this->selectedLocationId = $result['selectedLocationId'];
         } else {
@@ -97,9 +90,10 @@ class RefillForm extends Component
 
         if ($result['success']) {
             $this->selectedLocationId = $result['selectedLocationId'];
-            $this->fromLocationId = $result['selectedLocationId'];
-            $this->refillQuantity = $result['refillQuantity'];
-            $this->resetValidation(['selectedLocationId', 'fromLocationId']);
+            $this->form->fromLocationId = $result['selectedLocationId'];
+            $this->form->refillQuantity = $result['refillQuantity'];
+            $this->form->resetValidation(['fromLocationId']);
+            $this->resetValidation(['selectedLocationId']);
         } else {
             $this->addError('selectedLocationId', $result['error']);
         }
@@ -140,24 +134,31 @@ class RefillForm extends Component
     /**
      * Validate refill quantity when updated
      */
-    public function updatedRefillQuantity()
+    public function updatedFormRefillQuantity(): void
     {
-        $locationId = $this->fromLocationId ?: $this->selectedLocationId;
+        // Skip validation if quantity is null (cleared)
+        if ($this->form->refillQuantity === null) {
+            $this->form->resetValidation(['refillQuantity']);
+
+            return;
+        }
+
+        $locationId = $this->form->fromLocationId ?: $this->selectedLocationId;
 
         if (! $locationId || empty($this->availableLocations)) {
             return;
         }
 
         $validation = app(PrepareRefillFormAction::class)->validateRefillQuantity(
-            $this->refillQuantity,
+            $this->form->refillQuantity,
             $locationId,
             $this->availableLocations
         );
 
         if (! $validation['valid']) {
-            $this->addError('refillQuantity', $validation['error']);
+            $this->form->addError('refillQuantity', $validation['error']);
         } else {
-            $this->resetValidation(['refillQuantity']);
+            $this->form->resetValidation(['refillQuantity']);
         }
     }
 
@@ -167,7 +168,7 @@ class RefillForm extends Component
     #[Computed]
     public function maxRefillStock(): int
     {
-        $locationId = $this->fromLocationId ?: $this->selectedLocationId;
+        $locationId = $this->form->fromLocationId ?: $this->selectedLocationId;
 
         if (! $locationId || empty($this->availableLocations)) {
             return 0;
@@ -193,18 +194,7 @@ class RefillForm extends Component
      */
     public function incrementRefillQuantity(): void
     {
-        $locationId = $this->fromLocationId ?: $this->selectedLocationId;
-
-        $newQuantity = app(PrepareRefillFormAction::class)->incrementRefillQuantity(
-            $this->refillQuantity,
-            $locationId,
-            $this->availableLocations
-        );
-
-        if ($newQuantity !== $this->refillQuantity) {
-            $this->refillQuantity = $newQuantity;
-            $this->resetValidation(['refillQuantity']);
-        }
+        $this->form->incrementQuantity($this->maxRefillStock);
     }
 
     /**
@@ -212,12 +202,7 @@ class RefillForm extends Component
      */
     public function decrementRefillQuantity(): void
     {
-        $newQuantity = app(PrepareRefillFormAction::class)->decrementRefillQuantity($this->refillQuantity);
-
-        if ($newQuantity !== $this->refillQuantity) {
-            $this->refillQuantity = $newQuantity;
-            $this->resetValidation(['refillQuantity']);
-        }
+        $this->form->decrementQuantity();
     }
 
     /**
@@ -225,9 +210,15 @@ class RefillForm extends Component
      */
     public function addRefillQuantity(int $quantity): void
     {
-        $maxStock = $this->maxRefillStock;
-        $this->refillQuantity = min($this->refillQuantity + $quantity, $maxStock);
-        $this->resetValidation(['refillQuantity']);
+        $this->form->addQuantity($quantity, $this->maxRefillStock);
+    }
+
+    /**
+     * Set quantity to maximum available stock
+     */
+    public function setMaxRefillQuantity(): void
+    {
+        $this->form->setMaxQuantity($this->maxRefillStock);
     }
 
     /**
@@ -236,6 +227,21 @@ class RefillForm extends Component
     public function submitRefill(): void
     {
         try {
+            // Validate the form with dynamic max validation
+            $this->form->validate([
+                'fromLocationId' => [
+                    'required',
+                    'string',
+                    'different:form.toLocationId',
+                ],
+                'toLocationId' => [
+                    'required',
+                    'string',
+                    'different:form.fromLocationId',
+                ],
+                'refillQuantity' => 'required|integer|min:1|max:'.$this->maxRefillStock,
+            ]);
+
             // Set processing state
             $processingState = app(ProcessRefillSubmissionAction::class)->setProcessingState();
             $this->isProcessingRefill = $processingState['isProcessingRefill'];
@@ -244,9 +250,9 @@ class RefillForm extends Component
             // Process the refill submission
             $result = app(ProcessRefillSubmissionAction::class)->handle(
                 product: $this->product,
-                selectedLocationId: $this->fromLocationId ?: $this->selectedLocationId,
-                toLocationId: $this->toLocationId,
-                refillQuantity: $this->refillQuantity,
+                selectedLocationId: $this->form->fromLocationId ?: $this->selectedLocationId,
+                toLocationId: $this->form->toLocationId,
+                refillQuantity: $this->form->refillQuantity,
                 user: auth()->user()
             );
 
@@ -302,41 +308,7 @@ class RefillForm extends Component
         }
     }
 
-    public function getRules()
-    {
-        return [
-            'fromLocationId' => [
-                'required',
-                'string',
-                'different:toLocationId',
-            ],
-            'toLocationId' => [
-                'required',
-                'string',
-                'different:fromLocationId',
-            ],
-            'refillQuantity' => 'required|integer|min:1|max:'.$this->maxRefillStock,
-            // Keep for backward compatibility
-            'selectedLocationId' => 'nullable|string',
-        ];
-    }
-
-    public function getMessages()
-    {
-        return [
-            'fromLocationId.required' => 'Please select a location to transfer from.',
-            'fromLocationId.different' => 'The from and to locations must be different.',
-            'toLocationId.required' => 'Please select a location to transfer to.',
-            'toLocationId.different' => 'The from and to locations must be different.',
-            'refillQuantity.required' => 'Please enter a quantity to transfer.',
-            'refillQuantity.min' => 'Quantity must be at least 1.',
-            'refillQuantity.max' => 'Quantity exceeds available stock.',
-            // Keep for backward compatibility
-            'selectedLocationId.required' => 'Please select a location to transfer from.',
-        ];
-    }
-
-    public function render()
+    public function render(): View
     {
         return view('livewire.scanner.refill-form');
     }
