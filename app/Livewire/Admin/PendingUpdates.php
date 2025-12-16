@@ -4,6 +4,7 @@ namespace App\Livewire\Admin;
 
 use App\Models\PendingProductUpdate;
 use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -11,22 +12,69 @@ class PendingUpdates extends Component
 {
     use WithPagination;
 
-    public $selectedUpdates = [];
+    #[Url]
+    public string $search = '';
 
-    public $filter = 'pending';
+    #[Url]
+    public string $filter = 'pending';
 
-    public $selectAll = false;
+    #[Url]
+    public string $changeType = '';
 
-    protected $queryString = ['filter'];
+    public string $sortField = 'created_at';
+
+    public string $sortDirection = 'desc';
+
+    public array $selectedUpdates = [];
+
+    public bool $selectAll = false;
+
+    /**
+     * Reset pagination when filters change
+     */
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+        $this->selectedUpdates = [];
+        $this->selectAll = false;
+    }
+
+    public function updatedFilter(): void
+    {
+        $this->resetPage();
+        $this->selectedUpdates = [];
+        $this->selectAll = false;
+    }
+
+    public function updatedChangeType(): void
+    {
+        $this->resetPage();
+        $this->selectedUpdates = [];
+        $this->selectAll = false;
+    }
+
+    /**
+     * Sort by field
+     */
+    public function sort(string $field): void
+    {
+        if ($this->sortField === $field) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortField = $field;
+            $this->sortDirection = 'desc';
+        }
+    }
 
     /**
      * Update the select all checkbox
      */
-    public function updatedSelectAll($value)
+    public function updatedSelectAll($value): void
     {
         if ($value) {
-            $this->selectedUpdates = $this->getFilteredUpdates()
+            $this->selectedUpdates = $this->getFilteredQuery()
                 ->pluck('id')
+                ->map(fn ($id) => (string) $id)
                 ->toArray();
         } else {
             $this->selectedUpdates = [];
@@ -36,30 +84,26 @@ class PendingUpdates extends Component
     /**
      * Approve a single update
      */
-    public function approveUpdate($updateId)
+    public function approveUpdate($updateId): void
     {
         $update = PendingProductUpdate::findOrFail($updateId);
 
         DB::transaction(function () use ($update) {
-            // Apply the changes
             $product = $update->product;
             $linnworksData = $update->linnworks_data;
 
-            // Update product with Linnworks data
             $updateData = [
                 'name' => $linnworksData['ItemTitle'] ?? $product->name,
                 'quantity' => $linnworksData['StockLevel'] ?? $product->quantity,
                 'last_synced_at' => now(),
             ];
 
-            // Update barcodes if they exist in the Linnworks data
             if (isset($linnworksData['Barcode'])) {
                 $updateData['barcode'] = $linnworksData['Barcode'];
             }
 
             $product->update($updateData);
 
-            // Mark update as approved
             $update->update([
                 'status' => 'approved',
                 'reviewed_by' => auth()->id(),
@@ -67,13 +111,13 @@ class PendingUpdates extends Component
             ]);
         });
 
-        session()->flash('message', "Updated product: {$update->product->name}");
+        session()->flash('message', "Approved: {$update->product->name}");
     }
 
     /**
      * Reject a single update
      */
-    public function rejectUpdate($updateId)
+    public function rejectUpdate($updateId): void
     {
         $update = PendingProductUpdate::findOrFail($updateId);
 
@@ -89,75 +133,111 @@ class PendingUpdates extends Component
     /**
      * Bulk approve selected updates
      */
-    public function bulkApprove()
+    public function bulkApprove(): void
     {
         $updates = PendingProductUpdate::whereIn('id', $this->selectedUpdates)
             ->where('status', 'pending')
             ->get();
 
+        $count = $updates->count();
+
         DB::transaction(function () use ($updates) {
             foreach ($updates as $update) {
-                $this->approveUpdate($update->id);
+                $product = $update->product;
+                $linnworksData = $update->linnworks_data;
+
+                $updateData = [
+                    'name' => $linnworksData['ItemTitle'] ?? $product->name,
+                    'quantity' => $linnworksData['StockLevel'] ?? $product->quantity,
+                    'last_synced_at' => now(),
+                ];
+
+                if (isset($linnworksData['Barcode'])) {
+                    $updateData['barcode'] = $linnworksData['Barcode'];
+                }
+
+                $product->update($updateData);
+
+                $update->update([
+                    'status' => 'approved',
+                    'reviewed_by' => auth()->id(),
+                    'reviewed_at' => now(),
+                ]);
             }
         });
 
         $this->selectedUpdates = [];
         $this->selectAll = false;
 
-        session()->flash('message', "Approved {$updates->count()} updates");
+        session()->flash('message', "Approved {$count} updates");
     }
 
     /**
      * Bulk reject selected updates
      */
-    public function bulkReject()
+    public function bulkReject(): void
     {
-        $updates = PendingProductUpdate::whereIn('id', $this->selectedUpdates)
+        $count = PendingProductUpdate::whereIn('id', $this->selectedUpdates)
             ->where('status', 'pending')
-            ->get();
-
-        foreach ($updates as $update) {
-            $this->rejectUpdate($update->id);
-        }
+            ->update([
+                'status' => 'rejected',
+                'reviewed_by' => auth()->id(),
+                'reviewed_at' => now(),
+            ]);
 
         $this->selectedUpdates = [];
         $this->selectAll = false;
 
-        session()->flash('message', "Rejected {$updates->count()} updates");
+        session()->flash('message', "Rejected {$count} updates");
+    }
+
+    /**
+     * Get available change types from current data
+     */
+    public function getChangeTypes(): array
+    {
+        return PendingProductUpdate::where('status', $this->filter)
+            ->get()
+            ->flatMap(fn ($update) => array_keys($update->changes_detected ?? []))
+            ->unique()
+            ->sort()
+            ->values()
+            ->toArray();
     }
 
     /**
      * Get filtered updates query
      */
-    private function getFilteredUpdates()
+    private function getFilteredQuery()
     {
-        $query = PendingProductUpdate::with(['product', 'reviewer']);
-
-        // Include accepter relationship for auto-accepted items
-        if ($this->filter === 'auto_accepted') {
-            $query->with('accepter');
-        }
-
-        return $query->where('status', $this->filter);
+        return PendingProductUpdate::query()
+            ->with(['product', 'reviewer'])
+            ->where('status', $this->filter)
+            ->when($this->search, function ($query) {
+                $query->whereHas('product', function ($q) {
+                    $q->where('name', 'like', "%{$this->search}%")
+                        ->orWhere('sku', 'like', "%{$this->search}%")
+                        ->orWhere('barcode', 'like', "%{$this->search}%");
+                });
+            })
+            ->when($this->changeType, function ($query) {
+                $query->whereJsonContainsKey("changes_detected->{$this->changeType}");
+            });
     }
 
     public function render()
     {
-        $updates = $this->getFilteredUpdates()
-            ->latest()
+        $updates = $this->getFilteredQuery()
+            ->orderBy($this->sortField, $this->sortDirection)
             ->paginate(20);
-
-        $pendingCount = PendingProductUpdate::where('status', 'pending')->count();
-        $autoAcceptedCount = PendingProductUpdate::where('status', 'auto_accepted')->count();
-        $approvedCount = PendingProductUpdate::where('status', 'approved')->count();
-        $rejectedCount = PendingProductUpdate::where('status', 'rejected')->count();
 
         return view('livewire.admin.pending-updates', [
             'updates' => $updates,
-            'pendingCount' => $pendingCount,
-            'autoAcceptedCount' => $autoAcceptedCount,
-            'approvedCount' => $approvedCount,
-            'rejectedCount' => $rejectedCount,
+            'pendingCount' => PendingProductUpdate::where('status', 'pending')->count(),
+            'autoAcceptedCount' => PendingProductUpdate::where('status', 'auto_accepted')->count(),
+            'approvedCount' => PendingProductUpdate::where('status', 'approved')->count(),
+            'rejectedCount' => PendingProductUpdate::where('status', 'rejected')->count(),
+            'changeTypes' => $this->getChangeTypes(),
         ]);
     }
 }

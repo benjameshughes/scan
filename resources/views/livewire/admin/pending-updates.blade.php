@@ -4,149 +4,186 @@
         <flux:callout variant="success" icon="check-circle" heading="{{ session('message') }}" />
     @endif
 
-    <!-- Header Card -->
-    <flux:card>
-        <div class="flex items-center justify-between">
-            <div>
-                <flux:heading size="lg">Pending Product Updates</flux:heading>
-                <flux:text class="mt-1">
-                    Review changes detected during Linnworks sync
-                    @if($pendingCount > 0)
-                        <flux:badge color="amber" class="ml-2">{{ $pendingCount }} pending</flux:badge>
-                    @endif
-                </flux:text>
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <flux:heading size="xl">Pending Product Updates</flux:heading>
+            <flux:text class="mt-1">Review changes detected during Linnworks sync</flux:text>
+        </div>
+
+        <!-- Bulk Actions -->
+        @if(count($selectedUpdates) > 0 && $filter === 'pending')
+            <div class="flex items-center gap-2">
+                <flux:badge color="amber">{{ count($selectedUpdates) }} selected</flux:badge>
+                <flux:button wire:click="bulkApprove" variant="primary" size="sm" icon="check">
+                    Approve All
+                </flux:button>
+                <flux:button wire:click="bulkReject" variant="danger" size="sm" icon="x-mark">
+                    Reject All
+                </flux:button>
+            </div>
+        @endif
+    </div>
+
+    <!-- Filters Bar -->
+    <flux:card class="!p-4">
+        <div class="flex flex-col lg:flex-row gap-4">
+            <!-- Search -->
+            <div class="flex-1">
+                <flux:input
+                    wire:model.live.debounce.300ms="search"
+                    placeholder="Search by product name, SKU, or barcode..."
+                    icon="magnifying-glass"
+                    clearable
+                />
             </div>
 
-            <div class="flex items-center space-x-3">
-                <!-- Filter -->
-                <flux:select wire:model.live="filter" size="sm" class="w-48">
-                    <option value="pending">Pending ({{ $pendingCount }})</option>
-                    <option value="auto_accepted">Auto-Accepted ({{ $autoAcceptedCount }})</option>
-                    <option value="approved">Approved ({{ $approvedCount }})</option>
-                    <option value="rejected">Rejected ({{ $rejectedCount }})</option>
+            <!-- Status Filter -->
+            <flux:select wire:model.live="filter" class="w-full lg:w-48">
+                <flux:select.option value="pending">Pending ({{ $pendingCount }})</flux:select.option>
+                <flux:select.option value="auto_accepted">Auto-Accepted ({{ $autoAcceptedCount }})</flux:select.option>
+                <flux:select.option value="approved">Approved ({{ $approvedCount }})</flux:select.option>
+                <flux:select.option value="rejected">Rejected ({{ $rejectedCount }})</flux:select.option>
+            </flux:select>
+
+            <!-- Change Type Filter -->
+            @if(count($changeTypes) > 0)
+                <flux:select wire:model.live="changeType" class="w-full lg:w-48" placeholder="All changes">
+                    <flux:select.option value="">All Changes</flux:select.option>
+                    @foreach($changeTypes as $type)
+                        <flux:select.option value="{{ $type }}">{{ ucfirst(str_replace('_', ' ', $type)) }}</flux:select.option>
+                    @endforeach
                 </flux:select>
-
-                <!-- Bulk Actions -->
-                @if(count($selectedUpdates) > 0 && $filter === 'pending')
-                    <flux:button wire:click="bulkApprove" variant="primary" size="sm" icon="check">
-                        Approve ({{ count($selectedUpdates) }})
-                    </flux:button>
-                    <flux:button wire:click="bulkReject" variant="ghost" size="sm" icon="x-mark">
-                        Reject
-                    </flux:button>
-                @endif
-            </div>
+            @endif
         </div>
     </flux:card>
 
     <!-- Select All (for pending items) -->
     @if($filter === 'pending' && $updates->count() > 0)
-        <div class="bg-zinc-50 dark:bg-zinc-900 px-6 py-3 rounded-lg border border-zinc-200 dark:border-zinc-700">
-            <flux:checkbox wire:model.live="selectAll" label="Select all {{ $updates->count() }} items on this page" />
+        <div class="flex items-center gap-3 px-4 py-3 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700">
+            <flux:checkbox wire:model.live="selectAll" />
+            <flux:text size="sm">Select all {{ $updates->total() }} items</flux:text>
         </div>
     @endif
 
-    <!-- Updates List -->
-    @forelse($updates as $update)
-        <flux:card>
-            <div class="flex items-start justify-between">
-                <div class="flex items-start space-x-4 flex-1">
-                    @if($update->status === 'pending')
-                        <div class="pt-1">
-                            <flux:checkbox wire:model.live="selectedUpdates" value="{{ $update->id }}" />
-                        </div>
-                    @endif
+    <!-- Table -->
+    @if($updates->count() > 0)
+        <flux:table :paginate="$updates">
+            <flux:table.columns>
+                @if($filter === 'pending')
+                    <flux:table.column class="w-12"></flux:table.column>
+                @endif
+                <flux:table.column sortable :sorted="$sortField === 'created_at'" :direction="$sortDirection" wire:click="sort('created_at')">Product</flux:table.column>
+                <flux:table.column>Changes</flux:table.column>
+                <flux:table.column>Status</flux:table.column>
+                <flux:table.column align="end">Actions</flux:table.column>
+            </flux:table.columns>
 
-                    <div class="flex-1">
-                        <div class="flex items-center space-x-2">
-                            <flux:heading size="md">{{ $update->product->name }}</flux:heading>
-                            <flux:badge color="zinc" size="sm">SKU: {{ $update->product->sku }}</flux:badge>
-                        </div>
+            <flux:table.rows>
+                @foreach($updates as $update)
+                    <flux:table.row :key="$update->id">
+                        @if($filter === 'pending')
+                            <flux:table.cell>
+                                <flux:checkbox wire:model.live="selectedUpdates" value="{{ $update->id }}" />
+                            </flux:table.cell>
+                        @endif
 
-                        <!-- Changes Preview -->
-                        @if(count($update->changes_detected) > 0)
-                            <div class="mt-4 space-y-2">
-                                <p class="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Detected Changes:</p>
-                                <div class="bg-zinc-50 dark:bg-zinc-900 rounded-lg p-4 space-y-2 border border-zinc-200 dark:border-zinc-700">
+                        <flux:table.cell>
+                            <div class="space-y-1">
+                                <div class="font-medium text-zinc-900 dark:text-zinc-100">
+                                    {{ $update->product->name }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <flux:badge size="sm" color="zinc">SKU: {{ $update->product->sku }}</flux:badge>
+                                    <flux:text size="xs">{{ $update->created_at->diffForHumans() }}</flux:text>
+                                </div>
+                            </div>
+                        </flux:table.cell>
+
+                        <flux:table.cell>
+                            @if(count($update->changes_detected) > 0)
+                                <div class="space-y-1">
                                     @foreach($update->changes_detected as $field => $change)
-                                        <div class="flex items-center text-sm space-x-3">
-                                            <span class="font-semibold text-zinc-700 dark:text-zinc-300 min-w-[120px]">
-                                                {{ str_replace('_', ' ', ucfirst($field)) }}:
+                                        <div class="flex items-center gap-2 text-sm">
+                                            <span class="font-medium text-zinc-600 dark:text-zinc-400 min-w-20">
+                                                {{ ucfirst(str_replace('_', ' ', $field)) }}:
                                             </span>
-                                            <div class="flex items-center space-x-2 flex-1">
-                                                <code class="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded text-xs line-through">
-                                                    {{ $change['local'] ?? 'empty' }}
-                                                </code>
-                                                <flux:icon.arrow-right class="size-4 text-zinc-400" />
-                                                <code class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded text-xs">
-                                                    {{ $change['linnworks'] ?? 'empty' }}
-                                                </code>
-                                            </div>
+                                            <code class="px-1.5 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded text-xs line-through">
+                                                {{ Str::limit($change['local'] ?? 'empty', 20) }}
+                                            </code>
+                                            <flux:icon.arrow-right class="size-3 text-zinc-400" />
+                                            <code class="px-1.5 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded text-xs">
+                                                {{ Str::limit($change['linnworks'] ?? 'empty', 20) }}
+                                            </code>
                                         </div>
                                     @endforeach
                                 </div>
-                            </div>
-                        @else
-                            <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-2">No changes detected</p>
-                        @endif
-
-                        <div class="mt-3 flex items-center space-x-4 text-xs text-zinc-500 dark:text-zinc-400">
-                            <span>Detected {{ $update->created_at->diffForHumans() }}</span>
-                            @if($update->isReviewed())
-                                <span>-</span>
-                                <span>{{ ucfirst($update->status) }} by {{ $update->reviewer->name ?? 'Unknown' }}</span>
-                                <span>-</span>
-                                <span>{{ $update->reviewed_at->diffForHumans() }}</span>
-                            @elseif($update->isAutoAccepted())
-                                <span>-</span>
-                                <span>Auto-accepted by system</span>
-                                <span>-</span>
-                                <span>{{ $update->accepted_at->diffForHumans() }}</span>
+                            @else
+                                <flux:text size="sm" class="text-zinc-500">No changes</flux:text>
                             @endif
-                        </div>
-                    </div>
-                </div>
+                        </flux:table.cell>
 
-                <div class="flex items-center space-x-3 ml-4">
-                    @if($update->status === 'pending')
-                        <flux:button wire:click="approveUpdate({{ $update->id }})" variant="primary" size="sm" icon="check">
-                            Approve
-                        </flux:button>
-                        <flux:button wire:click="rejectUpdate({{ $update->id }})" variant="ghost" size="sm" icon="x-mark">
-                            Reject
-                        </flux:button>
-                    @else
-                        @if($update->status === 'approved')
-                            <flux:badge color="green" size="lg">Approved</flux:badge>
-                        @elseif($update->status === 'auto_accepted')
-                            <flux:badge color="blue" size="lg">Auto-Accepted</flux:badge>
-                        @else
-                            <flux:badge color="red" size="lg">Rejected</flux:badge>
-                        @endif
-                    @endif
-                </div>
-            </div>
-        </flux:card>
-    @empty
+                        <flux:table.cell>
+                            @if($update->status === 'pending')
+                                <flux:badge color="amber">Pending</flux:badge>
+                            @elseif($update->status === 'approved')
+                                <div class="space-y-1">
+                                    <flux:badge color="green">Approved</flux:badge>
+                                    <flux:text size="xs">by {{ $update->reviewer->name ?? 'Unknown' }}</flux:text>
+                                </div>
+                            @elseif($update->status === 'auto_accepted')
+                                <flux:badge color="sky">Auto-Accepted</flux:badge>
+                            @else
+                                <div class="space-y-1">
+                                    <flux:badge color="red">Rejected</flux:badge>
+                                    <flux:text size="xs">by {{ $update->reviewer->name ?? 'Unknown' }}</flux:text>
+                                </div>
+                            @endif
+                        </flux:table.cell>
+
+                        <flux:table.cell align="end">
+                            @if($update->status === 'pending')
+                                <div class="flex items-center justify-end gap-1">
+                                    <flux:button
+                                        wire:click="approveUpdate({{ $update->id }})"
+                                        variant="primary"
+                                        size="sm"
+                                        icon="check"
+                                    >
+                                        Approve
+                                    </flux:button>
+                                    <flux:button
+                                        wire:click="rejectUpdate({{ $update->id }})"
+                                        variant="ghost"
+                                        size="sm"
+                                        icon="x-mark"
+                                    />
+                                </div>
+                            @else
+                                <flux:text size="xs" class="text-zinc-500">
+                                    {{ $update->reviewed_at?->diffForHumans() ?? $update->accepted_at?->diffForHumans() }}
+                                </flux:text>
+                            @endif
+                        </flux:table.cell>
+                    </flux:table.row>
+                @endforeach
+            </flux:table.rows>
+        </flux:table>
+    @else
         <flux:card>
             <div class="py-12 text-center">
                 <flux:icon.check-circle class="size-16 mx-auto text-zinc-300 dark:text-zinc-600 mb-4" />
                 <flux:heading size="lg" class="text-zinc-500 dark:text-zinc-400">No updates found</flux:heading>
                 <flux:text class="mt-2">
-                    @if($filter === 'pending')
+                    @if($search)
+                        No results for "{{ $search }}". Try a different search term.
+                    @elseif($filter === 'pending')
                         All products are up to date with Linnworks.
                     @else
-                        No {{ $filter }} updates to display.
+                        No {{ str_replace('_', ' ', $filter) }} updates to display.
                     @endif
                 </flux:text>
             </div>
         </flux:card>
-    @endforelse
-
-    <!-- Pagination -->
-    @if($updates->hasPages())
-        <div class="flex justify-center">
-            {{ $updates->links() }}
-        </div>
     @endif
 </div>
