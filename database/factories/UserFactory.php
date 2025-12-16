@@ -32,7 +32,7 @@ class UserFactory extends Factory
             'email_verified_at' => $isVerified ? fake()->dateTimeBetween('-1 year', 'now') : null,
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
-            'status' => $isActive ? 'active' : 'inactive',
+            'status' => $isActive,
             'settings' => json_encode([
                 'notifications' => fake()->boolean(),
                 'dark_mode' => fake()->boolean(),

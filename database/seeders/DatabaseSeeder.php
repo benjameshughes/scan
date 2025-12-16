@@ -28,7 +28,7 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Ben Hughes',
                 'password' => bcrypt('password'),
                 'email_verified_at' => now(),
-                'status' => 'active',
+                'status' => true,
                 'settings' => json_encode([
                     'notifications' => true,
                     'dark_mode' => false,
