@@ -83,7 +83,8 @@ function createScannerStore() {
             }
         });
 
-        window.Livewire.on('torch-state-changed', async (enabled) => {
+        window.Livewire.on('torch-state-changed', async (data) => {
+            const enabled = Array.isArray(data) ? data[0] : data;
             await setTorchState(enabled);
         });
 
