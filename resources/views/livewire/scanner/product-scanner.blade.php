@@ -116,13 +116,13 @@
 
                 {{-- Torch Toggle --}}
                 @if ($torchSupported && $isScanning)
-                    <button
+                    <flux:button
                         wire:click="$dispatch('torch-toggle-requested')"
-                        class="flex items-center space-x-2 px-4 py-2 {{ $isTorchOn ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-zinc-600 hover:bg-zinc-700' }} text-white rounded-md transition-colors"
+                        :variant="$isTorchOn ? 'primary' : 'filled'"
+                        icon="light-bulb"
                     >
-                        <flux:icon.light-bulb class="w-4 h-4" />
-                        <span>{{ $isTorchOn ? 'Torch On' : 'Torch Off' }}</span>
-                    </button>
+                        {{ $isTorchOn ? 'Torch On' : 'Torch Off' }}
+                    </flux:button>
                 @endif
             </div>
         </div>
