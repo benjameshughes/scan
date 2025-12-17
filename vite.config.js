@@ -13,4 +13,8 @@ export default defineConfig({
             refresh: true,
         }),
     ],
+    define: {
+        // Auto-generated build timestamp for cache busting
+        __BUILD_TIME__: JSON.stringify(Date.now().toString()),
+    },
 });

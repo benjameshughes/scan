@@ -99,10 +99,14 @@ document.addEventListener('alpine:init', () => {
     });
 });
 
+// Build timestamp injected by Vite at compile time (for cache busting)
+const BUILD_VERSION = typeof __BUILD_TIME__ !== 'undefined' ? __BUILD_TIME__ : Date.now().toString();
+console.log('App build version:', BUILD_VERSION);
+
 // Register Service Worker for PWA (production only)
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
+        navigator.serviceWorker.register(`/sw.js?v=${BUILD_VERSION}`)
             .then(registration => {
                 console.log('ServiceWorker registration successful:', registration.scope);
 
