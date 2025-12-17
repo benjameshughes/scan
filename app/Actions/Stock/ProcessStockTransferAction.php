@@ -20,7 +20,6 @@ class ProcessStockTransferAction
         string $reason = 'Stock transfer'
     ): array {
         try {
-
             Log::channel('inventory')->info('Processing stock transfer via Linnworks', [
                 'product_sku' => $product->sku,
                 'from_location_id' => $fromLocationId,
@@ -29,31 +28,20 @@ class ProcessStockTransferAction
                 'reason' => $reason,
             ]);
 
-            // Execute the transfer via Linnworks API
-            // Use different methods based on whether we're transferring to default location
+            // Use null for target to default to config location
             $defaultLocationId = config('linnworks.default_location_id');
+            $targetLocationId = ($toLocationId === $defaultLocationId) ? null : $toLocationId;
 
-            if ($toLocationId === $defaultLocationId) {
-                // Use the specialized method for transfers to default location (handles null GUID)
-                $result = $this->linnworksService->transferStockToDefaultLocation(
-                    $product->sku,
-                    $fromLocationId,
-                    $quantity
-                );
-            } else {
-                // Use generic method for transfers between specific locations
-                $result = $this->linnworksService->transferStockBetweenLocations(
-                    $product->sku,
-                    $fromLocationId,
-                    $toLocationId,
-                    $quantity
-                );
-            }
+            $result = $this->linnworksService->transferStockBetweenLocations(
+                $product->sku,
+                $fromLocationId,
+                $quantity,
+                $targetLocationId
+            );
 
             Log::channel('inventory')->info('Stock transfer completed successfully', [
                 'product_sku' => $product->sku,
                 'quantity' => $quantity,
-                'linnworks_result' => $result,
             ]);
 
             return [
@@ -70,7 +58,6 @@ class ProcessStockTransferAction
                 'to_location_id' => $toLocationId,
                 'quantity' => $quantity,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
             ]);
 
             return [
@@ -90,7 +77,7 @@ class ProcessStockTransferAction
     }
 
     /**
-     * Get the preferred source location ID for refill operations (e.g., floor location)
+     * Get the preferred source location ID for refill operations
      */
     public function getPreferredSourceLocationId(): string
     {

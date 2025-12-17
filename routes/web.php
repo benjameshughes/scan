@@ -189,13 +189,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
             })->name('movements.show');
         });
 
-        // Debug route to test location endpoints
-        Route::get('debug-endpoints', function () {
-            $linnworksService = app(\App\Services\LinnworksApiService::class);
-            $results = $linnworksService->debugLocationEndpoints();
-
-            return response()->json($results, 200, [], JSON_PRETTY_PRINT);
-        })->name('debug');
     });
 
     /*
