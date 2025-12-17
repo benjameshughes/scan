@@ -45,9 +45,9 @@
                         Transfer From Location <span class="text-red-500">*</span>
                     </label>
 
-                    <flux:select variant="listbox" searchable wire:model.live="form.fromLocationId" placeholder="Select source location...">
+                    <flux:select wire:model.live="form.fromLocationId" placeholder="Select source location...">
                         @foreach ($this->filteredFromLocations as $location)
-                            <flux:select.option value="{{ $location['StockLocationId'] }}" wire:key="from-{{ $location['StockLocationId'] }}">
+                            <flux:select.option value="{{ $location['StockLocationId'] }}">
                                 {{ $location['LocationName'] }} ({{ $location['Quantity'] }} available)
                             </flux:select.option>
                         @endforeach
@@ -69,9 +69,9 @@
                         Transfer To Location <span class="text-red-500">*</span>
                     </label>
 
-                    <flux:select variant="listbox" searchable clearable wire:model.live="form.toLocationId" placeholder="Select destination location...">
+                    <flux:select wire:model.live="form.toLocationId" placeholder="Select destination location...">
                         @foreach ($this->filteredToLocations as $location)
-                            <flux:select.option value="{{ $location['StockLocationId'] }}" wire:key="to-{{ $location['StockLocationId'] }}">
+                            <flux:select.option value="{{ $location['StockLocationId'] }}">
                                 {{ $location['LocationName'] }}
                             </flux:select.option>
                         @endforeach
