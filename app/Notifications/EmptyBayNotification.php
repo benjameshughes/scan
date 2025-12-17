@@ -34,7 +34,7 @@ class EmptyBayNotification extends Notification implements ShouldQueue
     {
         // Check if user has permission to receive bay refill notifications
         // Only users who can refill bays should receive empty bay notifications
-        if (!$notifiable->can('refill bays')) {
+        if (! $notifiable->can('refill bays')) {
             return [];
         }
 

@@ -13,7 +13,7 @@ uses(RefreshDatabase::class);
 beforeEach(function () {
     // Create permissions if they don't exist
     Permission::findOrCreate('refill bays');
-    
+
     $this->user = User::factory()->create();
     $this->user->givePermissionTo('refill bays');
 
@@ -79,8 +79,8 @@ it('sends notification with all channels when user has permission', function () 
         $this->user,
         EmptyBayNotification::class,
         function ($notification, $channels) {
-            return in_array('broadcast', $channels) && 
-                   in_array('database', $channels) && 
+            return in_array('broadcast', $channels) &&
+                   in_array('database', $channels) &&
                    in_array('mail', $channels);
         }
     );
@@ -88,7 +88,7 @@ it('sends notification with all channels when user has permission', function () 
 
 it('user has custom broadcast channel name', function () {
     expect($this->user->receivesBroadcastNotificationsOn())
-        ->toBe('users.' . $this->user->id);
+        ->toBe('users.'.$this->user->id);
 });
 
 it('user settings no longer contain notification preferences', function () {

@@ -22,6 +22,8 @@ class Scan extends Model
         'sync_metadata' => 'array',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'stock_before' => 'integer',
+        'stock_after' => 'integer',
     ];
 
     public function user()

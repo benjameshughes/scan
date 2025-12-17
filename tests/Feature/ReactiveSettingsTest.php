@@ -3,7 +3,6 @@
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
-use Spatie\Permission\Models\Permission;
 
 uses(RefreshDatabase::class);
 
@@ -14,7 +13,7 @@ beforeEach(function () {
             'scan_sound' => true,
             'dark_mode' => false,
             'auto_submit' => false,
-        ]
+        ],
     ]);
 });
 
@@ -22,7 +21,7 @@ describe('Reactive Settings Component', function () {
     test('component loads with user settings', function () {
         $component = Livewire::actingAs($this->user)
             ->test('profile.user-settings');
-            
+
         expect($component->get('settings'))->toBe([
             'dark_mode' => false,
             'auto_submit' => false,
@@ -96,7 +95,7 @@ describe('Reactive Settings Component', function () {
 
         // Set saving to true manually to test the state
         $component->call('saveSettings');
-        
+
         // After save completes, saving should be false again
         expect($component->get('saving'))->toBeFalse();
     });

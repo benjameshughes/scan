@@ -22,7 +22,7 @@ class ScanSyncFailedNotification extends Notification
     {
         // Check if user has permission to receive scan-related notifications
         // Only users who can view scans should receive scan sync failure notifications
-        if (!$notifiable->can('view scans')) {
+        if (! $notifiable->can('view scans')) {
             return [];
         }
 

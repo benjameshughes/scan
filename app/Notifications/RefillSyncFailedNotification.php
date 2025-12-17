@@ -22,7 +22,7 @@ class RefillSyncFailedNotification extends Notification
     {
         // Check if user has permission to receive stock movement notifications
         // Only users who can view stock movements should receive refill sync failure notifications
-        if (!$notifiable->can('view stock movements')) {
+        if (! $notifiable->can('view stock movements')) {
             return [];
         }
 

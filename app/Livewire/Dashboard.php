@@ -5,8 +5,12 @@ namespace App\Livewire;
 use App\Actions\Dashboard\MarkNotificationAsRead;
 use App\Actions\MarkScanAsSubmitted;
 use App\Jobs\SyncBarcode;
-use App\Models\{Product, Scan, StockMovement};
-use App\Notifications\{EmptyBayNotification, RefillSyncFailedNotification, ScanSyncFailedNotification};
+use App\Models\Product;
+use App\Models\Scan;
+use App\Models\StockMovement;
+use App\Notifications\EmptyBayNotification;
+use App\Notifications\RefillSyncFailedNotification;
+use App\Notifications\ScanSyncFailedNotification;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
@@ -53,29 +57,30 @@ class Dashboard extends Component
     public function testEmptyBayNotification()
     {
         // Authorization check - Admin role only
-        if (!auth()->user()->hasRole('Admin')) {
+        if (! auth()->user()->hasRole('Admin')) {
             abort(403, 'Unauthorized');
         }
         $product = Product::first();
-        if (!$product) {
+        if (! $product) {
             session()->flash('error', 'No products found. Create a product first.');
+
             return;
         }
-        
+
         // Debug: Check permission
         $canRefill = auth()->user()->can('refill bays');
         \Log::info('Empty bay notification test', [
             'user' => auth()->user()->name,
             'can_refill_bays' => $canRefill,
-            'product' => $product->name
+            'product' => $product->name,
         ]);
-        
+
         auth()->user()->notify(new EmptyBayNotification($product));
-        
+
         // Debug: Check if notification was actually created
         $notificationCount = auth()->user()->unreadNotifications()->count();
         \Log::info('After notification creation', ['notification_count' => $notificationCount]);
-        
+
         $this->notifications = auth()->user()->unreadNotifications()->get();
         $this->dispatch('$refresh'); // Force Livewire to re-render
         session()->flash('success', "Empty bay notification created for: {$product->name} (Debug: can refill={$canRefill}, count={$notificationCount})");
@@ -84,15 +89,16 @@ class Dashboard extends Component
     public function testScanFailedNotification()
     {
         // Authorization check - Admin role only
-        if (!auth()->user()->hasRole('Admin')) {
+        if (! auth()->user()->hasRole('Admin')) {
             abort(403, 'Unauthorized');
         }
         $scan = Scan::first();
-        if (!$scan) {
+        if (! $scan) {
             session()->flash('error', 'No scans found. Create a scan first.');
+
             return;
         }
-        
+
         auth()->user()->notify(new ScanSyncFailedNotification(
             $scan,
             'Test API connection timeout - failed to sync with Linnworks',
@@ -106,15 +112,16 @@ class Dashboard extends Component
     public function testRefillFailedNotification()
     {
         // Authorization check - Admin role only
-        if (!auth()->user()->hasRole('Admin')) {
+        if (! auth()->user()->hasRole('Admin')) {
             abort(403, 'Unauthorized');
         }
         $stockMovement = StockMovement::first();
-        if (!$stockMovement) {
+        if (! $stockMovement) {
             session()->flash('error', 'No stock movements found. Create a stock movement first.');
+
             return;
         }
-        
+
         auth()->user()->notify(new RefillSyncFailedNotification(
             $stockMovement,
             'Test Linnworks API error - invalid location code provided',

@@ -39,8 +39,6 @@ final class SyncBarcodeAction implements Action
             // Check barcode exists and has a SKU, if null stop
             $product = new CheckBarcodeExists($this->scan)->handle();
 
-            Log::channel('inventory')->info($product);
-
             if (empty($product)) {
                 // This should not happen with pre-scan validation, but handle gracefully
                 $errorMessage = 'Product not found for barcode '.$this->scan->barcode;
@@ -55,20 +53,22 @@ final class SyncBarcodeAction implements Action
 
             // Get the SKU of the product
             $sku = $product->sku;
-            Log::channel('sku_lookup')->info($sku.' '.now());
 
             // Get the stock level from Linnworks using the SKU
             $lwStockLevel = $this->linnworks->getStockLevel($sku);
-            Log::channel('sku_lookup')->info('Found Linnworks stock level '.$lwStockLevel.' for SKU '.$sku.' Scan quantity '.$this->scan->quantity);
 
             // Calculate the new stock level based on the action
             $stockAction = new LinnworksStockAction($this->scan, $lwStockLevel);
             $newStockLevel = $stockAction->handle();
 
-            Log::channel('sku_lookup')->info("Updated Linnworks stock level {$newStockLevel} for SKU {$sku} Scan quantity {$this->scan->quantity}");
-
             // Update the stock level
             $this->linnworks->updateStockLevel($sku, $newStockLevel);
+
+            // Record the stock change on the scan
+            $this->scan->update([
+                'stock_before' => $lwStockLevel,
+                'stock_after' => $newStockLevel,
+            ]);
 
             // Update scan as synced
             $this->markScanAsSuccessful($this->scan);

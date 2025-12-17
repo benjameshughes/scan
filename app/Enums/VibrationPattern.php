@@ -97,8 +97,8 @@ enum VibrationPattern: string
      */
     public static function options(): Collection
     {
-        return self::collection()->mapWithKeys(fn($pattern) => [
-            $pattern->value => $pattern->label()
+        return self::collection()->mapWithKeys(fn ($pattern) => [
+            $pattern->value => $pattern->label(),
         ]);
     }
 

@@ -123,11 +123,11 @@ class User extends Authenticatable implements MustVerifyEmail
         }
 
         $settings = collect(json_decode($value, true));
-        
+
         if ($settings->isEmpty()) {
             return $defaults->toArray();
         }
-        
+
         // Merge defaults with user settings, user settings take precedence
         return $defaults->merge($settings)->toArray();
     }
