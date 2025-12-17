@@ -105,12 +105,137 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
         navigator.serviceWorker.register('/sw.js')
             .then(registration => {
                 console.log('ServiceWorker registration successful:', registration.scope);
+
+                // Check for updates periodically (every 60 seconds)
+                setInterval(() => {
+                    registration.update();
+                }, 60 * 1000);
+
+                // Listen for new service worker waiting
+                registration.addEventListener('updatefound', () => {
+                    const newWorker = registration.installing;
+                    if (newWorker) {
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                // New version available - show banner
+                                showUpdateBanner(registration);
+                            }
+                        });
+                    }
+                });
+
+                // Also check if there's already a waiting worker
+                if (registration.waiting) {
+                    showUpdateBanner(registration);
+                }
             })
             .catch(err => {
                 console.log('ServiceWorker registration failed:', err);
             });
     });
+
+    // Handle controller change (new SW activated)
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+        console.log('New service worker activated, reloading...');
+        window.location.reload();
+    });
 }
+
+// Show "New version available" banner
+function showUpdateBanner(registration) {
+    // Don't show if banner already exists
+    if (document.getElementById('update-banner')) return;
+
+    const banner = document.createElement('div');
+    banner.id = 'update-banner';
+    banner.innerHTML = `
+        <div style="
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 99999;
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            color: white;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            animation: slideDown 0.3s ease-out;
+        ">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 18px;">🚀</span>
+                <span style="font-weight: 500; font-size: 14px;">New version available</span>
+            </div>
+            <button id="update-refresh" style="
+                background: white;
+                border: none;
+                color: #059669;
+                padding: 8px 16px;
+                border-radius: 6px;
+                font-weight: 600;
+                font-size: 13px;
+                cursor: pointer;
+                white-space: nowrap;
+            ">Refresh</button>
+        </div>
+    `;
+
+    // Add animation
+    const style = document.createElement('style');
+    style.id = 'update-banner-style';
+    style.textContent = `
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    `;
+    document.head.appendChild(style);
+    document.body.appendChild(banner);
+
+    // Handle refresh button
+    document.getElementById('update-refresh').onclick = () => {
+        if (registration.waiting) {
+            // Tell waiting SW to skip waiting and activate
+            registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+        } else {
+            window.location.reload();
+        }
+    };
+
+    console.log('Update banner shown - new version waiting');
+}
+
+// PWA Background Recovery - force reload if backgrounded too long
+let backgroundedAt = null;
+const MAX_BACKGROUND_TIME = 5 * 60 * 1000; // 5 minutes
+
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        backgroundedAt = Date.now();
+        console.log('App backgrounded at:', new Date().toISOString());
+    } else if (backgroundedAt) {
+        const elapsed = Date.now() - backgroundedAt;
+        console.log('App foregrounded after:', Math.round(elapsed / 1000), 'seconds');
+
+        if (elapsed > MAX_BACKGROUND_TIME) {
+            console.log('App was backgrounded too long, reloading for fresh state...');
+            window.location.reload();
+        }
+        backgroundedAt = null;
+    }
+});
+
+// Catch unhandled errors that might cause white screen
+window.addEventListener('error', (e) => {
+    console.error('Unhandled error:', e.message, e.filename, e.lineno);
+});
+
+window.addEventListener('unhandledrejection', (e) => {
+    console.error('Unhandled promise rejection:', e.reason);
+});
 
 // PWA Install Prompt Handler
 let deferredPrompt;

@@ -1,5 +1,5 @@
 // Service Worker for Stock Scanner PWA - 2024 Best Practices
-const CACHE_VERSION = 'v3';
+const CACHE_VERSION = 'v4';
 const STATIC_CACHE = `stock-scanner-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `stock-scanner-dynamic-${CACHE_VERSION}`;
 const OFFLINE_CACHE = `stock-scanner-offline-${CACHE_VERSION}`;
