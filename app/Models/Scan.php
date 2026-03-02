@@ -47,10 +47,11 @@ class Scan extends Model
             return $this->relations['product'];
         }
 
-        // Search for product by checking all barcode fields
+        // Search for product by checking all barcode fields and SKU
         $product = Product::where('barcode', $this->barcode)
             ->orWhere('barcode_2', $this->barcode)
             ->orWhere('barcode_3', $this->barcode)
+            ->orWhere('sku', $this->barcode)
             ->first();
 
         // Cache the result
