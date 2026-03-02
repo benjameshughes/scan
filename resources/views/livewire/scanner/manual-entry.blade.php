@@ -2,18 +2,36 @@
     {{-- Manual Entry Header --}}
     <div class="text-center">
         <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Manual Entry</h3>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Enter barcode manually if scanning fails</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Enter a barcode or SKU manually</p>
     </div>
 
     {{-- Barcode Input --}}
     <div class="space-y-2">
         <label for="barcode-input" class="block text-sm font-medium text-gray-700 dark:text-gray-200">
-            Barcode
+            Barcode / SKU
         </label>
         
         <div class="relative">
 
-            <flux:input type="text" id="barcode-input" wire:model.live.debounce="barcode" placeholder="Enter or scan a barcode"></flux:input>
+            <flux:input
+                type="text"
+                id="barcode-input"
+                placeholder="Enter barcode or SKU (e.g. 123-456)"
+                x-data="{ timer: null }"
+                x-on:input="
+                    clearTimeout(timer);
+                    let raw = $event.target.value.replace(/[^0-9]/g, '');
+                    $event.target.value = raw;
+                    timer = setTimeout(() => {
+                        let v = raw;
+                        if (v.length === 6 && !v.startsWith('505903')) { // 505903 = EAN barcode prefix, don't format as SKU
+                            v = v.slice(0, 3) + '-' + v.slice(3);
+                            $event.target.value = v;
+                        }
+                        $wire.set('barcode', v);
+                    }, 800);
+                "
+            />
             
             {{-- Loading Indicator --}}
             <div class="absolute right-3 top-1/2 transform -translate-y-1/2" wire:loading>
@@ -32,7 +50,7 @@
         {{-- Help Text --}}
         @if (!$barcode && !$errors->has('barcode'))
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                Enter a barcode to search for products
+                Enter a barcode (13 digits) or SKU (e.g. 123-456)
             </p>
         @endif
     </div>

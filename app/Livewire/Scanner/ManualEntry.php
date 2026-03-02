@@ -39,6 +39,16 @@ class ManualEntry extends Component
             return;
         }
 
+        // Check if input is a complete SKU or barcode
+        $isSku = preg_match('/^\d{3}-\d{3}$/', $this->barcode);
+        $isBarcode = preg_match('/^\d{13}$/', $this->barcode);
+
+        if (! $isSku && ! $isBarcode) {
+            $this->addError('barcode', 'Enter a valid barcode (13 digits) or SKU (e.g. 123-456).');
+
+            return;
+        }
+
         // Clear any previous errors
         $this->resetValidation('barcode');
 

@@ -3,7 +3,7 @@
 namespace App\Actions\Scanner;
 
 use App\DTOs\Scanner\ScanData;
-use App\Rules\BarcodePrefixCheck;
+use App\Rules\BarcodeOrSkuCheck;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -20,7 +20,7 @@ class ValidateScanDataAction
             'action' => $scanData->action,
             'user_id' => $scanData->userId,
         ], [
-            'barcode' => ['required', new BarcodePrefixCheck('505903')],
+            'barcode' => ['required', new BarcodeOrSkuCheck('505903')],
             'quantity' => 'required|integer|min:1',
             'action' => 'required|in:increase,decrease',
             'user_id' => 'required|integer|exists:users,id',
@@ -72,7 +72,7 @@ class ValidateScanDataAction
     public function getRules(): array
     {
         return [
-            'barcode' => ['required', new BarcodePrefixCheck('505903')],
+            'barcode' => ['required', new BarcodeOrSkuCheck('505903')],
             'quantity' => 'required|integer|min:1',
             'action' => 'required|in:increase,decrease',
             'user_id' => 'required|integer|exists:users,id',

@@ -4,7 +4,8 @@ namespace App\Actions\Scanner;
 
 use App\Actions\GetProductFromScannedBarcode;
 use App\DTOs\Scanner\BarcodeResult;
-use App\Rules\BarcodePrefixCheck;
+use App\Models\Product;
+use App\Rules\BarcodeOrSkuCheck;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
@@ -19,42 +20,47 @@ class ProcessBarcodeAction
      */
     public function handle(string $barcode): BarcodeResult
     {
-        Log::debug('Processing barcode', ['barcode' => $barcode]);
+        Log::debug('Processing barcode/SKU', ['input' => $barcode]);
 
-        // Validate barcode format
+        $isSku = preg_match('/^\d{3}-\d{3}$/', $barcode);
+
+        // Validate format (accepts both barcode and SKU)
         $validator = Validator::make(
             ['barcode' => $barcode],
-            ['barcode' => [new BarcodePrefixCheck('505903')]]
+            ['barcode' => [new BarcodeOrSkuCheck('505903')]]
         );
 
         if ($validator->fails()) {
             $error = $validator->errors()->first('barcode');
-            Log::debug('Barcode validation failed', ['barcode' => $barcode, 'error' => $error]);
+            Log::debug('Validation failed', ['input' => $barcode, 'error' => $error]);
 
             return BarcodeResult::invalid($barcode, $error);
         }
 
         try {
-            // Lookup product
-            $product = $this->getProductAction->handle($barcode);
+            // SKU: lookup by sku column, Barcode: lookup by barcode columns
+            $product = $isSku
+                ? Product::where('sku', $barcode)->first()
+                : $this->getProductAction->handle($barcode);
 
             if ($product) {
-                Log::debug('Product found for barcode', [
-                    'barcode' => $barcode,
+                Log::debug('Product found', [
+                    'input' => $barcode,
+                    'type' => $isSku ? 'sku' : 'barcode',
                     'product_sku' => $product->sku,
                     'product_name' => $product->name,
                 ]);
 
                 return BarcodeResult::success($barcode, $product);
-            } else {
-                Log::debug('No product found for barcode', ['barcode' => $barcode]);
-
-                return BarcodeResult::validButNotFound($barcode);
             }
 
+            Log::debug('No product found', ['input' => $barcode, 'type' => $isSku ? 'sku' : 'barcode']);
+
+            return BarcodeResult::validButNotFound($barcode);
+
         } catch (\Exception $e) {
-            Log::error('Error processing barcode', [
-                'barcode' => $barcode,
+            Log::error('Error processing input', [
+                'input' => $barcode,
                 'error' => $e->getMessage(),
             ]);
 
@@ -119,7 +125,7 @@ class ProcessBarcodeAction
     {
         $validator = Validator::make(
             ['barcode' => $barcode],
-            ['barcode' => [new BarcodePrefixCheck('505903')]]
+            ['barcode' => [new BarcodeOrSkuCheck('505903')]]
         );
 
         return ! $validator->fails();
@@ -132,7 +138,7 @@ class ProcessBarcodeAction
     {
         $validator = Validator::make(
             ['barcode' => $barcode],
-            ['barcode' => [new BarcodePrefixCheck('505903')]]
+            ['barcode' => [new BarcodeOrSkuCheck('505903')]]
         );
 
         if ($validator->fails()) {

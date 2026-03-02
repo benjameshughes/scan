@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Forms;
 
-use App\Rules\BarcodePrefixCheck;
+use App\Rules\BarcodeOrSkuCheck;
 use Livewire\Attributes\Validate;
 use Livewire\Form;
 
@@ -23,7 +23,7 @@ class ScanFormData extends Form
     public function rules(): array
     {
         return [
-            'barcode' => ['required', 'string', new BarcodePrefixCheck('505903')],
+            'barcode' => ['required', 'string', new BarcodeOrSkuCheck('505903')],
             'quantity' => ['required', 'integer', 'min:1', 'max:9999'],
             'scanAction' => ['boolean'],
         ];
