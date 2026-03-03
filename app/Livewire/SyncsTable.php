@@ -172,7 +172,10 @@ class SyncsTable extends Component
     protected function getQuery()
     {
         return Scan::query()
-            ->when($this->search, fn ($q) => $q->where('barcode', 'like', "%{$this->search}%"))
+            ->with('product')
+            ->when($this->search, fn ($q) => $q->where('barcode', 'like', "%{$this->search}%")
+                ->orWhereHas('product', fn ($pq) => $pq->where('sku', 'like', "%{$this->search}%")
+                    ->orWhere('name', 'like', "%{$this->search}%")))
             ->when($this->syncStatus, fn ($q) => $q->where('sync_status', $this->syncStatus))
             ->when($this->errorType, fn ($q) => $q->where('sync_error_type', $this->errorType))
             ->when($this->submitted !== '', fn ($q) => $q->where('submitted', $this->submitted))

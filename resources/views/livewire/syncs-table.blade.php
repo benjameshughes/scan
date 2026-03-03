@@ -11,7 +11,7 @@
         <div class="flex-1 max-w-sm">
             <flux:input
                 wire:model.live.debounce.300ms="search"
-                placeholder="Search barcodes..."
+                placeholder="Search barcodes, SKUs, or products..."
                 icon="magnifying-glass"
                 clearable
             />
@@ -121,6 +121,8 @@
             <flux:table.column sortable :sorted="$sortField === 'barcode'" :direction="$sortDirection" wire:click="sort('barcode')">
                 Barcode
             </flux:table.column>
+            <flux:table.column>SKU</flux:table.column>
+            <flux:table.column>Product</flux:table.column>
             <flux:table.column>Qty</flux:table.column>
             <flux:table.column>Action</flux:table.column>
             <flux:table.column>Status</flux:table.column>
@@ -138,6 +140,12 @@
                     </flux:table.cell>
                     <flux:table.cell variant="strong">
                         <span class="font-mono text-sm">{{ $scan->barcode }}</span>
+                    </flux:table.cell>
+                    <flux:table.cell>
+                        <span class="font-mono text-sm">{{ $scan->product?->sku ?? '—' }}</span>
+                    </flux:table.cell>
+                    <flux:table.cell class="max-w-48 truncate">
+                        {{ $scan->product?->name ?? '—' }}
                     </flux:table.cell>
                     <flux:table.cell>{{ $scan->quantity }}</flux:table.cell>
                     <flux:table.cell>
@@ -174,7 +182,7 @@
                 </flux:table.row>
             @empty
                 <flux:table.row>
-                    <flux:table.cell colspan="7" class="text-center py-8">
+                    <flux:table.cell colspan="9" class="text-center py-8">
                         <div class="flex flex-col items-center gap-2 text-zinc-500">
                             <flux:icon.inbox class="size-8" />
                             <span>No scans found</span>
