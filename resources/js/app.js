@@ -212,26 +212,6 @@ function showUpdateBanner(registration) {
     console.log('Update banner shown - new version waiting');
 }
 
-// PWA Background Recovery - force reload if backgrounded too long
-let backgroundedAt = null;
-const MAX_BACKGROUND_TIME = 20 * 60 * 1000; // 20 minutes
-
-document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-        backgroundedAt = Date.now();
-        console.log('App backgrounded at:', new Date().toISOString());
-    } else if (backgroundedAt) {
-        const elapsed = Date.now() - backgroundedAt;
-        console.log('App foregrounded after:', Math.round(elapsed / 1000), 'seconds');
-
-        if (elapsed > MAX_BACKGROUND_TIME) {
-            console.log('App was backgrounded too long, reloading for fresh state...');
-            window.location.reload();
-        }
-        backgroundedAt = null;
-    }
-});
-
 // Catch unhandled errors that might cause white screen
 window.addEventListener('error', (e) => {
     console.error('Unhandled error:', e.message, e.filename, e.lineno);
