@@ -169,14 +169,12 @@
             />
         @endif
 
-        {{-- Refill Form (pre-mounted when product exists, toggled via CSS) --}}
-        @if ($barcodeScanned && $product)
-            <div class="{{ !$showRefillForm ? 'hidden' : '' }}">
-                <livewire:scanner.refill-form
-                    :product="$product"
-                    wire:key="refill-form-{{ $product->id }}"
-                />
-            </div>
+        {{-- Refill Form --}}
+        @if ($showRefillForm && $product)
+            <livewire:scanner.refill-form
+                :product="$product"
+                wire:key="refill-form"
+            />
         @endif
 
         {{-- Empty Bay Notification --}}

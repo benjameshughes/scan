@@ -83,6 +83,8 @@
             type="button"
             wire:click="emptyBayNotification"
             icon="exclamation-triangle"
+            wire:loading.attr="disabled"
+            wire:target="emptyBayNotification"
         >
             Empty Bay
         </flux:button>
@@ -90,8 +92,11 @@
             type="button"
             wire:click="showRefillBayForm"
             icon="arrow-up-tray"
+            wire:loading.attr="disabled"
+            wire:target="showRefillBayForm"
         >
-            Refill Bay
+            <span wire:loading.remove wire:target="showRefillBayForm">Refill Bay</span>
+            <span wire:loading wire:target="showRefillBayForm">Loading...</span>
         </flux:button>
     </div>
 </div>
