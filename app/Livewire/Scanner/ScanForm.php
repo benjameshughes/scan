@@ -53,9 +53,9 @@ class ScanForm extends Component
         // Validate all form fields
         $this->form->validate();
 
-        // Create scan data DTO
+        // Create scan data DTO — always use the product's barcode for storage
         $scanData = ScanData::fromForm(
-            barcode: $this->form->barcode,
+            barcode: $this->product->barcode,
             quantity: $this->form->quantity,
             scanAction: $this->form->scanAction,
             userId: auth()->id()
