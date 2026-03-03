@@ -36,12 +36,18 @@ trait HasChildComponentEvents
     public function onBarcodeProcessed(array $barcodeData): void
     {
         $this->barcode = $barcodeData['barcode'];
-        $this->barcodeScanned = $barcodeData['barcodeScanned'];
 
         // Load product by ID if provided
         $this->product = isset($barcodeData['productId'])
             ? Product::find($barcodeData['productId'])
             : null;
+
+        // Only mark as scanned if we actually have a product
+        $this->barcodeScanned = $barcodeData['barcodeScanned'] && $this->product !== null;
+
+        if (! $this->barcodeScanned) {
+            return;
+        }
 
         // Close any open forms when new barcode is processed
         $this->showRefillForm = false;
@@ -60,7 +66,6 @@ trait HasChildComponentEvents
     {
         // Reset state and restart camera after scan submission
         $resetState = $this->resetScanStateAction()->reset(ResetContext::AfterSubmission);
-        $this->resetAfterScanSubmission();
         $this->applyStateArray($resetState);
 
         if (isset($resetState['dispatchEvent'])) {
@@ -85,7 +90,6 @@ trait HasChildComponentEvents
     {
         // Reset state and restart camera after refill submission
         $resetState = $this->resetScanStateAction()->reset(ResetContext::AfterRefill);
-        $this->resetAfterScanSubmission();
         $this->applyStateArray($resetState);
 
         if (isset($resetState['dispatchEvent'])) {
@@ -119,7 +123,6 @@ trait HasChildComponentEvents
     {
         // Reset state and restart camera after empty bay submission
         $resetState = $this->resetScanStateAction()->reset(ResetContext::AfterSubmission);
-        $this->resetAfterEmptyBaySubmission();
         $this->applyStateArray($resetState);
 
         if (isset($resetState['dispatchEvent'])) {

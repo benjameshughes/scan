@@ -7,8 +7,7 @@ export default defineConfig({
             input: [
                 'resources/css/app.css',
                 'resources/js/app.js',
-                'resources/js/product-scanner.js',
-                'resources/js/scanner-page.js',  // Refactored scanner JS
+                'resources/js/scanner-page.js',
             ],
             refresh: true,
         }),

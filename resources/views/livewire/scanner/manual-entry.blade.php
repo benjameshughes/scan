@@ -17,7 +17,10 @@
                 type="text"
                 id="barcode-input"
                 placeholder="Enter barcode or SKU (e.g. 123-456)"
-                x-data="{ timer: null }"
+                x-data="{
+                    timer: null,
+                    destroy() { clearTimeout(this.timer) }
+                }"
                 x-on:input="
                     clearTimeout(timer);
                     let raw = $event.target.value.replace(/[^0-9]/g, '');

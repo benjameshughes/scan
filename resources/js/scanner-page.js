@@ -72,21 +72,8 @@ function createScannerStore() {
     function setupLivewireListeners() {
         if (!window.Livewire) return;
 
-        window.Livewire.on('camera-state-changed', async (data) => {
-            const shouldScan = Array.isArray(data) ? data[0] : data;
-            console.log('Livewire camera-state-changed:', shouldScan);
-
-            if (shouldScan) {
-                await startScanning();
-            } else {
-                await stopScanning();
-            }
-        });
-
-        window.Livewire.on('torch-state-changed', async (data) => {
-            const enabled = Array.isArray(data) ? data[0] : data;
-            await setTorchState(enabled);
-        });
+        // camera-state-changed and torch-state-changed are handled by Alpine @window listeners
+        // in product-scanner.blade.php — no need to double-handle via Livewire.on()
 
         window.Livewire.on('resume-scanning', async () => {
             await startScanning();
@@ -185,17 +172,26 @@ function createScannerStore() {
         try {
             window.Livewire?.dispatch('onCameraInitializing');
 
-            // Check and request permission
-            await checkAndRequestPermission();
+            // Check if permission is denied before attempting anything
+            if (navigator.permissions) {
+                try {
+                    const permission = await navigator.permissions.query({ name: 'camera' });
+                    if (permission.state === 'denied') {
+                        throw Object.assign(new Error('Camera access denied. Please enable in browser settings.'), { name: 'NotAllowedError' });
+                    }
+                } catch (e) {
+                    if (e.name === 'NotAllowedError') throw e;
+                    // Permissions API not supported, continue
+                }
+            }
 
-            // Get available video devices
+            // listVideoInputDevices triggers permission prompt if needed — no temp stream required
             const devices = await codeReader.listVideoInputDevices();
 
             if (devices.length === 0) {
                 throw new Error('No camera devices found');
             }
 
-            // Log available cameras
             console.log('Available cameras:', devices.map(d => ({
                 id: d.deviceId,
                 label: d.label || 'Unknown device'
@@ -244,54 +240,6 @@ function createScannerStore() {
         return backCamera?.deviceId;
     }
 
-    /**
-     * Check and request camera permission with optimal constraints
-     */
-    async function checkAndRequestPermission() {
-        // Check existing permission status
-        if (navigator.permissions) {
-            try {
-                const permission = await navigator.permissions.query({ name: 'camera' });
-                if (permission.state === 'denied') {
-                    const error = new Error('Camera access denied. Please enable in browser settings.');
-                    error.name = 'NotAllowedError';
-                    throw error;
-                }
-                if (permission.state === 'granted') {
-                    return; // Already have permission
-                }
-            } catch (e) {
-                if (e.name === 'NotAllowedError') {
-                    throw e;
-                }
-                // Permissions API not fully supported, continue
-            }
-        }
-
-        // Request permission with optimal constraints for barcode scanning
-        try {
-            const tempStream = await navigator.mediaDevices.getUserMedia({
-                video: {
-                    facingMode: { ideal: 'environment' },
-                    width: { ideal: 1280, min: 640, max: 1920 },
-                    height: { ideal: 720, min: 480, max: 1080 },
-                    frameRate: { ideal: 30, max: 60 }
-                }
-            });
-
-            // Stop the temp stream immediately
-            tempStream.getTracks().forEach(t => t.stop());
-            console.log('Camera permission granted with optimal constraints');
-
-        } catch (e) {
-            if (e.name === 'NotAllowedError') {
-                const error = new Error('Camera access denied. Please allow camera access to use the scanner.');
-                error.name = 'NotAllowedError';
-                throw error;
-            }
-            throw e;
-        }
-    }
 
     /**
      * Start scanning using ZXing controls API

@@ -57,8 +57,10 @@ class ResetScanStateAction
             'loadingCamera' => false,
             'isScanning' => false,
 
-            // Refill form state
+            // Child component state
             'showRefillForm' => false,
+            'showEmptyBayNotification' => false,
+            'autoSubmitInProgress' => false,
             'selectedLocationId' => '',
             'refillQuantity' => 1,
             'availableLocations' => [],
