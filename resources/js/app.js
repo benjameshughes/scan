@@ -110,10 +110,10 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
             .then(registration => {
                 console.log('ServiceWorker registration successful:', registration.scope);
 
-                // Check for updates periodically (every 60 seconds)
-                setInterval(() => {
-                    registration.update();
-                }, 60 * 1000);
+                // Check for updates when user returns to the app
+                document.addEventListener('visibilitychange', () => {
+                    if (!document.hidden) registration.update();
+                });
 
                 // Listen for new service worker waiting
                 registration.addEventListener('updatefound', () => {
@@ -214,7 +214,7 @@ function showUpdateBanner(registration) {
 
 // PWA Background Recovery - force reload if backgrounded too long
 let backgroundedAt = null;
-const MAX_BACKGROUND_TIME = 5 * 60 * 1000; // 5 minutes
+const MAX_BACKGROUND_TIME = 20 * 60 * 1000; // 20 minutes
 
 document.addEventListener('visibilitychange', () => {
     if (document.hidden) {

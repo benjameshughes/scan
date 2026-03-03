@@ -631,10 +631,13 @@ window.triggerVibration = function(patternData) {
     }
 };
 
-// Global success sound function for Blade template compatibility
+// Preload success sound once, replay on each scan
+const successSound = new Audio('https://images.caecus.net/assets/sounds/ding.mp3');
+successSound.preload = 'auto';
+
 window.playSuccessSound = function() {
-    const audio = new Audio('https://images.caecus.net/assets/sounds/ding.mp3');
-    audio.play().catch(err => {
+    successSound.currentTime = 0;
+    successSound.play().catch(err => {
         console.warn('Could not play success sound:', err);
     });
 };
