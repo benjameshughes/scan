@@ -242,10 +242,7 @@ class RefillForm extends Component
                 'refillQuantity' => 'required|integer|min:1|max:'.$this->maxRefillStock(),
             ]);
 
-            // Set processing state
-            $processingState = app(ProcessRefillSubmissionAction::class)->setProcessingState();
-            $this->isProcessingRefill = $processingState['isProcessingRefill'];
-            $this->refillError = $processingState['refillError'];
+            $this->refillError = '';
 
             // Process the refill submission
             $result = app(ProcessRefillSubmissionAction::class)->handle(

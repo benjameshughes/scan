@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Actions\Stock\ProcessStockTransferAction;
 use App\Models\StockMovement;
+use App\Services\LinnworksApiService;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -87,6 +88,9 @@ class ProcessStockMovement implements ShouldQueue
                     'job_completed_at' => now()->toISOString(),
                 ]),
             ]);
+
+            // Bust cached stock locations so next refill form shows fresh data
+            app(LinnworksApiService::class)->clearStockLocationCache($this->stockMovement->product->sku);
 
             Log::channel('inventory')->info('Successfully processed stock movement '.$this->stockMovement->id.' on attempt '.$this->stockMovement->sync_attempts, [
                 'type' => $this->stockMovement->type,

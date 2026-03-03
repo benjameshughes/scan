@@ -97,8 +97,8 @@
                     <flux:select.option value="decrease">Decrease</flux:select.option>
                 </flux:select>
 
-                <flux:input wire:model.live="dateFrom" type="date" label="From Date" />
-                <flux:input wire:model.live="dateTo" type="date" label="To Date" />
+                <flux:input wire:model.blur="dateFrom" type="date" label="From Date" />
+                <flux:input wire:model.blur="dateTo" type="date" label="To Date" />
             </div>
 
             <div class="flex justify-between pt-4">

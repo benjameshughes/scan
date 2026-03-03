@@ -9,11 +9,11 @@
         </p>
     </div>
 
-    {{-- Loading State --}}
-    @if ($isProcessingRefill)
+    {{-- Loading State (initial form preparation only) --}}
+    @if ($isProcessingRefill && empty($availableLocations))
         <div class="text-center py-4">
             <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Preparing refill form...</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Loading locations...</p>
         </div>
     @endif
 
@@ -36,7 +36,7 @@
     @endif
 
     {{-- Refill Form --}}
-    @if (!$isProcessingRefill && !$refillError)
+    @if (!empty($availableLocations) && !$refillError)
         <form wire:submit="submitRefill" class="space-y-4">
             {{-- From Location Selection --}}
             @if (!empty($availableLocations))
@@ -69,7 +69,7 @@
                         Transfer To Location <span class="text-red-500">*</span>
                     </label>
 
-                    <flux:select wire:model.live="form.toLocationId" placeholder="Select destination location...">
+                    <flux:select wire:model="form.toLocationId" placeholder="Select destination location...">
                         @foreach ($this->filteredToLocations as $location)
                             <flux:select.option value="{{ $location['StockLocationId'] }}">
                                 {{ $location['LocationName'] }}
@@ -98,7 +98,7 @@
 
                     <flux:button.group>
                         <flux:button wire:click="decrementRefillQuantity" icon="minus" disabled="{{ ($form->refillQuantity ?? 0) <= 1 }}" />
-                        <flux:input type="number" wire:model.live="form.refillQuantity" min="1" max="{{$this->maxRefillStock}}" clearable/>
+                        <flux:input type="number" wire:model.live.debounce.500ms="form.refillQuantity" min="1" max="{{$this->maxRefillStock}}" clearable/>
                         <flux:button wire:click="incrementRefillQuantity" icon="plus" disabled="{{ ($form->refillQuantity ?? 0) >= $this->maxRefillStock }}"/>
                     </flux:button.group>
 
@@ -128,7 +128,10 @@
             @endif
 
             {{-- Submit Button --}}
-            <flux:button type="submit" icon="arrow-up-tray" variant="primary" class="w-full">Refill Bay</flux:button>
+            <flux:button type="submit" icon="arrow-up-tray" variant="primary" class="w-full" wire:loading.attr="disabled" wire:target="submitRefill">
+                <span wire:loading.remove wire:target="submitRefill">Refill Bay</span>
+                <span wire:loading wire:target="submitRefill">Submitting...</span>
+            </flux:button>
 
         </form>
     @endif

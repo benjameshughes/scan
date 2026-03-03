@@ -65,7 +65,7 @@
                     <flux:select.option value="0">No Barcode 2</flux:select.option>
                 </flux:select>
 
-                <flux:input wire:model.live="updatedAfter" type="date" label="Updated After" />
+                <flux:input wire:model.blur="updatedAfter" type="date" label="Updated After" />
             </div>
 
             <div class="flex justify-between pt-4">

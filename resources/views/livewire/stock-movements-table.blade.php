@@ -42,8 +42,8 @@
             <flux:heading size="lg">Filters</flux:heading>
 
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <flux:input wire:model.live="dateFrom" type="date" label="From Date" />
-                <flux:input wire:model.live="dateTo" type="date" label="To Date" />
+                <flux:input wire:model.blur="dateFrom" type="date" label="From Date" />
+                <flux:input wire:model.blur="dateTo" type="date" label="To Date" />
 
                 <flux:select wire:model.live="movementType" label="Movement Type" placeholder="All types">
                     <flux:select.option value="">All Types</flux:select.option>

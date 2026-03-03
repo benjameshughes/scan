@@ -477,71 +477,88 @@ class LinnworksApiService
     // =========================================================================
 
     /**
-     * Get all locations from Linnworks
+     * Get all locations from Linnworks (cached for 1 hour)
      */
     public function getLocations(): array
     {
-        $endpoints = [
-            'Stock/GetStockLocationFull',
-            'Stock/GetStockLocations',
-            'Inventory/GetStockLocations',
-            'Locations',
-        ];
+        return Cache::remember('linnworks.locations', now()->addHour(), function () {
+            $endpoints = [
+                'Stock/GetStockLocationFull',
+                'Stock/GetStockLocations',
+                'Inventory/GetStockLocations',
+                'Locations',
+            ];
 
-        foreach ($endpoints as $endpoint) {
-            try {
-                $response = $this->makeAuthenticatedRequest('GET', $endpoint);
+            foreach ($endpoints as $endpoint) {
+                try {
+                    $response = $this->makeAuthenticatedRequest('GET', $endpoint);
 
-                Log::channel('inventory')->info('Successfully retrieved locations', [
-                    'count' => count($response),
-                    'endpoint' => $endpoint,
-                ]);
+                    Log::channel('inventory')->info('Successfully retrieved locations', [
+                        'count' => count($response),
+                        'endpoint' => $endpoint,
+                    ]);
 
-                return $response;
-            } catch (Exception $e) {
-                Log::channel('inventory')->warning("Endpoint {$endpoint} failed: {$e->getMessage()}");
+                    return $response;
+                } catch (Exception $e) {
+                    Log::channel('inventory')->warning("Endpoint {$endpoint} failed: {$e->getMessage()}");
 
-                continue;
+                    continue;
+                }
             }
-        }
 
-        throw new Exception('Failed to retrieve locations from any endpoint');
+            throw new Exception('Failed to retrieve locations from any endpoint');
+        });
     }
 
     /**
      * Get stock levels for a product across all locations (only locations with stock > 0)
+     * Cached for 10 minutes per SKU
      */
     public function getStockLocationsByProduct(string $sku): array
     {
-        $stockItem = $this->getStockDetails($sku);
+        return Cache::remember("linnworks.stock_locations.{$sku}", now()->addMinutes(10), function () use ($sku) {
+            $stockItem = $this->getStockDetails($sku);
 
-        if (empty($stockItem) || ! isset($stockItem['StockLevels'])) {
-            return [];
-        }
+            if (empty($stockItem) || ! isset($stockItem['StockLevels'])) {
+                return [];
+            }
 
-        $locationsWithStock = array_filter($stockItem['StockLevels'], function ($location) {
-            return isset($location['StockLevel']) && $location['StockLevel'] > 0;
+            $locationsWithStock = array_filter($stockItem['StockLevels'], function ($location) {
+                return isset($location['StockLevel']) && $location['StockLevel'] > 0;
+            });
+
+            Log::channel('inventory')->info("Found stock locations for SKU: {$sku}", [
+                'locations_with_stock' => count($locationsWithStock),
+                'total_locations' => count($stockItem['StockLevels']),
+            ]);
+
+            return array_values($locationsWithStock);
         });
-
-        Log::channel('inventory')->info("Found stock locations for SKU: {$sku}", [
-            'locations_with_stock' => count($locationsWithStock),
-            'total_locations' => count($stockItem['StockLevels']),
-        ]);
-
-        return array_values($locationsWithStock);
     }
 
     /**
      * Get ALL stock locations for a product (including locations with 0 stock)
+     * Cached for 10 minutes per SKU
      */
     public function getAllStockLocationsByProduct(string $sku): array
     {
-        $stockItem = $this->getStockDetails($sku);
+        return Cache::remember("linnworks.all_stock_locations.{$sku}", now()->addMinutes(10), function () use ($sku) {
+            $stockItem = $this->getStockDetails($sku);
 
-        if (empty($stockItem) || ! isset($stockItem['StockLevels'])) {
-            return [];
-        }
+            if (empty($stockItem) || ! isset($stockItem['StockLevels'])) {
+                return [];
+            }
 
-        return array_values($stockItem['StockLevels']);
+            return array_values($stockItem['StockLevels']);
+        });
+    }
+
+    /**
+     * Bust the stock location cache for a SKU (call after transfers/stock changes)
+     */
+    public function clearStockLocationCache(string $sku): void
+    {
+        Cache::forget("linnworks.stock_locations.{$sku}");
+        Cache::forget("linnworks.all_stock_locations.{$sku}");
     }
 }
