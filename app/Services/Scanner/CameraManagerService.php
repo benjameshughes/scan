@@ -184,7 +184,7 @@ class CameraManagerService
 
         return [
             'state' => new CameraState(
-                isScanning: false, // Will be set to true by onCameraReady()
+                isScanning: true, // Keep true — camera is paused, not stopped. Prevents overlay flash.
                 isLoading: false, // Don't show loading overlay — JS resume is instant
                 torchSupported: false, // Will be updated when camera initializes
                 torchEnabled: false,
