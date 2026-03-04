@@ -29,8 +29,13 @@ function createScannerStore() {
     // Camera state
     let selectedDeviceId = null;
     let isScanning = false;
+    let isPaused = false; // Paused = stream alive but not decoding
     let isTorchEnabled = false;
     let isInitialized = false;
+
+    // Inactivity timer for full hardware release
+    let inactivityTimer = null;
+    const INACTIVITY_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
 
     // User interaction tracking
     let vibrationSupported = null;
@@ -76,7 +81,7 @@ function createScannerStore() {
         // in product-scanner.blade.php — no need to double-handle via Livewire.on()
 
         window.Livewire.on('resume-scanning', async () => {
-            await startScanning();
+            await resumeScanning();
         });
 
         window.Livewire.on('trigger-vibration', (patternData) => {
@@ -359,6 +364,91 @@ function createScannerStore() {
     }
 
     /**
+     * Pause scanning - keep camera stream alive but stop decoding
+     * Used after barcode detection for instant resume
+     */
+    function pauseScanning() {
+        if (!isScanning && !isPaused) {
+            console.log('Scanner not running, nothing to pause');
+            return;
+        }
+
+        isScanning = false;
+        isPaused = true;
+
+        const video = document.getElementById('video');
+        if (video) {
+            video.pause(); // Stop frame rendering, saves CPU
+        }
+
+        // Start inactivity timer for full hardware release
+        resetInactivityTimer();
+
+        console.log('Scanner paused (stream alive, decoding stopped)');
+    }
+
+    /**
+     * Resume scanning from paused state - instant, no hardware re-init
+     */
+    function resumeScanning() {
+        if (!isPaused) {
+            console.log('Scanner not paused, using full startScanning');
+            return startScanning();
+        }
+
+        const video = document.getElementById('video');
+        if (!video || !video.srcObject) {
+            console.log('No video stream found, falling back to full start');
+            isPaused = false;
+            return startScanning();
+        }
+
+        // Check if the stream tracks are still alive
+        const tracks = video.srcObject.getVideoTracks();
+        if (!tracks.length || tracks[0].readyState !== 'live') {
+            console.log('Video tracks dead, falling back to full start');
+            isPaused = false;
+            return startScanning();
+        }
+
+        video.play(); // Resume frame rendering
+        isScanning = true;
+        isPaused = false;
+
+        // Clear inactivity timer
+        clearInactivityTimer();
+
+        window.Livewire?.dispatch('onCameraReady');
+        console.log('Scanner resumed from pause (instant)');
+    }
+
+    /**
+     * Reset the inactivity timer - after timeout, do full hardware release
+     */
+    function resetInactivityTimer() {
+        clearInactivityTimer();
+        inactivityTimer = setTimeout(() => {
+            if (isPaused) {
+                console.log('Inactivity timeout reached, releasing camera hardware');
+                isPaused = false;
+                stopScanning();
+                window.Livewire?.dispatch('onCameraStopped');
+            }
+        }, INACTIVITY_TIMEOUT_MS);
+        console.log('Inactivity timer set for 30 minutes');
+    }
+
+    /**
+     * Clear the inactivity timer
+     */
+    function clearInactivityTimer() {
+        if (inactivityTimer) {
+            clearTimeout(inactivityTimer);
+            inactivityTimer = null;
+        }
+    }
+
+    /**
      * Check if torch/flashlight is supported
      */
     function checkTorchSupport() {
@@ -415,11 +505,11 @@ function createScannerStore() {
         // Immediate haptic feedback
         triggerVibration();
 
-        // Stop scanning FIRST and wait for hardware release
-        await stopScanning();
-        console.log('Camera hardware released after barcode detection');
+        // Pause scanning (keep stream alive for instant resume)
+        pauseScanning();
+        console.log('Camera paused after barcode detection');
 
-        // Only dispatch to Livewire after camera is fully stopped
+        // Dispatch to Livewire after camera is paused
         window.Livewire?.dispatch('onBarcodeDetected', [result.text]);
     }
 
@@ -472,13 +562,13 @@ function createScannerStore() {
 
         if (document.hidden) {
             console.log('Page hidden - stopping camera to release hardware');
+            clearInactivityTimer();
+            isPaused = false;
             await stopScanning();
-            // Notify Livewire that camera has stopped so UI updates
             window.Livewire?.dispatch('onCameraStopped');
         } else {
             console.log('Page visible - restarting camera');
-            // Restart camera when user returns to the app
-            await startScanning();
+            await startScanning(); // Full start after visibility change (hardware was released)
         }
     }
 
@@ -564,6 +654,10 @@ function createScannerStore() {
     function cleanup() {
         console.log('Scanner cleanup triggered');
 
+        // Clear inactivity timer
+        clearInactivityTimer();
+        isPaused = false;
+
         // Stop camera if running
         if (isScanning) {
             stopScanning();
@@ -600,13 +694,14 @@ function createScannerStore() {
         handleCameraStateChange: async (data) => {
             const shouldScan = Array.isArray(data) ? data[0] : data;
             if (shouldScan) {
-                await startScanning();
+                await resumeScanning(); // Will fall back to full start if not paused
             } else {
                 await stopScanning();
             }
         },
         // Expose state for debugging
         get isScanning() { return isScanning; },
+        get isPaused() { return isPaused; },
         get isTorchEnabled() { return isTorchEnabled; },
         get isInitialized() { return isInitialized; },
     };
