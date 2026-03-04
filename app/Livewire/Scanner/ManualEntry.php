@@ -58,6 +58,10 @@ class ManualEntry extends Component
             $result = $processBarcodeAction->handleManualEntry($this->barcode);
 
             if ($result->isValid) {
+                // Mark as scanned immediately so "Clear Input" doesn't flash
+                // before the parent receives the barcode-processed event
+                $this->barcodeScanned = true;
+
                 // Valid barcode - dispatch to parent with product ID
                 $this->dispatch('barcode-processed', [
                     'barcode' => $result->barcode,
