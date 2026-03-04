@@ -117,9 +117,7 @@
             @endif
 
             {{-- Submit Button --}}
-            <flux:button type="submit" variant="primary" class="w-full" wire:loading.attr="disabled" wire:target="submitRefill">
-                <flux:icon.arrow-up-tray class="size-4" wire:loading.remove wire:target="submitRefill" />
-                <flux:icon.arrow-path class="size-4 animate-spin" wire:loading wire:target="submitRefill" />
+            <flux:button type="submit" variant="primary" icon="arrow-up-tray" class="w-full" wire:loading.attr="disabled" wire:target="submitRefill">
                 <span wire:loading.remove wire:target="submitRefill">Refill Bay</span>
                 <span wire:loading wire:target="submitRefill">Submitting...</span>
             </flux:button>

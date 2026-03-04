@@ -66,12 +66,11 @@
         <flux:button
             type="submit"
             variant="primary"
+            icon="check"
             class="w-full"
             wire:loading.attr="disabled"
             wire:target="save"
         >
-            <flux:icon.check class="size-4" wire:loading.remove wire:target="save" />
-            <flux:icon.arrow-path class="size-4 animate-spin" wire:loading wire:target="save" />
             <span wire:loading.remove wire:target="save">Submit Scan</span>
             <span wire:loading wire:target="save">Submitting...</span>
         </flux:button>
