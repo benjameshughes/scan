@@ -695,7 +695,8 @@ function createScannerStore() {
             const shouldScan = Array.isArray(data) ? data[0] : data;
             if (shouldScan) {
                 await resumeScanning(); // Will fall back to full start if not paused
-            } else {
+            } else if (!isPaused) {
+                // Only do full stop if not already paused (pause preserves stream)
                 await stopScanning();
             }
         },
