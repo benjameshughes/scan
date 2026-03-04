@@ -19,20 +19,9 @@
 
     {{-- Refill Error --}}
     @if ($refillError)
-        <div class="p-3 bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded-md">
-            <div class="flex justify-between items-start">
-                <p class="text-sm text-red-800 dark:text-red-200 flex items-center">
-                    <flux:icon.exclamation-triangle class="w-4 h-4 mr-2 flex-shrink-0" />
-                    {{ $refillError }}
-                </p>
-                <button
-                    wire:click="clearRefillError"
-                    class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200"
-                >
-                    <flux:icon.x-mark class="w-4 h-4" />
-                </button>
-            </div>
-        </div>
+        <flux:callout icon="exclamation-triangle" color="red">
+            <flux:callout.text>{{ $refillError }}</flux:callout.text>
+        </flux:callout>
     @endif
 
     {{-- Refill Form --}}
@@ -128,7 +117,9 @@
             @endif
 
             {{-- Submit Button --}}
-            <flux:button type="submit" icon="arrow-up-tray" variant="primary" class="w-full" wire:loading.attr="disabled" wire:target="submitRefill">
+            <flux:button type="submit" variant="primary" class="w-full" wire:loading.attr="disabled" wire:target="submitRefill">
+                <flux:icon.arrow-up-tray class="size-4" wire:loading.remove wire:target="submitRefill" />
+                <flux:icon.arrow-path class="size-4 animate-spin" wire:loading wire:target="submitRefill" />
                 <span wire:loading.remove wire:target="submitRefill">Refill Bay</span>
                 <span wire:loading wire:target="submitRefill">Submitting...</span>
             </flux:button>

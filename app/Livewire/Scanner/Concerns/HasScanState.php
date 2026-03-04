@@ -40,6 +40,11 @@ trait HasScanState
     #[On('onBarcodeDetected')]
     public function handleBarcodeDetected(string $barcode): void
     {
+        // Reject new scans while auto-submit is still resetting
+        if ($this->autoSubmitInProgress) {
+            return;
+        }
+
         // Process the barcode using the action
         $result = $this->processBarcodeAction()->handleCameraDetection($barcode);
 

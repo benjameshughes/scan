@@ -42,49 +42,36 @@
 
     {{-- Error Message --}}
     @if ($errorMessage)
-        <div class="p-3 bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded-md">
-            <div class="flex justify-between items-start">
-                <p class="text-sm text-red-800 dark:text-red-200 flex items-center">
-                    <flux:icon.exclamation-triangle class="w-4 h-4 mr-2 flex-shrink-0" />
-                    {{ $errorMessage }}
-                </p>
-                <button 
-                    wire:click="clearError"
-                    class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200"
-                >
-                    <flux:icon.x-mark class="w-4 h-4" />
-                </button>
-            </div>
-        </div>
+        <flux:callout icon="exclamation-triangle" color="red">
+            <flux:callout.text>{{ $errorMessage }}</flux:callout.text>
+        </flux:callout>
     @endif
 
     {{-- Action Buttons --}}
     <div class="space-y-3">
         {{-- Submit Notification Button --}}
-        <button
+        <flux:button
             wire:click="submitNotification"
-            class="w-full flex items-center justify-center space-x-2 px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-md font-medium transition-colors"
+            variant="primary"
+            icon="paper-airplane"
+            class="w-full"
             wire:loading.attr="disabled"
-            {{ $isProcessing ? 'disabled' : '' }}
+            wire:target="submitNotification"
+            :disabled="$isProcessing"
         >
-            <span wire:loading.remove>
-                <flux:icon.paper-airplane class="w-4 h-4" />
-            </span>
-            <span wire:loading>
-                <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-            </span>
-            <span wire:loading.remove>Send Empty Bay Notification</span>
-            <span wire:loading>Sending Notification...</span>
-        </button>
+            <span wire:loading.remove wire:target="submitNotification">Send Empty Bay Notification</span>
+            <span wire:loading wire:target="submitNotification">Sending Notification...</span>
+        </flux:button>
 
         {{-- Cancel Button --}}
-        <button
+        <flux:button
             wire:click="closeNotification"
-            class="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-zinc-900 dark:text-zinc-100 rounded-md transition-colors"
-            {{ $isProcessing ? 'disabled' : '' }}
+            variant="ghost"
+            icon="arrow-left"
+            class="w-full"
+            :disabled="$isProcessing"
         >
-            <flux:icon.arrow-left class="w-4 h-4" />
-            <span>Back to Scanner</span>
-        </button>
+            Back to Scanner
+        </flux:button>
     </div>
 </div>

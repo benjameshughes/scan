@@ -179,15 +179,6 @@ class RefillForm extends Component
     }
 
     /**
-     * Get formatted locations for the smart location selector
-     */
-    #[Computed]
-    public function smartLocationSelectorData(): array
-    {
-        return app(PrepareRefillFormAction::class)->getSmartLocationSelectorData($this->availableLocations);
-    }
-
-    /**
      * Increment refill quantity
      */
     public function incrementRefillQuantity(): void
