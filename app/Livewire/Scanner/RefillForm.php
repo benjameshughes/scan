@@ -41,10 +41,8 @@ class RefillForm extends Component
         // Initialize toLocationId with default location BEFORE preparing form
         $this->form->toLocationId = config('linnworks.default_location_id');
 
-        // Prepare the form when component is mounted
-        if ($this->product) {
-            $this->prepareForm();
-        }
+        // prepareForm() is called via wire:init in the blade template
+        // so the form shell renders instantly with a spinner
     }
 
     /**

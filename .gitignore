@@ -64,3 +64,5 @@ FEATURE_*.md
 SECURE_*.md
 *-TESTING.md
 *-FIX.md
+*_PLAN.md
+*_SUMMARY.md

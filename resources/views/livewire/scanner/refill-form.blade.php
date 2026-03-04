@@ -1,4 +1,4 @@
-<div class="space-y-4">
+<div class="space-y-4" wire:init="prepareForm">
     {{-- Form Header --}}
     <div class="text-center">
         <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
@@ -10,7 +10,7 @@
     </div>
 
     {{-- Loading State (initial form preparation only) --}}
-    @if ($isProcessingRefill && empty($availableLocations))
+    @if ($product && empty($availableLocations) && !$refillError)
         <div class="text-center py-4">
             <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
             <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Loading locations...</p>
