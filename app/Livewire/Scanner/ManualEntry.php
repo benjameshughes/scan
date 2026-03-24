@@ -57,19 +57,19 @@ class ManualEntry extends Component
             $processBarcodeAction = app(ProcessBarcodeAction::class);
             $result = $processBarcodeAction->handleManualEntry($this->barcode);
 
-            if ($result->isValid) {
+            if ($result->isValid && $result->hasProduct()) {
                 // Mark as scanned immediately so "Clear Input" doesn't flash
                 // before the parent receives the barcode-processed event
                 $this->barcodeScanned = true;
 
-                // Valid barcode - dispatch to parent with product ID
+                // Valid barcode with product - dispatch to parent with product ID
                 $this->dispatch('barcode-processed', [
                     'barcode' => $result->barcode,
                     'barcodeScanned' => true,
-                    'productId' => $result->product?->id,
+                    'productId' => $result->product->id,
                 ]);
 
-                // Trigger user feedback if product found
+                // Trigger user feedback
                 if ($result->shouldTriggerFeedback) {
                     $userFeedbackService = app(UserFeedbackService::class);
                     $feedbackState = $userFeedbackService->triggerManualEntryFeedback(
@@ -86,6 +86,9 @@ class ManualEntry extends Component
                         $this->dispatch('trigger-vibration', $vibrationData);
                     }
                 }
+            } elseif ($result->isValid && ! $result->hasProduct()) {
+                // Valid format but no product exists
+                $this->addError('barcode', 'No product found for this barcode/SKU.');
             } else {
                 // Invalid barcode - show validation error
                 $this->addError('barcode', $result->error);
