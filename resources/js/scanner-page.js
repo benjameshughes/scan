@@ -202,13 +202,13 @@ function createScannerStore() {
                 label: d.label || 'Unknown device'
             })));
 
-            // Prefer back camera
-            selectedDeviceId = findBackCamera(devices) || devices[0].deviceId;
-            const selectedCamera = devices.find(d => d.deviceId === selectedDeviceId);
+            // Prefer back camera (deviceId may be empty string on iOS before permission grant)
+            selectedDeviceId = findBackCamera(devices) || devices[0].deviceId || null;
+            const selectedCamera = selectedDeviceId ? devices.find(d => d.deviceId === selectedDeviceId) : null;
 
             console.log('Selected camera:', {
-                id: selectedDeviceId,
-                label: selectedCamera?.label || 'Unknown device'
+                id: selectedDeviceId || '(auto-select)',
+                label: selectedCamera?.label || 'Default camera'
             });
 
             // Auto-start scanning
@@ -255,13 +255,8 @@ function createScannerStore() {
             return;
         }
 
-        if (!selectedDeviceId) {
-            console.log('No device selected, cannot start');
-            return;
-        }
-
         try {
-            console.log('Starting scanner with device:', selectedDeviceId);
+            console.log('Starting scanner with device:', selectedDeviceId || '(auto-select)');
 
             // Ensure we have a fresh codeReader instance (required after controls.stop())
             if (!codeReader) {
@@ -270,8 +265,9 @@ function createScannerStore() {
             }
 
             // Use ZXing's decodeFromVideoDevice which returns controls object
+            // Pass undefined (not null) when no device ID - ZXing auto-selects default camera
             controls = await codeReader.decodeFromVideoDevice(
-                selectedDeviceId,
+                selectedDeviceId || undefined,
                 'video',
                 (result, err) => {
                     // Check scanning flag - ignore callbacks during shutdown
