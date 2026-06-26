@@ -39,12 +39,28 @@
             <flux:error name="form.quantity" />
         </div>
 
+        {{-- Default Location Stock Level --}}
+        @if ($defaultLocationStock !== null)
+            <div class="flex items-center justify-between px-3 py-2 rounded-lg {{ $defaultLocationStock === 0 ? 'bg-red-50 dark:bg-red-900/20' : 'bg-zinc-50 dark:bg-zinc-800' }}">
+                <span class="text-sm font-medium {{ $defaultLocationStock === 0 ? 'text-red-700 dark:text-red-400' : 'text-zinc-600 dark:text-zinc-400' }}">Default Location Stock</span>
+                <span class="text-sm font-bold {{ $defaultLocationStock === 0 ? 'text-red-700 dark:text-red-400' : 'text-zinc-900 dark:text-zinc-100' }}">{{ $defaultLocationStock }}</span>
+            </div>
+        @endif
+
+        {{-- Zero Stock Warning --}}
+        @if ($defaultLocationStock === 0 && !$form->scanAction)
+            <flux:callout icon="exclamation-triangle" color="red">
+                <flux:callout.heading>No stock in the bay</flux:callout.heading>
+                <flux:callout.text>Cannot decrease stock when Default location is at zero. Switch to increase or restock first.</flux:callout.text>
+            </flux:callout>
+        @endif
+
         {{-- Scan Action Toggle --}}
         <flux:callout icon="triangle-alert" variant="secondary" inline>
             <flux:callout.heading>Increase Stock</flux:callout.heading>
             <flux:callout.text>Tick to <strong>increase</strong> stock instead of decreasing</flux:callout.text>
             <x-slot name="controls">
-                <flux:checkbox wire:model="form.scanAction" />
+                <flux:checkbox wire:model.live="form.scanAction" />
             </x-slot>
         </flux:callout>
 
@@ -63,6 +79,11 @@
         @enderror
 
         {{-- Submit Button --}}
+        @php
+            $isDecrease = !$form->scanAction;
+            $stockBlocked = $isDecrease && $defaultLocationStock === 0;
+            $quantityExceedsStock = $isDecrease && $defaultLocationStock !== null && ($form->quantity ?? 1) > $defaultLocationStock;
+        @endphp
         <flux:button
             type="submit"
             variant="primary"
@@ -70,8 +91,17 @@
             class="w-full"
             wire:loading.attr="disabled"
             wire:target="save"
+            :disabled="$stockBlocked"
         >
-            <span wire:loading.remove wire:target="save">Submit Scan</span>
+            <span wire:loading.remove wire:target="save">
+                @if ($stockBlocked)
+                    No Stock to Remove
+                @elseif ($quantityExceedsStock)
+                    Only {{ $defaultLocationStock }} Available
+                @else
+                    Submit Scan
+                @endif
+            </span>
             <span wire:loading wire:target="save">Submitting...</span>
         </flux:button>
     </form>

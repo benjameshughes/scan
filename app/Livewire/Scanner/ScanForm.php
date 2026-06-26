@@ -8,7 +8,9 @@ use App\DTOs\Scanner\ScanData;
 use App\Jobs\EmptyBayJob;
 use App\Livewire\Forms\ScanFormData;
 use App\Models\Product;
+use App\Services\LinnworksApiService;
 use App\Services\Scanner\UserFeedbackService;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
@@ -18,12 +20,34 @@ class ScanForm extends Component
 
     public ?Product $product = null;
 
+    public ?int $defaultLocationStock = null;
+
     public function mount(
         ?string $barcode = null,
         ?Product $product = null,
     ) {
         $this->form->setBarcode($barcode);
         $this->product = $product;
+
+        $this->fetchDefaultLocationStock();
+    }
+
+    private function fetchDefaultLocationStock(): void
+    {
+        if (! $this->product?->sku) {
+            return;
+        }
+
+        try {
+            $linnworks = app(LinnworksApiService::class);
+            $this->defaultLocationStock = $linnworks->getStockLevel($this->product->sku);
+        } catch (\Throwable $e) {
+            Log::channel('inventory')->warning('Failed to fetch stock level for scan form', [
+                'sku' => $this->product->sku,
+                'error' => $e->getMessage(),
+            ]);
+            $this->defaultLocationStock = null;
+        }
     }
 
     /**
@@ -52,6 +76,22 @@ class ScanForm extends Component
     {
         // Validate all form fields
         $this->form->validate();
+
+        $isDecrease = ! $this->form->scanAction;
+
+        if ($isDecrease && $this->defaultLocationStock !== null) {
+            if ($this->defaultLocationStock === 0) {
+                $this->addError('form', 'Stock is already at zero on Default. Cannot decrease further.');
+
+                return;
+            }
+
+            if ($this->form->quantity > $this->defaultLocationStock) {
+                $this->addError('form', "Only {$this->defaultLocationStock} in stock on Default. Reduce quantity or restock first.");
+
+                return;
+            }
+        }
 
         // Create scan data DTO — always use the product's barcode for storage
         $scanData = ScanData::fromForm(
