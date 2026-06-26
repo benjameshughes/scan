@@ -26,6 +26,7 @@
             <div class="relative bg-black rounded-lg overflow-hidden aspect-video">
                 {{-- Video Element - ZXing manages this directly via decodeFromVideoDevice --}}
                 <video
+                    wire:ignore
                     id="video"
                     class="w-full h-full object-cover"
                     playsinline
