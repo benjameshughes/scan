@@ -26,10 +26,9 @@ class ManualEntry extends Component
         $this->showRefillForm = $showRefillForm;
     }
 
-    public function updatedBarcode()
+    public function updatedBarcode(ProcessBarcodeAction $processBarcodeAction, UserFeedbackService $userFeedbackService)
     {
         if (! $this->barcode) {
-            // Barcode was cleared - reset the scan state
             $this->dispatch('barcode-processed', [
                 'barcode' => null,
                 'barcodeScanned' => false,
@@ -39,90 +38,44 @@ class ManualEntry extends Component
             return;
         }
 
-        // Check if input is a complete SKU or barcode
-        $isSku = preg_match('/^\d{3}-\d{3}$/', $this->barcode);
-        $isBarcode = preg_match('/^\d{13}$/', $this->barcode);
-
-        if (! $isSku && ! $isBarcode) {
-            $this->addError('barcode', 'Enter a valid barcode (13 digits) or SKU (e.g. 123-456).');
-
-            return;
-        }
-
-        // Clear any previous errors
         $this->resetValidation('barcode');
 
-        try {
-            // Process the barcode
-            $processBarcodeAction = app(ProcessBarcodeAction::class);
-            $result = $processBarcodeAction->handleManualEntry($this->barcode);
+        $result = $processBarcodeAction->handleManualEntry($this->barcode);
 
-            if ($result->isValid && $result->hasProduct()) {
-                // Mark as scanned immediately so "Clear Input" doesn't flash
-                // before the parent receives the barcode-processed event
-                $this->barcodeScanned = true;
+        if (! $result->isValid) {
+            $this->addError('barcode', $result->error);
+            $this->dispatch('barcode-processed', ['barcode' => null, 'barcodeScanned' => false, 'productId' => null]);
 
-                // Valid barcode with product - dispatch to parent with product ID
-                $this->dispatch('barcode-processed', [
-                    'barcode' => $result->barcode,
-                    'barcodeScanned' => true,
-                    'productId' => $result->product->id,
-                ]);
-
-                // Trigger user feedback
-                if ($result->shouldTriggerFeedback) {
-                    $userFeedbackService = app(UserFeedbackService::class);
-                    $feedbackState = $userFeedbackService->triggerManualEntryFeedback(
-                        $result->product,
-                        auth()->user()
-                    );
-
-                    if ($feedbackState['playSuccessSound']) {
-                        $this->dispatch('play-success-sound');
-                    }
-
-                    if ($feedbackState['triggerVibration']) {
-                        $vibrationData = $userFeedbackService->getVibrationPatternData(auth()->user());
-                        $this->dispatch('trigger-vibration', $vibrationData);
-                    }
-                }
-            } elseif ($result->isValid && ! $result->hasProduct()) {
-                // Valid format but no product exists
-                $this->addError('barcode', 'No product found for this barcode/SKU.');
-            } else {
-                // Invalid barcode - show validation error
-                $this->addError('barcode', $result->error);
-
-                $this->dispatch('barcode-processed', [
-                    'barcode' => null,
-                    'barcodeScanned' => false,
-                    'productId' => null,
-                ]);
-            }
-
-        } catch (\Exception $e) {
-            $this->addError('barcode', 'Error processing barcode: '.$e->getMessage());
-
-            $this->dispatch('barcode-processed', [
-                'barcode' => null,
-                'barcodeScanned' => false,
-                'productId' => null,
-            ]);
+            return;
         }
-    }
 
-    public function getRules()
-    {
-        return [
-            'barcode' => 'nullable|string',
-        ];
-    }
+        if (! $result->hasProduct()) {
+            $this->addError('barcode', 'No product found for this barcode/SKU.');
 
-    public function getMessages()
-    {
-        return [
-            'barcode.string' => 'Barcode must be a valid string.',
-        ];
+            return;
+        }
+
+        $this->barcodeScanned = true;
+
+        $this->dispatch('barcode-processed', [
+            'barcode' => $result->barcode,
+            'barcodeScanned' => true,
+            'productId' => $result->product->id,
+        ]);
+
+        if (! $result->shouldTriggerFeedback) {
+            return;
+        }
+
+        $feedbackState = $userFeedbackService->triggerManualEntryFeedback($result->product, auth()->user());
+
+        if ($feedbackState['playSuccessSound']) {
+            $this->dispatch('play-success-sound');
+        }
+
+        if ($feedbackState['triggerVibration']) {
+            $this->dispatch('trigger-vibration', $userFeedbackService->getVibrationPatternData(auth()->user()));
+        }
     }
 
     public function render()

@@ -23,8 +23,9 @@ class ProcessBarcodeAction
         Log::debug('Processing barcode/SKU', ['input' => $barcode]);
 
         $isSku = preg_match('/^\d{3}-\d{3}$/', $barcode);
+        $isTextCode = preg_match('/^[A-Za-z]{2,10}$/', $barcode);
 
-        // Validate format (accepts both barcode and SKU)
+        // Validate format (accepts barcode, SKU, and text codes)
         $validator = Validator::make(
             ['barcode' => $barcode],
             ['barcode' => [new BarcodeOrSkuCheck('505903')]]
@@ -38,8 +39,8 @@ class ProcessBarcodeAction
         }
 
         try {
-            // SKU: lookup by sku column, Barcode: lookup by barcode columns
-            $product = $isSku
+            // SKU/text code: lookup by sku column, Barcode: lookup by barcode columns
+            $product = ($isSku || $isTextCode)
                 ? Product::where('sku', $barcode)->first()
                 : $this->getProductAction->handle($barcode);
 

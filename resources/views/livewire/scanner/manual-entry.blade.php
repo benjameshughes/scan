@@ -23,19 +23,18 @@
                 <flux:input
                     type="text"
                     id="barcode-input"
-                    placeholder="Enter barcode or SKU (e.g. 123-456)"
+                    placeholder="Enter barcode, SKU, or code (e.g. 123-456, NDF)"
                     x-data="{
                         timer: null,
                         destroy() { clearTimeout(this.timer) }
                     }"
                     x-on:input="
                         clearTimeout(timer);
-                        let raw = $event.target.value.replace(/[^0-9]/g, '');
-                        $event.target.value = raw;
+                        let v = $event.target.value.trim();
                         timer = setTimeout(() => {
-                            let v = raw;
-                            if (v.length === 6 && !v.startsWith('505903')) { // 505903 = EAN barcode prefix, don't format as SKU
-                                v = v.slice(0, 3) + '-' + v.slice(3);
+                            let digits = v.replace(/[^0-9]/g, '');
+                            if (digits.length === v.length && v.length === 6 && !v.startsWith('505903')) {
+                                v = digits.slice(0, 3) + '-' + digits.slice(3);
                                 $event.target.value = v;
                             }
                             $wire.set('barcode', v);
@@ -60,7 +59,7 @@
             {{-- Help Text --}}
             @if (!$barcode && !$errors->has('barcode'))
                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    Enter a barcode (13 digits) or SKU (e.g. 123-456)
+                    Enter a barcode (13 digits), SKU (e.g. 123-456), or text code (e.g. NDF)
                 </p>
             @endif
         </div>

@@ -28,11 +28,16 @@ class BarcodeOrSkuCheck implements ValidationRule
             return;
         }
 
+        // Short alpha code (e.g. NDF)
+        if (preg_match('/^[A-Za-z]{2,10}$/', $valueStr)) {
+            return;
+        }
+
         // Barcode format: 13 digits starting with prefix
         if (ctype_digit($valueStr) && strlen($valueStr) === 13 && Str::startsWith($valueStr, $this->prefix)) {
             return;
         }
 
-        $fail("The {$attribute} must be a valid barcode (13 digits starting with {$this->prefix}) or SKU (format: 000-000).");
+        $fail("The {$attribute} must be a valid barcode (13 digits starting with {$this->prefix}), SKU (format: 000-000), or a short text code.");
     }
 }
