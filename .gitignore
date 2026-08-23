@@ -54,15 +54,13 @@ yarn-error.log
 ehthumbs.db
 Thumbs.db
 
-# Claude AI
+# AI / Dev tools
 .claude
+.remember
+.junie
+.mcp.json
+AGENTS.md
+.dev.pid
 
-# Documentation (temporary/dev only)
-PWA-*.md
-ACTIONS_*.md
-FEATURE_*.md
-SECURE_*.md
-*-TESTING.md
-*-FIX.md
-*_PLAN.md
-*_SUMMARY.md
+# Markdown
+*.md
